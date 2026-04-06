@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <title>Załącznik 4</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/zal4.css') }}">
+</head>
+<body>
+    <div class="page">
+        <header class="page-header">
+            <div class="brand">Rozliczanie praktyk</div>
+        </header>
+
+        <main class="card">
+            <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+            <div class="doc-header">
+                <div class="doc-mark">Załącznik nr 4</div>
+                <h1>Potwierdzenie uzyskania efektów uczenia się w ramach praktyki zawodowej</h1>
+            </div>
+
+            {% if saved %}
+                <div class="msg">Zapisano dane.</div>
+            {% endif %}
+            {% if error %}
+                <div class="error">{{ error }}</div>
+            {% endif %}
+
+            <form method="post" action="{{ url_for('zal4') }}">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="imie_nazwisko">Student / ka</label>
+                        <input
+                            id="imie_nazwisko"
+                            type="text"
+                            name="imie_nazwisko"
+                            pattern=".+ .+"
+                            title="Podaj imię i nazwisko"
+                            required
+                        >
+                    </div>
+                    <div class="field">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input
+                            id="nr_albumu"
+                            type="text"
+                            name="nr_albumu"
+                            inputmode="numeric"
+                            pattern="[0-9]+"
+                            title="Wpisz tylko cyfry"
+                            required
+                        >
+                    </div>
+                    <div class="field">
+                        <label for="kierunek">Kierunek studiów</label>
+                        <input
+                            id="kierunek"
+                            type="text"
+                            name="kierunek"
+                            value="Informatyka"
+                            readonly
+                            required
+                        >
+                    </div>
+                    <div class="field">
+                        <label for="specjalnosc">Specjalność</label>
+                        <select id="specjalnosc" name="specjalnosc" required>
+                            <option value="" disabled selected>Wybierz specjalność</option>
+                            <option value="Administracja systemów i sieci komputerowych (ASiSK)">
+                                Administracja systemów i sieci komputerowych (ASiSK)
+                            </option>
+                            <option value="Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)">
+                                Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)
+                            </option>
+                            <option value="Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)">
+                                Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)
+                            </option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="wymiar_godzin">Wymiar godzin</label>
+                        <input
+                            id="wymiar_godzin"
+                            type="number"
+                            name="wymiar_godzin"
+                            value="960"
+                            min="0"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <p class="section-text">
+                    W ramach praktyki zawodowej zrealizowanej w wymiarze godzin uzyskał/a lub
+                    nie uzyskał/a zakładane dla praktyki zawodowej efekty uczenia się:
+                </p>
+
+                <div class="table-wrap">
+                    <table class="effects-table">
+                        <thead>
+                            <tr>
+                                <th class="col-nr">Nr</th>
+                                <th>Efekty uczenia się</th>
+                                <th class="col-status">Potwierdzenie uzyskania efektów</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for effect in effects %}
+                                <tr>
+                                    <td class="col-nr">{{ "%02d"|format(effect.nr) }}</td>
+                                    <td>{{ effect.opis }}</td>
+                                    <td class="col-status">
+                                        <label class="radio">
+                                            <input
+                                                type="radio"
+                                                name="efekt_{{ effect.nr }}"
+                                                value="uzyskał/a"
+                                                required
+                                            >
+                                            uzyskał/a *
+                                        </label>
+                                        <label class="radio">
+                                            <input
+                                                type="radio"
+                                                name="efekt_{{ effect.nr }}"
+                                                value="nie uzyskał/a"
+                                            >
+                                            nie uzyskał/a *
+                                        </label>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="signature-grid">
+                    <div class="field">
+                        <label for="potwierdzenie_opiekuna">Potwierdzenie bezpośredniego opiekuna zakładowego</label>
+                        <input
+                            id="potwierdzenie_opiekuna"
+                            type="text"
+                            name="potwierdzenie_opiekuna"
+                            placeholder="Data, podpis i pieczęć zakładu pracy"
+                        >
+                    </div>
+                    <div class="field">
+                        <label for="opinia_opiekuna">Opinia opiekuna uczelnianego</label>
+                        <textarea id="opinia_opiekuna" name="opinia_opiekuna" rows="5"></textarea>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn" type="submit">Zapisz</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</body>
+</html>

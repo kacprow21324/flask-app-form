@@ -1,0 +1,64 @@
+.hero {
+    text-align: left;
+}
+
+.menu {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.menu-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 320px;
+}
+
+.menu-note {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.filled {
+    margin-top: 26px;
+}
+
+.filled-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    display: grid;
+    gap: 10px;
+}
+
+.filled-list li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: baseline;
+}
+
+.filled-link {
+    font-weight: 600;
+}
+
+.filled-meta {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+
+.card,
+.btn,
+.nav a {
+    border-radius: 0;
+}
+
+.btn {
+    background: #ffffff;
+    color: var(--text);
+    border: 1px solid var(--border);
+}

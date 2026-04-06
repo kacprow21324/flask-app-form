@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <title>Podgląd formularzy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+</head>
+<body>
+    <div class="page">
+        <header class="page-header">
+            <div class="brand">Rozliczanie praktyk</div>
+        </header>
+
+        <main class="card">
+            <div class="doc-header">
+                <div class="doc-mark">Podgląd</div>
+                <h1>Podgląd formularzy</h1>
+                <p class="subtitle">Nr albumu: {{ nr_albumu }}</p>
+            </div>
+
+            {% if missing %}
+                <div class="error">Brak danych dla tego numeru albumu.</div>
+            {% else %}
+                {% if zal4 %}
+                    <section class="preview-section">
+                        <h2>Załącznik 4</h2>
+                        <div class="preview-grid">
+                            <div class="preview-item">
+                                <span class="preview-label">Student</span>
+                                <span class="preview-value">{{ zal4.imie_nazwisko }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Kierunek</span>
+                                <span class="preview-value">{{ zal4.kierunek }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Specjalność</span>
+                                <span class="preview-value">{{ zal4.specjalnosc }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Wymiar godzin</span>
+                                <span class="preview-value">{{ zal4.wymiar_godzin }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Potwierdzenie opiekuna</span>
+                                <span class="preview-value">{{ zal4.potwierdzenie_opiekuna }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Opinia opiekuna</span>
+                                <span class="preview-value">{{ zal4.opinia_opiekuna }}</span>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Nr</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for efekt in zal4.efekty %}
+                                        <tr>
+                                            <td>{{ "%02d"|format(efekt.nr) }}</td>
+                                            <td>{{ efekt.status }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                {% endif %}
+
+                {% if zal6 %}
+                    <section class="preview-section">
+                        <h2>Załącznik 6</h2>
+                        <div class="preview-grid">
+                            <div class="preview-item">
+                                <span class="preview-label">Student</span>
+                                <span class="preview-value">{{ zal6.imie_nazwisko }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Kierunek</span>
+                                <span class="preview-value">{{ zal6.kierunek }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Specjalnosc</span>
+                                <span class="preview-value">{{ zal6.specjalnosc }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Rok studiów</span>
+                                <span class="preview-value">{{ zal6.rok_akademicki }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Miejsce praktyki</span>
+                                <span class="preview-value">{{ zal6.miejsce_praktyki }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Daty praktyki</span>
+                                <span class="preview-value">{{ zal6.data_start }} - {{ zal6.data_end }}</span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-label">Wykaz załączników</span>
+                                <span class="preview-value">{{ zal6.wykaz_zalacznikow }}</span>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Dzień</th>
+                                        <th>Data</th>
+                                        <th>Opis</th>
+                                        <th>Efekty</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for wpis in zal6.dziennik %}
+                                        <tr>
+                                            <td>{{ wpis.dzien }}</td>
+                                            <td>{{ wpis.data }}</td>
+                                            <td>{{ wpis.opis }}</td>
+                                            <td>{{ wpis.efekty }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                {% endif %}
+            {% endif %}
+
+            <div class="actions">
+                <a class="btn secondary" href="{{ url_for('index') }}">Powrót</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

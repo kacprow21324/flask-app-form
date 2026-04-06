@@ -1,0 +1,292 @@
+{
+  "21324": {
+    "zal6": {
+      "imie_nazwisko": "Kacper Woszczyło",
+      "nr_albumu": "21324",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Testowe",
+      "data_start": "2026-04-06",
+      "data_end": "2026-04-08",
+      "wykaz_zalacznikow": "",
+      "dziennik": [
+        {
+          "dzien": "1",
+          "data": "2026-04-06",
+          "opis": " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eleifend, ex ut consectetur consequat, elit urna fringilla sem, eu tincidunt ligula enim vitae libero. Suspendisse sit amet efficitur sem, molestie blandit leo. Fusce aliquam mi at lectus hendrerit eleifend. Praesent aliquet commodo efficitur. Mauris vulputate lacus ut sodales aliquam. Donec viverra nisi sodales, elementum nisl non, placerat nisi. Sed aliquet mattis velit, aliquet faucibus ipsum molestie at. Vivamus condimentum finibus augue et pretium. Etiam ac magna massa. Duis eu ligula suscipit, porta nibh et, cursus metus. Curabitur vestibulum leo sed erat varius suscipit. Aliquam tempor euismod interdum. Nunc eget metus a leo volutpat lacinia eget in tortor. Ut ac risus malesuada, lobortis sapien eu, scelerisque magna. ",
+          "efekty": "1, 2, 3",
+          "podpis": ""
+        },
+        {
+          "dzien": "2",
+          "data": "2026-04-07",
+          "opis": " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eleifend, ex ut consectetur consequat, elit urna fringilla sem, eu tincidunt ligula enim vitae libero. Suspendisse sit amet efficitur sem, molestie blandit leo. Fusce aliquam mi at lectus hendrerit eleifend. Praesent aliquet commodo efficitur. Mauris vulputate lacus ut sodales aliquam. Donec viverra nisi sodales, elementum nisl non, placerat nisi. Sed aliquet mattis velit, aliquet faucibus ipsum molestie at. Vivamus condimentum finibus augue et pretium. Etiam ac magna massa. Duis eu ligula suscipit, porta nibh et, cursus metus. Curabitur vestibulum leo sed erat varius suscipit. Aliquam tempor euismod interdum. Nunc eget metus a leo volutpat lacinia eget in tortor. Ut ac risus malesuada, lobortis sapien eu, scelerisque magna. ",
+          "efekty": "9, 10, 11",
+          "podpis": ""
+        },
+        {
+          "dzien": "3",
+          "data": "2026-04-08",
+          "opis": " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eleifend, ex ut consectetur consequat, elit urna fringilla sem, eu tincidunt ligula enim vitae libero. Suspendisse sit amet efficitur sem, molestie blandit leo. Fusce aliquam mi at lectus hendrerit eleifend. Praesent aliquet commodo efficitur. Mauris vulputate lacus ut sodales aliquam. Donec viverra nisi sodales, elementum nisl non, placerat nisi. Sed aliquet mattis velit, aliquet faucibus ipsum molestie at. Vivamus condimentum finibus augue et pretium. Etiam ac magna massa. Duis eu ligula suscipit, porta nibh et, cursus metus. Curabitur vestibulum leo sed erat varius suscipit. Aliquam tempor euismod interdum. Nunc eget metus a leo volutpat lacinia eget in tortor. Ut ac risus malesuada, lobortis sapien eu, scelerisque magna. ",
+          "efekty": "2, 3, 4, 5, 6, 7, 8, 9, 10, 11",
+          "podpis": ""
+        }
+      ]
+    },
+    "zal4": {
+      "imie_nazwisko": "Kacper Woszczyło",
+      "nr_albumu": "21324",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "wymiar_godzin": "960",
+      "potwierdzenie_opiekuna": "test",
+      "opinia_opiekuna": "test",
+      "efekty": [
+        {
+          "nr": 1,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 2,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 3,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 4,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 5,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 6,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 7,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 8,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 9,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 10,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 11,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 12,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 13,
+          "status": "uzyskał/a"
+        }
+      ]
+    }
+  },
+  "21370": {
+    "zal6": {
+      "imie_nazwisko": "Test Testownikow",
+      "nr_albumu": "21370",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Przykladowa Firma",
+      "data_start": "2026-03-10",
+      "data_end": "2026-03-12",
+      "wykaz_zalacznikow": "test.pdf",
+      "dziennik": [
+        {
+          "dzien": "1",
+          "data": "2026-03-10",
+          "opis": "Konfiguracja srodowiska.",
+          "efekty": "1, 2",
+          "podpis": ""
+        },
+        {
+          "dzien": "2",
+          "data": "2026-03-11",
+          "opis": "przygotowanie dokumentacji.",
+          "efekty": "3, 7",
+          "podpis": ""
+        },
+        {
+          "dzien": "3",
+          "data": "2026-03-12",
+          "opis": "implementacja.",
+          "efekty": "5, 9, 10",
+          "podpis": ""
+        }
+      ]
+    },
+    "zal4": {
+      "imie_nazwisko": "Test Testownikow",
+      "nr_albumu": "21370",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "wymiar_godzin": "960",
+      "potwierdzenie_opiekuna": "test",
+      "opinia_opiekuna": "test",
+      "efekty": [
+        {
+          "nr": 1,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 2,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 3,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 4,
+          "status": "nie uzyskał/a"
+        },
+        {
+          "nr": 5,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 6,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 7,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 8,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 9,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 10,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 11,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 12,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 13,
+          "status": "uzyskał/a"
+        }
+      ]
+    }
+  },
+  "00000": {
+    "zal6": {
+      "imie_nazwisko": "Zero Zerownik",
+      "nr_albumu": "00000",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Zerowie",
+      "data_start": "2026-04-06",
+      "data_end": "2026-04-07",
+      "wykaz_zalacznikow": "",
+      "dziennik": [
+        {
+          "dzien": "1",
+          "data": "2026-04-06",
+          "opis": " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eleifend, ex ut consectetur consequat, elit urna fringilla sem, eu tincidunt ligula enim vitae libero. Suspendisse sit amet efficitur sem, molestie blandit leo. Fusce aliquam mi at lectus hendrerit eleifend. Praesent aliquet commodo efficitur. Mauris vulputate lacus ut sodales aliquam. Donec viverra nisi sodales, elementum nisl non, placerat nisi. Sed aliquet mattis velit, aliquet faucibus ipsum molestie at. Vivamus condimentum finibus augue et pretium. Etiam ac magna massa. Duis eu ligula suscipit, porta nibh et, cursus metus. Curabitur vestibulum leo sed erat varius suscipit. Aliquam tempor euismod interdum. Nunc eget metus a leo volutpat lacinia eget in tortor. Ut ac risus malesuada, lobortis sapien eu, scelerisque magna.  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eleifend, ex ut consectetur consequat, elit urna fringilla sem, eu tincidunt ligula enim vitae libero. Suspendisse sit amet efficitur sem, molestie blandit leo. Fusce aliquam mi at lectus hendrerit eleifend. Praesent aliquet commodo efficitur. Mauris vulputate lacus ut sodales aliquam. Donec viverra nisi sodales, elementum nisl non, placerat nisi. Sed aliquet mattis velit, aliquet faucibus ipsum molestie at. Vivamus condimentum finibus augue et pretium. Etiam ac magna massa. Duis eu ligula suscipit, porta nibh et, cursus metus. Curabitur vestibulum leo sed erat varius suscipit. Aliquam tempor euismod interdum. Nunc eget metus a leo volutpat lacinia eget in tortor. Ut ac risus malesuada, lobortis sapien eu, scelerisque magna. ",
+          "efekty": "1, 2, 3, 5, 8, 10, 11, 12",
+          "podpis": ""
+        },
+        {
+          "dzien": "2",
+          "data": "2026-04-07",
+          "opis": "entum finibus augue et pretium. Etiam ac magna massa. Duis eu ligula suscipit, porta nibh et, cursus metus. Curabitur vestibulum leo sed erat varius suscipit. Aliquam tempor euismod interdum. Nunc eget metus a leo volutpat lacinia eget in tortor. Ut ac risus malesuada, lobortis sapien eu, scelerisque magna.  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus eleifend, ex ut consectetur consequat, elit urna fringilla sem, eu tincidunt ligula enim vitae libero. Suspendisse sit amet efficitur sem, molestie blandit leo. Fusce aliquam mi at lectus hendrerit eleifend. Praesent aliquet commodo efficitur. Mauris vulputate lacus ut sodales aliquam. Donec viverra nisi sodales, elementum nisl non, placerat nisi. Sed aliquet mattis velit, aliquet faucibus ipsum molestie at. Vivamus condimentum finibus augue et pretium. Etiam ac magna massa. Duis eu ligula suscipit, porta nibh et, cursus metus. Curabitu",
+          "efekty": "1, 6",
+          "podpis": ""
+        }
+      ]
+    },
+    "zal4": {
+      "imie_nazwisko": "Zero Zerownik",
+      "nr_albumu": "00000",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)",
+      "wymiar_godzin": "960",
+      "potwierdzenie_opiekuna": "test",
+      "opinia_opiekuna": "test",
+      "efekty": [
+        {
+          "nr": 1,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 2,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 3,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 4,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 5,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 6,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 7,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 8,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 9,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 10,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 11,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 12,
+          "status": "nie uzyskał/a"
+        },
+        {
+          "nr": 13,
+          "status": "nie uzyskał/a"
+        }
+      ]
+    }
+  }
+}

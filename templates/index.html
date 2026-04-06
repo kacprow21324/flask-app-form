@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <title>Rozliczanie praktyk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+<body>
+    <div class="page">
+        <header class="page-header">
+            <div class="brand">Rozliczanie praktyk</div>
+        </header>
+
+        <main class="card hero">
+            <h1>Rozliczanie praktyk studenckich</h1>
+            <p class="subtitle">Wybierz formularz, aby uzupełnić wymagane załączniki.</p>
+            <div class="menu">
+                <div class="menu-item">
+                    <a class="btn" href="{{ url_for('zal4') }}">Załącznik 4</a>
+                    <p class="menu-note">Zał 4: potwierdzenie efektów uczenia się.</p>
+                </div>
+                <div class="menu-item">
+                    <a class="btn secondary" href="{{ url_for('zal6') }}">Załącznik 6</a>
+                    <p class="menu-note">Zał 6: dziennik praktyk zawodowych.</p>
+                </div>
+            </div>
+
+            <div class="filled">
+                <h2>Wypełnione formularze</h2>
+                {% if students %}
+                    <ul class="filled-list">
+                        {% for student in students %}
+                            <li>
+                                <a class="filled-link" href="{{ url_for('podglad', nr_albumu=student.nr_albumu) }}">
+                                    {{ student.imie_nazwisko or "Brak imienia i nazwiska" }}
+                                </a>
+                                <span class="filled-meta">Nr albumu: {{ student.nr_albumu }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="subtitle">Brak zapisanych formularzy.</p>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <title>Załącznik 6</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/zal6.css') }}">
+</head>
+<body>
+    <div class="page">
+        <header class="page-header">
+            <div class="brand">Rozliczanie praktyk</div>
+        </header>
+
+        <main class="card">
+            <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+            <div class="doc-top">
+                <div class="doc-left">
+                    <div class="inst-name">Akademia Nauk Stosowanych w Elblągu</div>
+                    <div class="inst-dept">
+                        Instytut Informatyki Stosowanej
+                        <span>im. Krzysztofa Brzeskiego</span>
+                    </div>
+                </div>
+                <div class="doc-right">Załącznik nr 6</div>
+            </div>
+
+            <h1 class="doc-title">Dziennik praktyki zawodowej</h1>
+
+            {% if saved %}
+                <div class="msg">Zapisano dane.</div>
+            {% endif %}
+            {% if error %}
+                <div class="error">{{ error }}</div>
+            {% endif %}
+
+            <form method="post" action="{{ url_for('zal6') }}">
+                <div class="line-grid">
+                    <div class="field line-field">
+                        <label for="imie_nazwisko">Student</label>
+                        <input
+                            id="imie_nazwisko"
+                            type="text"
+                            name="imie_nazwisko"
+                            pattern=".+ .+"
+                            title="Podaj imię i nazwisko"
+                            required
+                        >
+                    </div>
+                    <div class="field line-field">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input
+                            id="nr_albumu"
+                            type="text"
+                            name="nr_albumu"
+                            inputmode="numeric"
+                            pattern="[0-9]+"
+                            title="Wpisz tylko cyfry"
+                            required
+                        >
+                    </div>
+                </div>
+                <div class="line-grid">
+                    <div class="field line-field">
+                        <label for="kierunek">Kierunek</label>
+                        <input
+                            id="kierunek"
+                            type="text"
+                            name="kierunek"
+                            value="Informatyka"
+                            readonly
+                            required
+                        >
+                    </div>
+                    <div class="field line-field">
+                        <label for="specjalnosc">Specjalność</label>
+                        <select id="specjalnosc" name="specjalnosc" required>
+                            <option value="" disabled selected>Wybierz specjalność</option>
+                            <option
+                                value="Administracja systemów i sieci komputerowych (ASiSK)"
+                            >
+                                Administracja systemów i sieci komputerowych (ASiSK)
+                            </option>
+                            <option
+                                value="Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)"
+                            >
+                                Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)
+                            </option>
+                            <option
+                                value="Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)"
+                            >
+                                Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="line-grid">
+                    <div class="field line-field">
+                        <label for="rok_akademicki">Rok studiów</label>
+                        <select id="rok_akademicki" name="rok_akademicki" required>
+                            <option value="2025/2026" selected>2025/2026</option>
+                        </select>
+                    </div>
+                    <div class="field line-field">
+                        <label for="miejsce_praktyki">Miejsce odbywania praktyki</label>
+                        <input
+                            id="miejsce_praktyki"
+                            type="text"
+                            name="miejsce_praktyki"
+                            required
+                        >
+                    </div>
+                </div>
+                <div class="line-grid two">
+                    <div class="field line-field">
+                        <label for="data_start">Data rozpoczęcia praktyki</label>
+                        <input
+                            id="data_start"
+                            type="date"
+                            name="data_start"
+                            required
+                        >
+                    </div>
+                    <div class="field line-field">
+                        <label for="data_end">Data zakończenia praktyki</label>
+                        <input
+                            id="data_end"
+                            type="date"
+                            name="data_end"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h2>Wpisy dziennika</h2>
+                </div>
+
+                <div class="table-wrap">
+                    <div class="table-scroll">
+                        <table class="table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Dzień
+                                    <span
+                                        class="info-icon small"
+                                        data-tooltip="Wpis w pozycji „dzień” oznacza kolejny dzień praktyki (jeden ze 120)"
+                                    >!</span>
+                                </th>
+                                <th>Data</th>
+                                <th>
+                                    Opis wykonanych prac
+                                    <span
+                                        class="info-icon small"
+                                        data-tooltip="Wpisy powinny zawierać opis wykonywanych prac, z których powinno wynikać, do nabycia jakich umiejętności studenta prowadzą oraz do nabycia których efektów uczenia się. Unikać skrótowych opisów, z których nic nie wynika. Jeżeli wynikiem wykonywanych prac są określone opracowania np. program, zamieścić to jako załącznik do dziennika praktyki. Jednakże wcześniej uzgodnić z zakładem, w jakim zakresie można to zamieścić, bez naruszenia poufności opracowania. "
+                                    >!</span>
+                                </th>
+                                <th>
+                                    Nr efektów uczenia się
+                                    <span
+                                        class="info-icon small"
+                                        data-tooltip="Wpisać numer/numery efektów uczenia się, do których osiągnięcia prowadzą wykonywane prace."
+                                    >!</span>
+                                </th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dziennik-body">
+                            <tr>
+                                <td><input class="day-input" type="number" name="dzien[]" min="1" required></td>
+                                <td><input type="date" name="data[]" required></td>
+                                <td><textarea class="opis-textarea" name="opis[]" rows="2" required></textarea></td>
+                                <td>
+                                    <div class="effects-picker">
+                                        <button type="button" class="effects-display">Wybierz</button>
+                                        <div class="effects-panel">
+                                            {% for effect in effects %}
+                                                <label class="effects-option">
+                                                    <input type="checkbox" class="effect-check" value="{{ effect.nr }}">
+                                                    <span class="effect-nr">{{ "%02d"|format(effect.nr) }}</span>
+                                                    <span class="effect-desc">{{ effect.opis }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                        <input type="hidden" name="efekty[]" class="effects-value" value="">
+                                    </div>
+                                    <input type="hidden" name="podpis[]" value="">
+                                </td>
+                                <td><button class="btn tiny" type="button" onclick="deleteRow(this)">Usuń</button></td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn secondary" type="button" onclick="addRow()">Dodaj kolejny dzień</button>
+                    <button class="btn" type="submit">Zapisz</button>
+                </div>
+
+                <div class="field wykaz">
+                    <label for="wykaz_zalacznikow">Wykaz załączników</label>
+                    <textarea id="wykaz_zalacznikow" name="wykaz_zalacznikow" rows="3"></textarea>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        const effectsOptions = `
+            {% for effect in effects %}
+                <label class="effects-option">
+                    <input type="checkbox" class="effect-check" value="{{ effect.nr }}">
+                    <span class="effect-nr">{{ "%02d"|format(effect.nr) }}</span>
+                    <span class="effect-desc">{{ effect.opis }}</span>
+                </label>
+            {% endfor %}
+        `;
+
+        function autoGrow(textarea) {
+            textarea.style.height = "auto";
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        }
+
+        function parseDate(value) {
+            if (!value) {
+                return null;
+            }
+            const parts = value.split("-").map(Number);
+            if (parts.length !== 3 || parts.some(Number.isNaN)) {
+                return null;
+            }
+            return new Date(parts[0], parts[1] - 1, parts[2]);
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
+
+        function addDays(date, days) {
+            const next = new Date(date);
+            next.setDate(next.getDate() + days);
+            return next;
+        }
+
+        function normalizeRows() {
+            const tbody = document.getElementById("dziennik-body");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            if (rows.length === 0) {
+                return;
+            }
+
+            const firstDayInput = rows[0].querySelector("input[name='dzien[]']");
+            const firstDateInput = rows[0].querySelector("input[name='data[]']");
+            const firstDay = parseInt(firstDayInput.value, 10);
+            const firstDate = parseDate(firstDateInput.value);
+
+            rows.forEach((row, index) => {
+                const dayInput = row.querySelector("input[name='dzien[]']");
+                const dateInput = row.querySelector("input[name='data[]']");
+                if (index === 0) {
+                    dayInput.readOnly = false;
+                    dateInput.readOnly = false;
+                    return;
+                }
+                dayInput.readOnly = true;
+                dateInput.readOnly = true;
+                if (!Number.isInteger(firstDay) || !firstDate) {
+                    dayInput.value = "";
+                    dateInput.value = "";
+                    return;
+                }
+                dayInput.value = firstDay + index;
+                dateInput.value = formatDate(addDays(firstDate, index));
+            });
+        }
+
+        let activePicker = null;
+
+        function closePickers(except) {
+            document.querySelectorAll(".effects-picker.open").forEach((picker) => {
+                if (picker !== except) {
+                    picker.classList.remove("open");
+                }
+            });
+            if (!except) {
+                activePicker = null;
+            }
+        }
+
+        function positionPanel(picker) {
+            const button = picker.querySelector(".effects-display");
+            const panel = picker.querySelector(".effects-panel");
+            const rect = button.getBoundingClientRect();
+            const padding = 10;
+            const width = rect.width;
+
+            panel.style.width = `${width}px`;
+            let left = rect.left;
+            let top = rect.bottom + 6;
+            const panelRect = panel.getBoundingClientRect();
+
+            if (left + panelRect.width > window.innerWidth - padding) {
+                left = window.innerWidth - panelRect.width - padding;
+            }
+            if (left < padding) {
+                left = padding;
+            }
+            if (top + panelRect.height > window.innerHeight - padding) {
+                top = rect.top - panelRect.height - 6;
+            }
+
+            panel.style.left = `${left}px`;
+            panel.style.top = `${top}px`;
+        }
+
+        function togglePicker(picker) {
+            const isOpen = picker.classList.toggle("open");
+            if (isOpen) {
+                closePickers(picker);
+                activePicker = picker;
+                positionPanel(picker);
+            } else if (activePicker === picker) {
+                activePicker = null;
+            }
+        }
+
+        function syncEffects(picker) {
+            const checks = Array.from(picker.querySelectorAll(".effect-check"));
+            const rawValues = checks.filter((check) => check.checked).map((check) => check.value);
+            const displayValues = rawValues.map((value) => String(value).padStart(2, "0"));
+            const hidden = picker.querySelector(".effects-value");
+            const display = picker.querySelector(".effects-display");
+            hidden.value = rawValues.join(", ");
+            display.textContent = displayValues.length ? displayValues.join(", ") : "Wybierz";
+            if (checks.length) {
+                checks[0].required = rawValues.length === 0;
+            }
+        }
+
+        function isRowComplete(row) {
+            const requiredElements = Array.from(
+                row.querySelectorAll("input[required]:not(.effect-check), textarea[required], select[required]")
+            );
+            const basicReady = requiredElements.every((element) => element.value.trim() !== "");
+            if (!basicReady) {
+                return false;
+            }
+            const checks = Array.from(row.querySelectorAll(".effect-check"));
+            return checks.length === 0 || checks.some((check) => check.checked);
+        }
+
+        function createEffectsPicker() {
+            const picker = document.createElement("div");
+            picker.className = "effects-picker";
+
+            const display = document.createElement("button");
+            display.type = "button";
+            display.className = "effects-display";
+            display.textContent = "Wybierz";
+            display.addEventListener("click", (event) => {
+                event.preventDefault();
+                togglePicker(picker);
+            });
+
+            const panel = document.createElement("div");
+            panel.className = "effects-panel";
+            panel.innerHTML = effectsOptions;
+
+            const hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = "efekty[]";
+            hidden.className = "effects-value";
+
+            picker.appendChild(display);
+            picker.appendChild(panel);
+            picker.appendChild(hidden);
+
+            panel.querySelectorAll(".effect-check").forEach((check, index) => {
+                if (index === 0) {
+                    check.required = true;
+                }
+                check.addEventListener("change", () => syncEffects(picker));
+            });
+
+            syncEffects(picker);
+            return picker;
+        }
+
+        function addRow() {
+            const tbody = document.getElementById("dziennik-body");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            const lastRow = rows[rows.length - 1];
+            if (!isRowComplete(lastRow)) {
+                return;
+            }
+
+            const row = document.createElement("tr");
+
+            const cellDay = document.createElement("td");
+            const inputDay = document.createElement("input");
+            inputDay.type = "number";
+            inputDay.name = "dzien[]";
+            inputDay.min = "1";
+            inputDay.required = true;
+            inputDay.className = "day-input";
+            cellDay.appendChild(inputDay);
+
+            const cellDate = document.createElement("td");
+            const inputDate = document.createElement("input");
+            inputDate.type = "date";
+            inputDate.name = "data[]";
+            inputDate.required = true;
+            cellDate.appendChild(inputDate);
+
+            const cellDesc = document.createElement("td");
+            const inputDesc = document.createElement("textarea");
+            inputDesc.name = "opis[]";
+            inputDesc.required = true;
+            inputDesc.rows = 2;
+            inputDesc.className = "opis-textarea";
+            inputDesc.addEventListener("input", () => autoGrow(inputDesc));
+            cellDesc.appendChild(inputDesc);
+
+            const cellEffects = document.createElement("td");
+            const picker = createEffectsPicker();
+            cellEffects.appendChild(picker);
+            const hiddenSignature = document.createElement("input");
+            hiddenSignature.type = "hidden";
+            hiddenSignature.name = "podpis[]";
+            hiddenSignature.value = "";
+            cellEffects.appendChild(hiddenSignature);
+
+            const cellActions = document.createElement("td");
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = "Usuń";
+            button.className = "btn tiny";
+            button.onclick = function () { deleteRow(this); };
+            cellActions.appendChild(button);
+
+            row.appendChild(cellDay);
+            row.appendChild(cellDate);
+            row.appendChild(cellDesc);
+            row.appendChild(cellEffects);
+            row.appendChild(cellActions);
+
+            tbody.appendChild(row);
+            normalizeRows();
+            autoGrow(inputDesc);
+        }
+
+        function deleteRow(button) {
+            const tbody = document.getElementById("dziennik-body");
+            if (tbody.rows.length <= 1) {
+                return; // do not remove the last row
+            }
+            const currentRow = button.closest("tr");
+            currentRow.remove();
+            normalizeRows();
+        }
+
+        document.querySelectorAll(".effects-picker").forEach((picker) => {
+            const display = picker.querySelector(".effects-display");
+            display.addEventListener("click", (event) => {
+                event.preventDefault();
+                togglePicker(picker);
+            });
+            picker.querySelectorAll(".effect-check").forEach((check, index) => {
+                if (index === 0) {
+                    check.required = true;
+                }
+                check.addEventListener("change", () => syncEffects(picker));
+            });
+            syncEffects(picker);
+        });
+
+        document.addEventListener("click", (event) => {
+            const picker = event.target.closest(".effects-picker");
+            if (!picker) {
+                closePickers();
+            }
+        });
+
+        window.addEventListener("scroll", () => {
+            if (activePicker) {
+                positionPanel(activePicker);
+            }
+        });
+
+        window.addEventListener("resize", () => {
+            if (activePicker) {
+                positionPanel(activePicker);
+            }
+        });
+
+        document.addEventListener("input", (event) => {
+            const target = event.target;
+            if (target.name === "dzien[]" || target.name === "data[]") {
+                normalizeRows();
+            }
+            if (target.classList.contains("opis-textarea")) {
+                autoGrow(target);
+            }
+        });
+
+        document.querySelectorAll(".opis-textarea").forEach((textarea) => {
+            autoGrow(textarea);
+        });
+
+        const tooltip = document.createElement("div");
+        tooltip.className = "info-tooltip";
+        document.body.appendChild(tooltip);
+
+        function positionTooltip(target) {
+            const rect = target.getBoundingClientRect();
+            const padding = 10;
+            const tooltipRect = tooltip.getBoundingClientRect();
+            let top = rect.bottom + 8;
+            let left = rect.left;
+
+            if (left + tooltipRect.width > window.innerWidth - padding) {
+                left = window.innerWidth - tooltipRect.width - padding;
+            }
+            if (left < padding) {
+                left = padding;
+            }
+            if (top + tooltipRect.height > window.innerHeight - padding) {
+                top = rect.top - tooltipRect.height - 8;
+            }
+
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        }
+
+        function showTooltip(event) {
+            const target = event.currentTarget;
+            const text = target.getAttribute("data-tooltip");
+            if (!text) {
+                return;
+            }
+            tooltip.textContent = text;
+            tooltip.classList.add("visible");
+            positionTooltip(target);
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove("visible");
+        }
+
+        function bindTooltips(scope) {
+            scope.querySelectorAll(".info-icon").forEach((icon) => {
+                icon.addEventListener("mouseenter", showTooltip);
+                icon.addEventListener("mouseleave", hideTooltip);
+                icon.addEventListener("focus", showTooltip);
+                icon.addEventListener("blur", hideTooltip);
+            });
+        }
+
+        bindTooltips(document);
+
+        window.addEventListener("scroll", () => {
+            const active = document.querySelector(".info-icon:hover");
+            if (active) {
+                positionTooltip(active);
+            }
+        });
+
+        window.addEventListener("resize", () => {
+            const active = document.querySelector(".info-icon:hover");
+            if (active) {
+                positionTooltip(active);
+            }
+        });
+
+        normalizeRows();
+    </script>
+</body>
+</html>
