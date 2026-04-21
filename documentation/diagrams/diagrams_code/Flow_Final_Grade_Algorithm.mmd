@@ -1,0 +1,19 @@
+flowchart TD
+    A([Start: dokumentacja gotowa do oceny]) --> B{Czy dziennik ma status ZATWIERDZONY?}
+    B -- Nie --> B1[HTTP 409<br/>DOCUMENT_NOT_READY]
+    B -- Tak --> C[Pobierz z bazy skladowe E, S, U, Z]
+
+    C --> D{Czy wszystkie skladowe sa dostepne?}
+    D -- Nie --> D1[HTTP 422<br/>MISSING_GRADE_COMPONENT]
+    D -- Tak --> E{Czy kazda ocena jest w zakresie 2..5?}
+
+    E -- Nie --> E1[HTTP 400<br/>INVALID_GRADE_RANGE]
+    E -- Tak --> F[Oblicz skladniki wazone:<br/>0.4*E, 0.1*S, 0.2*U, 0.3*Z]
+    F --> G[Wzor: K = 0.4*E + 0.1*S + 0.2*U + 0.3*Z]
+    G --> H[Zaokraglij K wg zasad uczelni]
+    H --> I[Zapisz K w bazie i historii ocen]
+    I --> J[Zapisz audyt: kto, kiedy, jaka operacja]
+    J --> K[Udostepnij wynik Student, UOPZ, Dziekanat]
+
+    classDef err fill:#fff1f2,stroke:#e11d48,color:#7f1d1d,stroke-width:1px;
+    class B1,D1,E1 err;

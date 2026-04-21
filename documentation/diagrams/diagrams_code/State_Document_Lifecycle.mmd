@@ -1,0 +1,21 @@
+stateDiagram-v2
+    [*] --> SZKIC: Utworzenie wpisow dziennika
+
+    note right of SZKIC
+      Walidacja przed zapisem:
+      kazdy dzien ma opis
+      opis dnia jest merytoryczny
+      suma godzin nie przekracza 9660
+    end note
+
+    SZKIC --> WYSLANY: Student wysyla do weryfikacji
+    WYSLANY --> ODRZUCONY: ZOPZ odrzuca + komentarz
+    ODRZUCONY --> SZKIC: Student poprawia tresc dni
+
+    WYSLANY --> ZATWIERDZONY_ZOPZ: ZOPZ zatwierdza wpisy
+    ZATWIERDZONY_ZOPZ --> DO_POPRAWY_UOPZ: UOPZ zwraca do poprawy
+    DO_POPRAWY_UOPZ --> SZKIC: Powrot do edycji po uwagach
+
+    ZATWIERDZONY_ZOPZ --> ZATWIERDZONY: UOPZ finalnie zatwierdza
+    ZATWIERDZONY --> ZARCHIWIZOWANY: Generacja PDF + archiwum
+    ZARCHIWIZOWANY --> [*]

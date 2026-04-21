@@ -1,0 +1,47 @@
+flowchart LR
+    L[Logowanie] --> R{Rozpoznanie roli}
+
+    subgraph STUDENT [Student]
+        S1[Dashboard postepu] --> S2[Dziennik praktyk]
+        S2 --> S3[Dodawanie i edycja wpisow dni]
+        S3 --> S4[Walidacja wpisu]
+        S4 --> S5[Wysylka do ZOPZ]
+        S5 --> S6[Sprawozdanie koncowe]
+        S6 --> S7[Podglad statusow dokumentow]
+        S7 --> S8[Pobieranie PDF po zatwierdzeniu]
+    end
+
+    subgraph ZOPZ [Opiekun Zakladowy - ZOPZ]
+        Z1[Lista przypisanych studentow] --> Z2[Podglad przeslanych wpisow]
+        Z2 --> Z3[Weryfikacja merytoryczna dni]
+        Z3 --> Z4[Zatwierdzenie lub odrzucenie z komentarzem]
+        Z4 --> Z5[Formularz oceny Z i opinii]
+        Z5 --> Z6[Potwierdzenie efektow 01-13]
+    end
+
+    subgraph UOPZ [Opiekun Uczelniany - UOPZ]
+        U1[Panel nadzoru] --> U2[Przeglad kompletnej dokumentacji]
+        U2 --> U3[Uwagi do sekcji dokumentow]
+        U3 --> U4[Finalna decyzja: zatwierdz lub poprawa]
+        U4 --> U5[Generowanie raportu PDF]
+    end
+
+    subgraph DZ [Dziekanat]
+        D1[Panel zbiorczy praktyk] --> D2[Filtry i statusy roczne]
+        D2 --> D3[Statystyki i zestawienia]
+        D3 --> D4[Archiwum dokumentow PDF]
+        D4 --> D5[Pobranie dokumentacji do akt]
+    end
+
+    R -->|Student| S1
+    R -->|ZOPZ| Z1
+    R -->|UOPZ| U1
+    R -->|Dziekanat| D1
+
+    U5 -.Status: ZATWIERDZONY.-> D4
+    S8 -.Pobranie dokumentu.-> D4
+
+    N[UI responsywny 375-1920 px<br/>jednoznaczne statusy i komunikaty walidacji]:::note
+    L -.wymagania NF-07/NF-08.-> N
+
+    classDef note fill:#eef6ff,stroke:#2563eb,color:#0f172a,stroke-width:1px;

@@ -1,0 +1,20 @@
+flowchart TD
+    A([POST /api/dziennik/wpis]) --> B[Odczytaj i znormalizuj payload]
+    B --> C[Fail-fast: walidacja przed zapisem]
+
+    C --> D{Czy kazdy dzien ma opis?}
+    D -- Nie --> E1[HTTP 400<br/>DAY_DESCRIPTION_REQUIRED]
+    D -- Tak --> E{Czy opis dnia jest merytoryczny?}
+
+    E -- Nie --> E2[HTTP 400<br/>DAY_DESCRIPTION_NOT_SUBSTANTIVE]
+    E -- Tak --> F[Pobierz aktualna sume godzin studenta]
+    F --> G{Czy suma po zapisie nie przekracza 9660h?}
+
+    G -- Nie --> E3[HTTP 400<br/>TOTAL_HOURS_LIMIT_9660]
+    G -- Tak --> H[Zbuduj rekord wpisu<br/>status = SZKIC]
+    H --> I[Zapis wpisu do JSON/Mongo]
+    I --> J[Aktualizuj agregaty godzin i postep]
+    J --> K[HTTP 201 Created]
+
+    classDef err fill:#fff1f2,stroke:#e11d48,color:#7f1d1d,stroke-width:1px;
+    class E1,E2,E3 err;

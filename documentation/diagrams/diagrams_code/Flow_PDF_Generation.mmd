@@ -1,0 +1,23 @@
+flowchart TD
+    A([Trigger: status dokumentu = ZATWIERDZONY]) --> B{Czy uzytkownik ma uprawnienia?}
+    B -- Nie --> B1[HTTP 403<br/>ACCESS_DENIED]
+    B -- Tak --> C{Czy dokument jest finalnie zatwierdzony?}
+    C -- Nie --> C1[HTTP 409<br/>DOCUMENT_NOT_READY]
+    C -- Tak --> D[Pobierz dane z JSON/Mongo]
+
+    D --> E{Czy dane sa kompletne?}
+    E -- Nie --> E1[HTTP 422<br/>MISSING_PDF_DATA]
+    E -- Tak --> F[Wybierz szablon:<br/>Zalacznik 3, 4, 6 lub 7]
+
+    F --> G[Render danych do szablonu]
+    G --> H[Uruchom silnik PDF]
+    H --> I{Czy generacja PDF zakonczona sukcesem?}
+
+    I -- Nie --> I1[HTTP 500<br/>PDF_ENGINE_ERROR + log]
+    I -- Tak --> J[Zapis pliku PDF na serwerze]
+    J --> K[Rejestracja audytu:<br/>kto, kiedy, jaki plik]
+    K --> L[Udostepnij PDF dla Dziekanatu i UOPZ]
+    L --> M[Status dokumentu -> ZARCHIWIZOWANY]
+
+    classDef err fill:#fff1f2,stroke:#e11d48,color:#7f1d1d,stroke-width:1px;
+    class B1,C1,E1,I1 err;

@@ -1,0 +1,28 @@
+flowchart TD
+    A([Zadanie na dokumencie]) --> B{Czy uzytkownik jest zalogowany?}
+    B -- Nie --> B1[401 Unauthorized]
+    B -- Tak --> C[Pobierz role, uprawnienia i status dokumentu]
+    C --> D{Rola}
+
+    D -->|Student| S0{Status dokumentu}
+    S0 -->|SZKIC / ODRZUCONY / DO_POPRAWY_UOPZ| S1[Edycja dozwolona]
+    S1 --> S2{Akcja: Zapis?}
+    S2 -- Nie --> S3[Tylko podglad]
+    S2 -- Tak --> S4[Walidacja fail-fast:<br/>opis dnia wymagany<br/>merytoryka opisu dnia<br/>suma godzin <= 9660]
+    S4 --> S5{Walidacja poprawna?}
+    S5 -- Nie --> S6[HTTP 400 + blad merytoryczny]
+    S5 -- Tak --> S7[Zapis do bazy]
+    S0 -->|WYSLANY / ZATWIERDZONY_ZOPZ / ZATWIERDZONY / ZARCHIWIZOWANY| S8[Edycja zablokowana]
+
+    D -->|ZOPZ| Z0{Status dokumentu}
+    Z0 -->|WYSLANY| Z1[Ocena wpisow dziennika:<br/>zatwierdz albo odrzuc z komentarzem]
+    Z0 -->|ZATWIERDZONY_ZOPZ| Z2[Wystawienie oceny Z + opinii]
+    Z0 -->|Inny| Z3[Podglad]
+
+    D -->|UOPZ| U0{Status dokumentu}
+    U0 -->|ZATWIERDZONY_ZOPZ| U1[Finalna decyzja:<br/>zatwierdz albo zwroc do poprawy]
+    U0 -->|Inny| U2[Podglad + uwagi sekcyjne]
+
+    D -->|Dziekanat| K0{Status dokumentu}
+    K0 -->|ZATWIERDZONY / ZARCHIWIZOWANY| K1[Archiwum, statystyki, pobranie PDF]
+    K0 -->|Inny| K2[Monitoring postepu]

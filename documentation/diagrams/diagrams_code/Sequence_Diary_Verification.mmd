@@ -1,0 +1,47 @@
+sequenceDiagram
+    autonumber
+    actor Student
+    participant Flask as Backend Flask
+    participant DB as Baza JSON/Mongo
+    actor ZOPZ as Opiekun Zakladowy (ZOPZ)
+
+    Student->>Flask: Proba zapisu wpisu dnia<br/>(dzien, data, opis, efekty, godziny)
+    Flask->>Flask: Fail-fast walidacja<br/>opis dnia wymagany<br/>spojnosc merytoryczna opisu i dnia<br/>suma godzin po zapisie <= 9660
+
+    alt Walidacja nieudana
+        Flask-->>Student: HTTP 400 + blad walidacji
+    else Walidacja poprawna
+        Flask->>DB: Zapis wpisu (status: SZKIC)
+        DB-->>Flask: OK
+        Flask->>DB: Aktualizacja agregatow godzin
+        DB-->>Flask: OK
+        Flask-->>Student: HTTP 201 (zapisano szkic)
+
+        Student->>Flask: Wyslij dziennik do weryfikacji
+        Flask->>DB: Status wpisow -> WYSLANY<br/>blokada edycji = true
+        DB-->>Flask: OK
+        Flask-->>ZOPZ: Powiadomienie o wpisach do oceny
+
+        ZOPZ->>Flask: Pobierz wpisy (status WYSLANY)
+        Flask->>DB: Odczyt wpisow i opisow dni
+        DB-->>Flask: Dane dziennika
+        Flask-->>ZOPZ: Lista wpisow do decyzji
+
+        alt Odrzucenie przez ZOPZ
+            ZOPZ->>Flask: Odrzuc + komentarz merytoryczny
+            Flask->>DB: Status -> ODRZUCONY<br/>blokada edycji = false
+            Flask->>DB: Zapis komentarza ZOPZ
+            DB-->>Flask: OK
+            Flask-->>Student: Powiadomienie o odrzuceniu
+        else Zatwierdzenie przez ZOPZ
+            ZOPZ->>Flask: Zatwierdz + podpis wirtualny
+            Flask->>DB: Status -> ZATWIERDZONY_ZOPZ
+            DB-->>Flask: OK
+            ZOPZ->>Flask: Wystaw ocene Z (2-5) + opinia
+            Flask->>DB: Zapis oceny Z
+            DB-->>Flask: OK
+            Flask-->>Student: Informacja o zatwierdzeniu
+        end
+    end
+
+    note over Flask,DB: Po zatwierdzeniu wszystkich wpisow<br/>dziennik gotowy do etapu UOPZ
