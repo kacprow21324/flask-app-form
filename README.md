@@ -1,8 +1,6 @@
 <div align="center">
-
     <h1>Flask App Form</h1>
     <p><strong>System cyfrowego obiegu dokumentacji praktyk zawodowych</strong></p>
-
     <table>
         <thead>
             <tr>
@@ -85,7 +83,7 @@
 
 <h2> Diagram bazy danych (ERD)</h2>
 <div align="center">
-    <img src="documentation/diagrams/diagrams_png/db_diagram.png" alt="Diagram bazy danych" width="1000" />
+    <img src="documentation/diagrams/diagrams_png/diagramERD.png" alt="Diagram bazy danych" width="1000" />
 </div>
 
 ---
@@ -128,56 +126,4 @@
 <div align="center">
     <h3>7. Flow - Generowanie PDF i archiwizacja</h3>
     <img src="documentation/diagrams/diagrams_png/7.png" alt="Diagram 7 - PDF Generation" width="1050" />
-</div>
-
----
-
-<div align="center">
-    <h2>Pliki Mermaid</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Nr</th>
-                <th>Nazwa diagramu</th>
-                <th>Plik źródłowy</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>1</td>
-                <td>Sequence Diary Verification</td>
-                <td>documentation/diagrams/diagrams_code/Sequence_Diary_Verification.mmd</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>State Document Lifecycle</td>
-                <td>documentation/diagrams/diagrams_code/State_Document_Lifecycle.mmd</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td>RBAC Permissions</td>
-                <td>documentation/diagrams/diagrams_code/Flow_RBAC_Permissions.mmd</td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td>UI Navigation</td>
-                <td>documentation/diagrams/diagrams_code/Flow_UI_Navigation.mmd</td>
-            </tr>
-            <tr>
-                <td>5</td>
-                <td>Business Logic Validation</td>
-                <td>documentation/diagrams/diagrams_code/Flow_Business_Logic_Validation.mmd</td>
-            </tr>
-            <tr>
-                <td>6</td>
-                <td>Final Grade Algorithm</td>
-                <td>documentation/diagrams/diagrams_code/Flow_Final_Grade_Algorithm.mmd</td>
-            </tr>
-            <tr>
-                <td>7</td>
-                <td>PDF Generation</td>
-                <td>documentation/diagrams/diagrams_code/Flow_PDF_Generation.mmd</td>
-            </tr>
-        </tbody>
-    </table>
 </div>
