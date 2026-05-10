@@ -1,0 +1,28 @@
+{% extends "print/base_print.html" %}
+{% from "print/_macros.html" import field, sig, letterhead %}
+{% block doc_title %}Załącznik 5 – Kwestionariusz ankiety{% endblock %}
+{% block content %}
+{{ letterhead('5') }}
+<h1 class="p-title">Kwestionariusz ankiety ewaluacyjnej praktyki zawodowej</h1>
+<div class="p-section">
+    <div class="p-row-3">{{ field('Nr albumu', data.nr_albumu) }}{{ field('Rok akademicki', data.rok_akademicki) }}{{ field('Semestr', data.semestr) }}</div>
+    <div class="p-row-2">{{ field('Kierunek', 'Informatyka') }}{{ field('Forma studiów', data.forma_studiow) }}</div>
+</div>
+<div class="p-section">
+    <table class="p-table" style="font-size:8.5pt">
+        <thead><tr><th style="width:20pt">Nr</th><th>Pytanie</th><th style="width:130pt">Odpowiedź</th></tr></thead>
+        <tbody>
+        {% for i in range(1, 15) %}
+        {% set cur_ans = namespace(val='—') %}
+        {% for p in data.get('pytania', []) %}{% if p.nr == i %}{% set cur_ans.val = p.odpowiedz %}{% endif %}{% endfor %}
+        <tr>
+            <td style="text-align:center;font-weight:bold">{{ i }}.</td>
+            <td>{{ questions[i-1] if questions and i <= questions|length else '—' }}</td>
+            <td>{{ cur_ans.val }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if data.uwagi %}<div class="p-section">{{ field('Uwagi i komentarze', data.uwagi) }}</div>{% endif %}
+{% endblock %}

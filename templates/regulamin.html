@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Regulamin praktyk zawodowych{% endblock %}
+
+{% block content %}
+<div class="page">
+
+    <div class="page-top">
+        <div>
+            <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót do dashboardu</a>
+            <h1>Regulamin praktyki zawodowej</h1>
+            <p class="subtitle">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego – ANS Elbląg</p>
+        </div>
+        <div class="page-top-actions">
+            <a href="{{ url_for('static', filename='regulamin.pdf') }}" class="btn btn-secondary" target="_blank">
+                Pobierz PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="pdf-download-bar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Oryginalny dokument PDF:
+        <a href="{{ url_for('static', filename='regulamin.pdf') }}" target="_blank">
+            Regulamin praktyki zawodowej IIS.pdf
+        </a>
+        – w razie wątpliwości dokument PDF jest wersją wiążącą.
+    </div>
+
+    <div class="regulamin-card">
+
+        <div class="doc-letterhead" style="margin-bottom:20px">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+        </div>
+
+        <h2>§ 1. Postanowienia ogólne</h2>
+        <ol>
+            <li>Praktyka zawodowa jest obowiązkowym elementem planu studiów na kierunku Informatyka (studia inżynierskie I stopnia) w Instytucie Informatyki Stosowanej (IIS) Akademii Nauk Stosowanych w Elblągu.</li>
+            <li>Praktyka ma charakter zawodowy i służy zdobyciu przez studenta doświadczenia praktycznego w obszarze informatyki, zgodnego z kierunkiem studiów i specjalnością.</li>
+            <li>Praktyki odbywają się na podstawie porozumienia zawartego między ANS Elbląg a zakładem pracy (Załącznik nr 1) lub na podstawie innej formy dopuszczonej przez regulamin.</li>
+            <li>Nadzór merytoryczny nad praktykami sprawuje uczelniany opiekun praktyk wyznaczony przez Dyrektora IIS.</li>
+        </ol>
+
+        <h2>§ 2. Wymiar i termin praktyk</h2>
+        <ol>
+            <li>Praktyka zawodowa trwa <strong>6 miesięcy</strong> (960 godzin / 120 dni roboczych) dla studentów studiów stacjonarnych inżynierskich.</li>
+            <li>Dla studentów studiów niestacjonarnych wymiar godzinowy może zostać ustalony indywidualnie przez uczelniany organ właściwy ds. praktyk.</li>
+            <li>Termin odbycia praktyki ustala student z zakładem pracy w porozumieniu z uczelnianym opiekunem, z uwzględnieniem harmonogramu roku akademickiego.</li>
+            <li>Dopuszcza się odbywanie praktyki w częściach, pod warunkiem zachowania łącznego wymiaru godzinowego.</li>
+        </ol>
+
+        <h2>§ 3. Zakłady pracy przyjmujące na praktykę</h2>
+        <ol>
+            <li>Praktykę można odbywać w podmiotach prowadzących działalność związaną z informatyką: firmach IT, działach IT przedsiębiorstw, jednostkach administracji publicznej, instytucjach badawczych lub innych podmiotach akceptowanych przez IIS.</li>
+            <li>Zakład pracy wyznacza zakładowego opiekuna praktyki – pracownika odpowiedzialnego za nadzór nad studentem.</li>
+            <li>Zakładowy opiekun praktyki potwierdza realizację programu poprzez wypełnienie odpowiednich załączników (nr 3, 4, 9).</li>
+        </ol>
+
+        <h2>§ 4. Zaliczenie efektów uczenia się z tytułu doświadczenia zawodowego</h2>
+        <ol>
+            <li>Student zatrudniony lub prowadzący działalność gospodarczą w branży IT może ubiegać się o zaliczenie praktyki na podstawie doświadczenia zawodowego.</li>
+            <li>W tym celu składa wniosek (Załącznik nr 4b) do uczelnianego opiekuna praktyk, dołączając dokumenty potwierdzające zatrudnienie i zakres obowiązków.</li>
+            <li>Uczelniany opiekun dokonuje merytorycznej oceny wniosku (Załącznik nr 4a) i wydaje rekomendację (pozytywną, negatywną lub warunkową).</li>
+            <li>Decyzję o zaliczeniu podejmuje Dyrektor IIS lub właściwy organ uczelni.</li>
+        </ol>
+
+        <h2>§ 5. Obowiązki studenta</h2>
+        <ol>
+            <li>Student zobowiązany jest do:
+                <ul>
+                    <li>Terminowego zgłoszenia miejsca praktyki uczelnianemu opiekunowi i uzyskania skierowania (Załącznik nr 3).</li>
+                    <li>Uzgodnienia indywidualnego programu i harmonogramu praktyki (Załącznik nr 2a).</li>
+                    <li>Systematycznego prowadzenia dziennika praktyki (Załącznik nr 6).</li>
+                    <li>Przestrzegania regulaminu zakładu pracy, zasad BHP i tajemnicy służbowej.</li>
+                    <li>Sporządzenia sprawozdania z praktyki (Załącznik nr 7 lub 7a).</li>
+                    <li>Złożenia kompletu dokumentów praktyki w terminie wyznaczonym przez IIS.</li>
+                </ul>
+            </li>
+            <li>Nieusprawiedliwiona nieobecność podczas praktyki skutkuje jej niezaliczeniem.</li>
+        </ol>
+
+        <h2>§ 6. Dokumentacja praktyki</h2>
+        <p>Komplet dokumentów wymaganych do zaliczenia praktyki zawodowej:</p>
+        <ol>
+            <li><strong>Załącznik 1</strong> – Porozumienie o organizację praktyki zawodowej</li>
+            <li><strong>Załącznik 2</strong> – Program praktyki zawodowej (ramowy)</li>
+            <li><strong>Załącznik 2a</strong> – Indywidualny program i harmonogram praktyki</li>
+            <li><strong>Załącznik 3</strong> – Karta praktyki zawodowej (skierowanie + zaświadczenie + oceny)</li>
+            <li><strong>Załącznik 4</strong> – Potwierdzenie uzyskania efektów uczenia się</li>
+            <li><strong>Załącznik 4a</strong> – Merytoryczna ocena wniosku studenta (w przypadku zal. z dośw. zawodowego)</li>
+            <li><strong>Załącznik 4b</strong> – Wniosek studenta o zaliczenie efektów (w przypadku dośw. zawodowego)</li>
+            <li><strong>Załącznik 5</strong> – Kwestionariusz ankiety ewaluacyjnej</li>
+            <li><strong>Załącznik 6</strong> – Dziennik praktyki zawodowej</li>
+            <li><strong>Załącznik 7</strong> – Sprawozdanie z praktyki zawodowej (studia stacjonarne)</li>
+            <li><strong>Załącznik 7a</strong> – Sprawozdanie z praktyki (studia niestacjonarne)</li>
+            <li><strong>Załącznik 8</strong> – Protokół zaliczenia praktyki zawodowej</li>
+            <li><strong>Załącznik 9</strong> – Oświadczenie instytucji w sprawie przyjęcia studenta na praktykę</li>
+        </ol>
+
+        <h2>§ 7. Ocena i zaliczenie praktyki</h2>
+        <ol>
+            <li>Praktykę zalicza się na podstawie oceny uzyskanej zgodnie ze wzorem:<br>
+                <strong>K = 0,4·E + 0,1·S + 0,2·U + 0,3·Z</strong><br>
+                gdzie: E – ocena egzaminu końcowego, S – ocena sprawozdania, U – ocena uczelniana, Z – ocena zakładowa.</li>
+            <li>Ocena końcowa K jest wpisywana do protokołu zaliczenia (Załącznik nr 8) i do systemu elektronicznego uczelni.</li>
+            <li>Warunkiem zaliczenia praktyki jest uzyskanie oceny K ≥ 3,0 oraz potwierdzenie realizacji wszystkich efektów uczenia się.</li>
+        </ol>
+
+        <h2>§ 8. Postanowienia końcowe</h2>
+        <ol>
+            <li>W sprawach nieuregulowanych niniejszym regulaminem zastosowanie mają przepisy Regulaminu Studiów ANS Elbląg oraz obowiązujące przepisy prawa.</li>
+            <li>Regulamin wchodzi w życie z dniem podpisania przez Dyrektora IIS i obowiązuje studentów rozpoczynających praktykę zawodową od kolejnego semestru.</li>
+            <li>Wszelkie pytania i wątpliwości dotyczące praktyk należy kierować do uczelnianego opiekuna praktyk lub Sekretariatu IIS.</li>
+        </ol>
+
+    </div>
+</div>
+{% endblock %}

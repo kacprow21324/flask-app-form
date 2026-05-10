@@ -1,0 +1,45 @@
+{% extends "print/base_print.html" %}
+{% from "print/_macros.html" import field, sig, letterhead %}
+{% block doc_title %}Załącznik 2a – Program i harmonogram{% endblock %}
+{% block content %}
+{{ letterhead('2a') }}
+<h1 class="p-title">Indywidualny program i harmonogram praktyki zawodowej</h1>
+<div class="p-section">
+    <div class="p-row-2">{{ field('Imię i nazwisko', data.imie_nazwisko) }}{{ field('Nr albumu', data.nr_albumu) }}</div>
+    <div class="p-row-3">{{ field('Kierunek', 'Informatyka') }}{{ field('Specjalność', data.specjalnosc) }}{{ field('Miejsce praktyki', data.miejsce_praktyki) }}</div>
+    <div class="p-row-2">{{ field('Data rozpoczęcia', data.data_start) }}{{ field('Data zakończenia', data.data_end) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">Planowane efekty uczenia się i zakres prac</div>
+    <table class="p-table">
+        <thead><tr><th style="width:32pt">Nr</th><th>Efekt uczenia się</th><th>Planowane działy pracy</th></tr></thead>
+        <tbody>
+        {% for ep in data.get('efekty_plan', []) %}
+            <tr>
+                <td style="text-align:center;font-weight:bold">{{ "%02d"|format(ep.nr) }}</td>
+                <td>{{ effect_map.get(ep.nr, '—') }}</td>
+                <td>{{ ep.dzial_prace or '' }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="p-section">
+    <div class="p-section-label">Harmonogram</div>
+    <table class="p-table">
+        <thead><tr><th style="width:28pt">Lp.</th><th>Dział / obszar prac</th><th style="width:60pt">Liczba dni</th></tr></thead>
+        <tbody>
+        {% for h in data.get('harmonogram', []) %}
+            <tr><td style="text-align:center">{{ h.lp }}</td><td>{{ h.dzial }}</td><td style="text-align:center">{{ h.dni }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="p-section">
+    <div class="p-sig-row" style="grid-template-columns:1fr 1fr 1fr">
+        {{ sig('Podpis studenta', data.podpis_studenta) }}
+        {{ sig('Podpis zakładowego opiekuna (data, pieczęć)', data.podpis_zakladowy) }}
+        {{ sig('Podpis uczelnianego opiekuna (data)', data.podpis_uczelniany) }}
+    </div>
+</div>
+{% endblock %}

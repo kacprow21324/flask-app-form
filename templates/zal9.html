@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Załącznik 9 – Oświadczenie instytucji{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+            <div class="doc-badge">Załącznik nr 9</div>
+        </div>
+
+        <h1 class="doc-title">Oświadczenie instytucji przyjmującej<br>studenta na praktykę zawodową</h1>
+
+        <form method="post"
+              action="{{ url_for('zal9_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal9') }}">
+
+            {# ── Miejsce i data ── #}
+            <div class="form-section">
+                <div class="doc-intro-text">
+                    <span class="inline-field-wrap">
+                        <input class="inline-field" type="text" name="miejscowosc"
+                               value="{{ val('miejscowosc') }}" placeholder="Miejscowość">
+                    </span>,
+                    dnia
+                    <span class="inline-field-wrap">
+                        <input class="inline-field inline-date" type="date" name="data"
+                               value="{{ val('data') }}">
+                    </span>
+                </div>
+            </div>
+
+            {# ── Dane studenta ── #}
+            <div class="form-section">
+                <div class="form-section-label">A. Dane studenta</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">Imię i nazwisko studenta</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Dane instytucji ── #}
+            <div class="form-section">
+                <div class="form-section-label">B. Dane instytucji przyjmującej</div>
+                <div class="field-group" style="margin-bottom:14px">
+                    <label for="nazwa_instytucji">Pełna nazwa instytucji / firmy</label>
+                    <input id="nazwa_instytucji" type="text" name="nazwa_instytucji"
+                           value="{{ val('nazwa_instytucji') }}" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="termin_od">Termin praktyki – od</label>
+                        <input id="termin_od" type="date" name="termin_od" value="{{ val('termin_od') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="termin_do">Termin praktyki – do</label>
+                        <input id="termin_do" type="date" name="termin_do" value="{{ val('termin_do') }}">
+                    </div>
+                </div>
+            </div>
+
+            {# ── Opiekun zakładowy ── #}
+            <div class="form-section">
+                <div class="form-section-label">C. Dane opiekuna zakładowego</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="opiekun_imie_nazwisko">Imię i nazwisko opiekuna</label>
+                        <input id="opiekun_imie_nazwisko" type="text" name="opiekun_imie_nazwisko"
+                               value="{{ val('opiekun_imie_nazwisko') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="opiekun_stanowisko">Stanowisko / funkcja</label>
+                        <input id="opiekun_stanowisko" type="text" name="opiekun_stanowisko"
+                               value="{{ val('opiekun_stanowisko') }}">
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="opiekun_telefon">Telefon kontaktowy</label>
+                        <input id="opiekun_telefon" type="tel" name="opiekun_telefon"
+                               value="{{ val('opiekun_telefon') }}" placeholder="+48 000 000 000">
+                    </div>
+                    <div class="field-group">
+                        <label for="opiekun_email">Adres e-mail</label>
+                        <input id="opiekun_email" type="email" name="opiekun_email"
+                               value="{{ val('opiekun_email') }}" placeholder="adres@firma.pl">
+                    </div>
+                </div>
+            </div>
+
+            {# ── Upoważniony do podpisania ── #}
+            <div class="form-section">
+                <div class="form-section-label">D. Osoba upoważniona do podpisania oświadczenia</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="upowazniont_imie_nazwisko">Imię i nazwisko</label>
+                        <input id="upowazniont_imie_nazwisko" type="text" name="upowazniont_imie_nazwisko"
+                               value="{{ val('upowazniont_imie_nazwisko') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="upowazniont_stanowisko">Stanowisko / funkcja</label>
+                        <input id="upowazniont_stanowisko" type="text" name="upowazniont_stanowisko"
+                               value="{{ val('upowazniont_stanowisko') }}">
+                    </div>
+                </div>
+                <div class="sig-box" style="margin-top:14px">
+                    <label for="podpis">Data, pieczęć i podpis upoważnionego</label>
+                    <input id="podpis" type="text" name="podpis"
+                           value="{{ val('podpis') }}"
+                           placeholder="Data, pieczęć i podpis">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 9{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

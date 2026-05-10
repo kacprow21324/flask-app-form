@@ -1,0 +1,15 @@
+services:
+  flask:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./instance:/app/instance
+      - ./data:/app/data
+    environment:
+      SECRET_KEY: zmien-na-losowy-ciag-w-produkcji
+      DATABASE_URL: sqlite:///ems.db
+      FLASK_HOST: "0.0.0.0"
+      FLASK_PORT: "5000"
+      FLASK_DEBUG: "false"
+    restart: unless-stopped

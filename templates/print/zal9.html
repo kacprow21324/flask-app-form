@@ -1,0 +1,27 @@
+{% extends "print/base_print.html" %}
+{% from "print/_macros.html" import field, sig, letterhead %}
+{% block doc_title %}Załącznik 9 – Oświadczenie instytucji{% endblock %}
+{% block content %}
+{{ letterhead('9') }}
+<h1 class="p-title">Oświadczenie instytucji przyjmującej studenta na praktykę zawodową</h1>
+<p class="p-intro" style="text-align:right">{{ data.miejscowosc or '………………' }}, dnia {{ data.data or '………………' }}</p>
+<div class="p-section">
+    <div class="p-section-label">A. Dane studenta</div>
+    <div class="p-row-2">{{ field('Imię i nazwisko studenta', data.imie_nazwisko) }}{{ field('Nr albumu', data.nr_albumu) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">B. Dane instytucji przyjmującej</div>
+    {{ field('Pełna nazwa instytucji / firmy', data.nazwa_instytucji) }}
+    <div class="p-row-2">{{ field('Termin praktyki – od', data.termin_od) }}{{ field('Termin praktyki – do', data.termin_do) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">C. Dane opiekuna zakładowego</div>
+    <div class="p-row-2">{{ field('Imię i nazwisko opiekuna', data.opiekun_imie_nazwisko) }}{{ field('Stanowisko / funkcja', data.opiekun_stanowisko) }}</div>
+    <div class="p-row-2">{{ field('Telefon kontaktowy', data.opiekun_telefon) }}{{ field('Adres e-mail', data.opiekun_email) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">D. Osoba upoważniona do podpisania</div>
+    <div class="p-row-2">{{ field('Imię i nazwisko', data.upowazniont_imie_nazwisko) }}{{ field('Stanowisko / funkcja', data.upowazniont_stanowisko) }}</div>
+    {{ sig('Data, pieczęć i podpis upoważnionego', data.podpis) }}
+</div>
+{% endblock %}

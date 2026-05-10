@@ -1,98 +1,78 @@
-<!doctype html>
-<html lang="pl">
-<head>
-    <meta charset="utf-8">
-    <title>Załącznik 4</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/zal4.css') }}">
-</head>
-<body>
-    <div class="page">
-        <header class="page-header">
-            <div class="brand">Rozliczanie praktyk</div>
-        </header>
+{% extends "base.html" %}
+{% block title %}Załącznik 4 – Efekty uczenia się{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = val('imie_nazwisko') | plec %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
+{% macro efekt_status(nr) %}
+    {% if data and data.efekty is defined %}
+        {% for e in data.efekty %}{% if e.nr == nr %}{{ e.status }}{% endif %}{% endfor %}
+    {% endif %}
+{% endmacro %}
 
-        <main class="card">
-            <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
-            <div class="doc-header">
-                <div class="doc-mark">Załącznik nr 4</div>
-                <h1>Potwierdzenie uzyskania efektów uczenia się w ramach praktyki zawodowej</h1>
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
             </div>
+            <div class="doc-badge">Załącznik nr 4</div>
+        </div>
 
-            {% if saved %}
-                <div class="msg">Zapisano dane.</div>
-            {% endif %}
-            {% if error %}
-                <div class="error">{{ error }}</div>
-            {% endif %}
+        <h1 class="doc-title">Potwierdzenie uzyskania efektów uczenia się<br>w ramach praktyki zawodowej</h1>
 
-            <form method="post" action="{{ url_for('zal4') }}">
-                <div class="form-grid">
-                    <div class="field">
-                        <label for="imie_nazwisko">Student / ka</label>
-                        <input
-                            id="imie_nazwisko"
-                            type="text"
-                            name="imie_nazwisko"
-                            pattern=".+ .+"
-                            title="Podaj imię i nazwisko"
-                            required
-                        >
+        <form method="post"
+              action="{{ url_for('zal4_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal4') }}">
+
+            <div class="form-section">
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">{{ g('Student', 'Studentka') }}</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
                     </div>
-                    <div class="field">
+                    <div class="field-group">
                         <label for="nr_albumu">Nr albumu</label>
-                        <input
-                            id="nr_albumu"
-                            type="text"
-                            name="nr_albumu"
-                            inputmode="numeric"
-                            pattern="[0-9]+"
-                            title="Wpisz tylko cyfry"
-                            required
-                        >
-                    </div>
-                    <div class="field">
-                        <label for="kierunek">Kierunek studiów</label>
-                        <input
-                            id="kierunek"
-                            type="text"
-                            name="kierunek"
-                            value="Informatyka"
-                            readonly
-                            required
-                        >
-                    </div>
-                    <div class="field">
-                        <label for="specjalnosc">Specjalność</label>
-                        <select id="specjalnosc" name="specjalnosc" required>
-                            <option value="" disabled selected>Wybierz specjalność</option>
-                            <option value="Administracja systemów i sieci komputerowych (ASiSK)">
-                                Administracja systemów i sieci komputerowych (ASiSK)
-                            </option>
-                            <option value="Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)">
-                                Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)
-                            </option>
-                            <option value="Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)">
-                                Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)
-                            </option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="wymiar_godzin">Wymiar godzin</label>
-                        <input
-                            id="wymiar_godzin"
-                            type="number"
-                            name="wymiar_godzin"
-                            value="960"
-                            min="0"
-                            required
-                        >
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
                     </div>
                 </div>
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label>Kierunek studiów</label>
+                        <input type="text" value="Informatyka" readonly>
+                    </div>
+                    <div class="field-group">
+                        <label for="specjalnosc">Specjalność</label>
+                        <select id="specjalnosc" name="specjalnosc" required>
+                            <option value="" disabled {% if not data or not data.get('specjalnosc') %}selected{% endif %}>Wybierz specjalność</option>
+                            {% for sp in specialties %}
+                                <option value="{{ sp }}" {% if data and data.get('specjalnosc') == sp %}selected{% endif %}>{{ sp }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="wymiar_godzin">Wymiar godzin</label>
+                        <input id="wymiar_godzin" type="number" name="wymiar_godzin"
+                               value="{{ val('wymiar_godzin') or 960 }}" min="0" required>
+                    </div>
+                </div>
+            </div>
 
-                <p class="section-text">
-                    W ramach praktyki zawodowej zrealizowanej w wymiarze godzin uzyskał/a lub
-                    nie uzyskał/a zakładane dla praktyki zawodowej efekty uczenia się:
+            <div class="form-section">
+                <p class="doc-intro-text">
+                    W ramach praktyki zawodowej zrealizowanej w wymiarze
+                    <strong>{{ val('wymiar_godzin') or 960 }}</strong> godzin {{ g('uzyskał', 'uzyskała') }} lub {{ g('nie uzyskał', 'nie uzyskała') }}
+                    zakładane dla praktyki zawodowej efekty uczenia się:
                 </p>
 
                 <div class="table-wrap">
@@ -106,55 +86,61 @@
                         </thead>
                         <tbody>
                             {% for effect in effects %}
-                                <tr>
-                                    <td class="col-nr">{{ "%02d"|format(effect.nr) }}</td>
-                                    <td>{{ effect.opis }}</td>
-                                    <td class="col-status">
-                                        <label class="radio">
-                                            <input
-                                                type="radio"
-                                                name="efekt_{{ effect.nr }}"
-                                                value="uzyskał/a"
-                                                required
-                                            >
-                                            uzyskał/a *
-                                        </label>
-                                        <label class="radio">
-                                            <input
-                                                type="radio"
-                                                name="efekt_{{ effect.nr }}"
-                                                value="nie uzyskał/a"
-                                            >
-                                            nie uzyskał/a *
-                                        </label>
-                                    </td>
-                                </tr>
+                            {% set cur_status = namespace(val='') %}
+                            {% if data and data.efekty is defined %}
+                                {% for e in data.efekty %}
+                                    {% if e.nr == effect.nr %}{% set cur_status.val = e.status %}{% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <tr>
+                                <td class="col-nr">{{ "%02d" | format(effect.nr) }}</td>
+                                <td>{{ effect.opis }}</td>
+                                <td class="col-status">
+                                    <label class="radio">
+                                        <input type="radio" name="efekt_{{ effect.nr }}"
+                                               value="uzyskał/a"
+                                               {% if cur_status.val == 'uzyskał/a' %}checked{% endif %}
+                                               required>
+                                        {{ g('uzyskał', 'uzyskała') }}
+                                    </label>
+                                    <label class="radio">
+                                        <input type="radio" name="efekt_{{ effect.nr }}"
+                                               value="nie uzyskał/a"
+                                               {% if cur_status.val == 'nie uzyskał/a' %}checked{% endif %}>
+                                        {{ g('nie uzyskał', 'nie uzyskała') }}
+                                    </label>
+                                </td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+            </div>
 
-                <div class="signature-grid">
-                    <div class="field">
+            <div class="form-section">
+                <div class="form-section-label">Potwierdzenia</div>
+                <div class="sig-row">
+                    <div class="sig-box">
                         <label for="potwierdzenie_opiekuna">Potwierdzenie bezpośredniego opiekuna zakładowego</label>
-                        <input
-                            id="potwierdzenie_opiekuna"
-                            type="text"
-                            name="potwierdzenie_opiekuna"
-                            placeholder="Data, podpis i pieczęć zakładu pracy"
-                        >
+                        <input id="potwierdzenie_opiekuna" type="text" name="potwierdzenie_opiekuna"
+                               value="{{ val('potwierdzenie_opiekuna') }}"
+                               placeholder="Data, podpis i pieczęć zakładu pracy">
                     </div>
-                    <div class="field">
+                    <div class="sig-box">
                         <label for="opinia_opiekuna">Opinia opiekuna uczelnianego</label>
-                        <textarea id="opinia_opiekuna" name="opinia_opiekuna" rows="5"></textarea>
+                        <textarea id="opinia_opiekuna" name="opinia_opiekuna" rows="4">{{ val('opinia_opiekuna') }}</textarea>
                     </div>
                 </div>
+            </div>
 
-                <div class="actions">
-                    <button class="btn" type="submit">Zapisz</button>
-                </div>
-            </form>
-        </main>
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 4{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

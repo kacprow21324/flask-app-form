@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}System Praktyk{% endblock %} – ANS Elbląg</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+</head>
+<body>
+
+<header class="site-header">
+    <div class="site-header-inner">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Otwórz panel">
+            <span></span><span></span><span></span>
+        </button>
+        <a class="site-brand" href="{{ url_for('index') }}">
+            <span class="site-brand-name">Rozliczanie Praktyk</span>
+        </a>
+        <div class="site-user">
+            <span class="user-name">{{ current_user.full_name }}</span>
+            <span class="user-role role-{{ current_user.role }}">{{ current_user.role }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost btn-sm">Wyloguj</a>
+        </div>
+    </div>
+</header>
+
+<div class="site-layout">
+
+    <aside class="site-sidebar" id="siteSidebar">
+        <nav class="sidebar-nav">
+
+            <a href="{{ url_for('index') }}" class="sidebar-link sidebar-link-main">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Dashboard
+            </a>
+
+            <a href="{{ url_for('regulamin') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Regulamin praktyk
+            </a>
+
+            <div class="sidebar-section-title">Nowe formularze</div>
+
+            <a href="{{ url_for('zal1') }}" class="sidebar-link">
+                <span class="sidebar-nr">1</span>
+                <span>Porozumienie z zakładem pracy</span>
+            </a>
+            <a href="{{ url_for('zal2') }}" class="sidebar-link">
+                <span class="sidebar-nr">2</span>
+                <span>Program praktyki zawodowej</span>
+            </a>
+            <a href="{{ url_for('zal2a') }}" class="sidebar-link">
+                <span class="sidebar-nr">2a</span>
+                <span>Program i harmonogram</span>
+            </a>
+            <a href="{{ url_for('zal3') }}" class="sidebar-link">
+                <span class="sidebar-nr">3</span>
+                <span>Karta praktyki zawodowej</span>
+            </a>
+            <a href="{{ url_for('zal4') }}" class="sidebar-link">
+                <span class="sidebar-nr">4</span>
+                <span>Potwierdzenie efektów</span>
+            </a>
+            <a href="{{ url_for('zal4a') }}" class="sidebar-link">
+                <span class="sidebar-nr">4a</span>
+                <span>Ocena wniosku studenta</span>
+            </a>
+            <a href="{{ url_for('zal4b') }}" class="sidebar-link">
+                <span class="sidebar-nr">4b</span>
+                <span>Wniosek o zaliczenie</span>
+            </a>
+            <a href="{{ url_for('zal5') }}" class="sidebar-link">
+                <span class="sidebar-nr">5</span>
+                <span>Kwestionariusz ankiety</span>
+            </a>
+            <a href="{{ url_for('zal6') }}" class="sidebar-link">
+                <span class="sidebar-nr">6</span>
+                <span>Dziennik praktyki</span>
+            </a>
+            <a href="{{ url_for('zal7') }}" class="sidebar-link">
+                <span class="sidebar-nr">7</span>
+                <span>Sprawozdanie</span>
+            </a>
+            <a href="{{ url_for('zal7a') }}" class="sidebar-link">
+                <span class="sidebar-nr">7a</span>
+                <span>Sprawozdanie (niestac.)</span>
+            </a>
+            <a href="{{ url_for('zal8') }}" class="sidebar-link">
+                <span class="sidebar-nr">8</span>
+                <span>Protokół zaliczenia</span>
+            </a>
+            <a href="{{ url_for('zal9') }}" class="sidebar-link">
+                <span class="sidebar-nr">9</span>
+                <span>Oświadczenie instytucji</span>
+            </a>
+
+        </nav>
+    </aside>
+
+    <div class="site-main">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+            <div class="flash-wrap">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+</div>
+
+<script>
+(function () {
+    var toggle  = document.getElementById('sidebarToggle');
+    var sidebar = document.getElementById('siteSidebar');
+    var body    = document.body;
+
+    if (localStorage.getItem('sidebarClosed') === '1') {
+        body.classList.add('sidebar-closed');
+    }
+
+    toggle.addEventListener('click', function () {
+        body.classList.toggle('sidebar-closed');
+        localStorage.setItem('sidebarClosed', body.classList.contains('sidebar-closed') ? '1' : '0');
+    });
+
+    // highlight active link
+    var path = window.location.pathname;
+    document.querySelectorAll('.sidebar-link').forEach(function (a) {
+        if (a.getAttribute('href') === path) {
+            a.classList.add('sidebar-link-active');
+        }
+    });
+}());
+</script>
+
+</body>
+</html>

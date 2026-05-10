@@ -1,0 +1,26 @@
+{% extends "print/base_print.html" %}
+{% from "print/_macros.html" import field, sig, letterhead %}
+{% block doc_title %}Załącznik 2 – Program praktyki{% endblock %}
+{% block content %}
+{{ letterhead('2') }}
+<h1 class="p-title">Program praktyki zawodowej</h1>
+<h2 class="p-subtitle">Kierunek: Informatyka – studia inżynierskie</h2>
+<div class="p-section">
+    <div class="p-row-2">{{ field('Nr albumu', data.nr_albumu) }}{{ field('Zakład pracy', data.zaklad_pracy) }}</div>
+    <div class="p-row-3">{{ field('Data rozpoczęcia', data.data_start) }}{{ field('Data zakończenia', data.data_end) }}{{ field('Data uzgodnienia', data.data_uzgodnienia) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">Ramowy program praktyki</div>
+    <table class="p-table">
+        <thead><tr><th style="width:40pt">Lp.</th><th>Zakres tematyczny / zadania</th></tr></thead>
+        <tbody>
+            {% for item in [('1','Zapoznanie się z organizacją i regulaminem zakładu pracy, przepisami BHP i p.poż.'),('2','Zapoznanie się ze strukturą organizacyjną, profilem i zakresem działalności zakładu.'),('3','Zapoznanie się z infrastrukturą informatyczną zakładu (sieci, serwery, oprogramowanie).'),('4','Uczestnictwo w projektowaniu, wdrażaniu lub administrowaniu systemami informatycznymi.'),('5','Programowanie i testowanie aplikacji lub modułów oprogramowania użytkowego.'),('6','Administrowanie bazami danych i utrzymanie ciągłości działania systemów.'),('7','Udział w realizacji projektów IT zgodnie ze specjalnością studiów.'),('8','Prowadzenie dokumentacji technicznej i raportów z wykonanych prac.'),('9','Podsumowanie praktyki i opracowanie sprawozdania końcowego.')] %}
+            <tr><td style="text-align:center">{{ item[0] }}</td><td>{{ item[1] }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="p-section">
+    <div class="p-sig-row">{{ sig('Podpis zakładowego opiekuna praktyki (data, pieczęć)', data.podpis_zakladowy) }}{{ sig('Podpis uczelnianego opiekuna praktyki (data)', data.podpis_uczelniany) }}</div>
+</div>
+{% endblock %}

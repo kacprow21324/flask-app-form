@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Załącznik 4a – Merytoryczna ocena wniosku studenta{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% macro ocena_val(nr, field) %}
+    {% if data and data.ocena_efektow is defined %}
+        {% for oe in data.ocena_efektow %}{% if oe.nr == nr %}{{ oe[field] }}{% endif %}{% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+            <div class="doc-badge">Załącznik nr 4a</div>
+        </div>
+
+        <h1 class="doc-title">Merytoryczna ocena wniosku studenta<br>o zaliczenie efektów uczenia się z praktyki zawodowej</h1>
+
+        <form method="post"
+              action="{{ url_for('zal4a_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal4a') }}">
+
+            {# ── Dane studenta ── #}
+            <div class="form-section">
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">Student / ka</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
+                    </div>
+                </div>
+                <div class="form-row-2" style="margin-top:10px">
+                    <div class="field-group">
+                        <label for="data_zlozenia">Data złożenia wniosku</label>
+                        <input id="data_zlozenia" type="date" name="data_zlozenia"
+                               value="{{ val('data_zlozenia') }}">
+                    </div>
+                    <div class="field-group"></div>
+                </div>
+            </div>
+
+            {# ── Ocena efektów ── #}
+            <div class="form-section">
+                <div class="form-section-label">Ocena merytoryczna poszczególnych efektów uczenia się</div>
+                <div class="table-wrap">
+                    <table class="effects-table">
+                        <thead>
+                            <tr>
+                                <th class="col-nr">Nr</th>
+                                <th>Efekt uczenia się</th>
+                                <th style="width:130px">Zasadność wniosku</th>
+                                <th>Uzasadnienie oceny</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for effect in effects %}
+                            {% set cur_zasadny = namespace(val='') %}
+                            {% if data and data.ocena_efektow is defined %}
+                                {% for oe in data.ocena_efektow %}
+                                    {% if oe.nr == effect.nr %}{% set cur_zasadny.val = oe.zasadny %}{% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <tr>
+                                <td class="col-nr">{{ "%02d" | format(effect.nr) }}</td>
+                                <td>{{ effect.opis }}</td>
+                                <td class="col-status">
+                                    <label class="radio">
+                                        <input type="radio" name="zasadny_{{ effect.nr }}"
+                                               value="tak"
+                                               {% if cur_zasadny.val == 'tak' %}checked{% endif %}>
+                                        tak
+                                    </label>
+                                    <label class="radio">
+                                        <input type="radio" name="zasadny_{{ effect.nr }}"
+                                               value="nie"
+                                               {% if cur_zasadny.val == 'nie' %}checked{% endif %}>
+                                        nie
+                                    </label>
+                                </td>
+                                <td>
+                                    <input type="text" name="uzasadnienie_{{ effect.nr }}"
+                                           value="{{ ocena_val(effect.nr, 'uzasadnienie') }}"
+                                           placeholder="Uzasadnienie…">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {# ── Rekomendacja i podpis ── #}
+            <div class="form-section">
+                <div class="form-section-label">Rekomendacja i decyzja</div>
+                <div class="field-group" style="margin-bottom:14px">
+                    <label for="rekomendacja">Rekomendacja uczelnianego opiekuna praktyki</label>
+                    <div class="radio-group" style="flex-direction:row;gap:20px;margin-top:6px">
+                        <label class="radio">
+                            <input type="radio" name="rekomendacja" value="pozytywna"
+                                {% if data and data.get('rekomendacja') == 'pozytywna' %}checked{% endif %}>
+                            pozytywna
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="rekomendacja" value="negatywna"
+                                {% if data and data.get('rekomendacja') == 'negatywna' %}checked{% endif %}>
+                            negatywna
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="rekomendacja" value="warunkowa"
+                                {% if data and data.get('rekomendacja') == 'warunkowa' %}checked{% endif %}>
+                            warunkowa
+                        </label>
+                    </div>
+                </div>
+                <div class="field-group" style="margin-bottom:14px">
+                    <label for="uwagi">Uwagi dodatkowe</label>
+                    <textarea id="uwagi" name="uwagi" rows="3">{{ val('uwagi') }}</textarea>
+                </div>
+                <div class="sig-row">
+                    <div class="sig-box">
+                        <label for="data_oceny">Data oceny</label>
+                        <input id="data_oceny" type="date" name="data_oceny" value="{{ val('data_oceny') }}">
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_uopz">Podpis uczelnianego opiekuna praktyki</label>
+                        <input id="podpis_uopz" type="text" name="podpis_uopz"
+                               value="{{ val('podpis_uopz') }}" placeholder="Imię, nazwisko i podpis">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 4a{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

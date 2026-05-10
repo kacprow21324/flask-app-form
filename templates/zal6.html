@@ -1,583 +1,383 @@
-<!doctype html>
-<html lang="pl">
-<head>
-    <meta charset="utf-8">
-    <title>Załącznik 6</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/zal6.css') }}">
-</head>
-<body>
-    <div class="page">
-        <header class="page-header">
-            <div class="brand">Rozliczanie praktyk</div>
-        </header>
+{% extends "base.html" %}
+{% block title %}Załącznik 6 – Dziennik praktyki{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = val('imie_nazwisko') | plec %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
 
-        <main class="card">
-            <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
-            <div class="doc-top">
-                <div class="doc-left">
-                    <div class="inst-name">Akademia Nauk Stosowanych w Elblągu</div>
-                    <div class="inst-dept">
-                        Instytut Informatyki Stosowanej
-                        <span>im. Krzysztofa Brzeskiego</span>
-                    </div>
-                </div>
-                <div class="doc-right">Załącznik nr 6</div>
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
             </div>
+            <div class="doc-badge">Załącznik nr 6</div>
+        </div>
 
-            <h1 class="doc-title">Dziennik praktyki zawodowej</h1>
+        <h1 class="doc-title">Dziennik praktyki zawodowej</h1>
 
-            {% if saved %}
-                <div class="msg">Zapisano dane.</div>
-            {% endif %}
-            {% if error %}
-                <div class="error">{{ error }}</div>
-            {% endif %}
+        <form method="post"
+              action="{{ url_for('zal6_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal6') }}">
 
-            <form method="post" action="{{ url_for('zal6') }}">
-                <div class="line-grid">
-                    <div class="field line-field">
-                        <label for="imie_nazwisko">Student</label>
-                        <input
-                            id="imie_nazwisko"
-                            type="text"
-                            name="imie_nazwisko"
-                            pattern=".+ .+"
-                            title="Podaj imię i nazwisko"
-                            required
-                        >
+            <div class="form-section">
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">{{ g('Student', 'Studentka') }}</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
                     </div>
-                    <div class="field line-field">
+                    <div class="field-group">
                         <label for="nr_albumu">Nr albumu</label>
-                        <input
-                            id="nr_albumu"
-                            type="text"
-                            name="nr_albumu"
-                            inputmode="numeric"
-                            pattern="[0-9]+"
-                            title="Wpisz tylko cyfry"
-                            required
-                        >
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
                     </div>
                 </div>
-                <div class="line-grid">
-                    <div class="field line-field">
-                        <label for="kierunek">Kierunek</label>
-                        <input
-                            id="kierunek"
-                            type="text"
-                            name="kierunek"
-                            value="Informatyka"
-                            readonly
-                            required
-                        >
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label>Kierunek</label>
+                        <input type="text" value="Informatyka" readonly>
                     </div>
-                    <div class="field line-field">
+                    <div class="field-group">
                         <label for="specjalnosc">Specjalność</label>
                         <select id="specjalnosc" name="specjalnosc" required>
-                            <option value="" disabled selected>Wybierz specjalność</option>
-                            <option
-                                value="Administracja systemów i sieci komputerowych (ASiSK)"
-                            >
-                                Administracja systemów i sieci komputerowych (ASiSK)
-                            </option>
-                            <option
-                                value="Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)"
-                            >
-                                Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)
-                            </option>
-                            <option
-                                value="Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)"
-                            >
-                                Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)
-                            </option>
+                            <option value="" disabled {% if not data or not data.get('specjalnosc') %}selected{% endif %}>Wybierz specjalność</option>
+                            {% for sp in specialties %}
+                                <option value="{{ sp }}" {% if data and data.get('specjalnosc') == sp %}selected{% endif %}>{{ sp }}</option>
+                            {% endfor %}
                         </select>
                     </div>
+                    <div class="field-group">
+                        <label>Studia</label>
+                        <div class="radio-group">
+                            <label class="radio">
+                                <input type="radio" name="rodzaj_studiow" value="stacjonarne"
+                                    {% if not data or data.get('rodzaj_studiow','stacjonarne')=='stacjonarne' %}checked{% endif %}>
+                                stacjonarne
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="rodzaj_studiow" value="niestacjonarne"
+                                    {% if data and data.get('rodzaj_studiow')=='niestacjonarne' %}checked{% endif %}>
+                                niestacjonarne
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <div class="line-grid">
-                    <div class="field line-field">
-                        <label for="rok_akademicki">Rok studiów</label>
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label for="rok_akademicki">Rok akademicki</label>
                         <select id="rok_akademicki" name="rok_akademicki" required>
-                            <option value="2025/2026" selected>2025/2026</option>
+                            {% for yr in ['2023/2024', '2024/2025', '2025/2026', '2026/2027'] %}
+                                <option value="{{ yr }}"
+                                    {% if data and data.get('rok_akademicki') == yr %}selected
+                                    {% elif not data and yr == '2025/2026' %}selected{% endif %}>{{ yr }}</option>
+                            {% endfor %}
                         </select>
                     </div>
-                    <div class="field line-field">
+                    <div class="field-group" style="grid-column: span 2">
                         <label for="miejsce_praktyki">Miejsce odbywania praktyki</label>
-                        <input
-                            id="miejsce_praktyki"
-                            type="text"
-                            name="miejsce_praktyki"
-                            required
-                        >
+                        <input id="miejsce_praktyki" type="text" name="miejsce_praktyki"
+                               value="{{ val('miejsce_praktyki') }}" required>
                     </div>
                 </div>
-                <div class="line-grid two">
-                    <div class="field line-field">
+                <div class="form-row-2">
+                    <div class="field-group">
                         <label for="data_start">Data rozpoczęcia praktyki</label>
-                        <input
-                            id="data_start"
-                            type="date"
-                            name="data_start"
-                            required
-                        >
+                        <input id="data_start" type="date" name="data_start" value="{{ val('data_start') }}" required>
                     </div>
-                    <div class="field line-field">
+                    <div class="field-group">
                         <label for="data_end">Data zakończenia praktyki</label>
-                        <input
-                            id="data_end"
-                            type="date"
-                            name="data_end"
-                            required
-                        >
+                        <input id="data_end" type="date" name="data_end" value="{{ val('data_end') }}" required>
                     </div>
                 </div>
+            </div>
 
+            <div class="form-section">
+                <div class="form-section-label">Wykaz załączników</div>
+                <div class="field-group">
+                    <textarea id="wykaz_zalacznikow" name="wykaz_zalacznikow" rows="3">{{ val('wykaz_zalacznikow') }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
                 <div class="section-header">
-                    <h2>Wpisy dziennika</h2>
+                    <div class="form-section-label" style="margin-bottom:0">Wpisy dziennika</div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="addRow()">+ Dodaj dzień</button>
                 </div>
 
-                <div class="table-wrap">
-                    <div class="table-scroll">
-                        <table class="table">
+                <div class="table-wrap table-scroll-wrap">
+                    <table class="table diary-table">
                         <thead>
                             <tr>
                                 <th>
                                     Dzień
-                                    <span
-                                        class="info-icon small"
-                                        data-tooltip="Wpis w pozycji „dzień” oznacza kolejny dzień praktyki (jeden ze 120)"
-                                    >!</span>
+                                    <span class="info-icon small" data-tooltip="Kolejny dzień praktyki (jeden ze 120)">?</span>
                                 </th>
                                 <th>Data</th>
                                 <th>
                                     Opis wykonanych prac
-                                    <span
-                                        class="info-icon small"
-                                        data-tooltip="Wpisy powinny zawierać opis wykonywanych prac, z których powinno wynikać, do nabycia jakich umiejętności studenta prowadzą oraz do nabycia których efektów uczenia się. Unikać skrótowych opisów, z których nic nie wynika. Jeżeli wynikiem wykonywanych prac są określone opracowania np. program, zamieścić to jako załącznik do dziennika praktyki. Jednakże wcześniej uzgodnić z zakładem, w jakim zakresie można to zamieścić, bez naruszenia poufności opracowania. "
-                                    >!</span>
+                                    <span class="info-icon small" data-tooltip="Wpisy powinny zawierać opis wykonywanych prac, z których powinno wynikać, do nabycia jakich umiejętności studenta prowadzą oraz do nabycia których efektów uczenia się. Unikać skrótowych opisów.">?</span>
                                 </th>
                                 <th>
                                     Nr efektów uczenia się
-                                    <span
-                                        class="info-icon small"
-                                        data-tooltip="Wpisać numer/numery efektów uczenia się, do których osiągnięcia prowadzą wykonywane prace."
-                                    >!</span>
+                                    <span class="info-icon small" data-tooltip="Wpisać numer/numery efektów uczenia się, do których osiągnięcia prowadzą wykonywane prace.">?</span>
                                 </th>
-                                <th>Akcje</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody id="dziennik-body">
-                            <tr>
-                                <td><input class="day-input" type="number" name="dzien[]" min="1" required></td>
-                                <td><input type="date" name="data[]" required></td>
-                                <td><textarea class="opis-textarea" name="opis[]" rows="2" required></textarea></td>
-                                <td>
-                                    <div class="effects-picker">
-                                        <button type="button" class="effects-display">Wybierz</button>
-                                        <div class="effects-panel">
-                                            {% for effect in effects %}
-                                                <label class="effects-option">
-                                                    <input type="checkbox" class="effect-check" value="{{ effect.nr }}">
-                                                    <span class="effect-nr">{{ "%02d"|format(effect.nr) }}</span>
-                                                    <span class="effect-desc">{{ effect.opis }}</span>
-                                                </label>
-                                            {% endfor %}
+                            {% if data and data.dziennik %}
+                                {% for wpis in data.dziennik %}
+                                <tr>
+                                    <td><input class="day-input" type="number" name="dzien[]"
+                                               value="{{ wpis.dzien }}" min="1" required></td>
+                                    <td><input type="date" name="data[]" value="{{ wpis.data }}" required></td>
+                                    <td><textarea class="opis-textarea" name="opis[]" rows="2" required>{{ wpis.opis }}</textarea></td>
+                                    <td>
+                                        <div class="effects-picker">
+                                            <button type="button" class="effects-display">Wybierz</button>
+                                            <div class="effects-panel">
+                                                {% for effect in effects %}
+                                                    <label class="effects-option">
+                                                        <input type="checkbox" class="effect-check"
+                                                               value="{{ effect.nr }}"
+                                                               {% set nums = wpis.efekty.split(', ') if wpis.efekty else [] %}
+                                                               {% if effect.nr|string in nums or (effect.nr|string).zfill(2) in nums %}checked{% endif %}>
+                                                        <span class="effect-nr">{{ "%02d" | format(effect.nr) }}</span>
+                                                        <span class="effect-desc">{{ effect.opis }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                            <input type="hidden" name="efekty[]" class="effects-value"
+                                                   value="{{ wpis.efekty }}">
                                         </div>
-                                        <input type="hidden" name="efekty[]" class="effects-value" value="">
-                                    </div>
-                                    <input type="hidden" name="podpis[]" value="">
-                                </td>
-                                <td><button class="btn tiny" type="button" onclick="deleteRow(this)">Usuń</button></td>
-                            </tr>
+                                        <input type="hidden" name="podpis[]" value="{{ wpis.podpis }}">
+                                    </td>
+                                    <td><button class="btn btn-sm btn-danger" type="button" onclick="deleteRow(this)">Usuń</button></td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td><input class="day-input" type="number" name="dzien[]" min="1" required></td>
+                                    <td><input type="date" name="data[]" required></td>
+                                    <td><textarea class="opis-textarea" name="opis[]" rows="2" required></textarea></td>
+                                    <td>
+                                        <div class="effects-picker">
+                                            <button type="button" class="effects-display">Wybierz</button>
+                                            <div class="effects-panel">
+                                                {% for effect in effects %}
+                                                    <label class="effects-option">
+                                                        <input type="checkbox" class="effect-check" value="{{ effect.nr }}">
+                                                        <span class="effect-nr">{{ "%02d" | format(effect.nr) }}</span>
+                                                        <span class="effect-desc">{{ effect.opis }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                            <input type="hidden" name="efekty[]" class="effects-value" value="">
+                                        </div>
+                                        <input type="hidden" name="podpis[]" value="">
+                                    </td>
+                                    <td><button class="btn btn-sm btn-danger" type="button" onclick="deleteRow(this)">Usuń</button></td>
+                                </tr>
+                            {% endif %}
                         </tbody>
-                        </table>
-                    </div>
+                    </table>
                 </div>
+            </div>
 
-                <div class="actions">
-                    <button class="btn secondary" type="button" onclick="addRow()">Dodaj kolejny dzień</button>
-                    <button class="btn" type="submit">Zapisz</button>
-                </div>
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 6{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
 
-                <div class="field wykaz">
-                    <label for="wykaz_zalacznikow">Wykaz załączników</label>
-                    <textarea id="wykaz_zalacznikow" name="wykaz_zalacznikow" rows="3"></textarea>
-                </div>
-            </form>
-        </main>
+        </form>
     </div>
+</div>
 
-    <script>
-        const effectsOptions = `
-            {% for effect in effects %}
-                <label class="effects-option">
-                    <input type="checkbox" class="effect-check" value="{{ effect.nr }}">
-                    <span class="effect-nr">{{ "%02d"|format(effect.nr) }}</span>
-                    <span class="effect-desc">{{ effect.opis }}</span>
-                </label>
-            {% endfor %}
-        `;
+<script>
+    const effectsOptions = `{% for effect in effects %}<label class="effects-option"><input type="checkbox" class="effect-check" value="{{ effect.nr }}"><span class="effect-nr">{{ "%02d" | format(effect.nr) }}</span><span class="effect-desc">{{ effect.opis }}</span></label>{% endfor %}`;
 
-        function autoGrow(textarea) {
-            textarea.style.height = "auto";
-            textarea.style.height = `${textarea.scrollHeight}px`;
-        }
+    function autoGrow(ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
 
-        function parseDate(value) {
-            if (!value) {
-                return null;
-            }
-            const parts = value.split("-").map(Number);
-            if (parts.length !== 3 || parts.some(Number.isNaN)) {
-                return null;
-            }
-            return new Date(parts[0], parts[1] - 1, parts[2]);
-        }
+    function parseDate(v) {
+        if (!v) return null;
+        const p = v.split("-").map(Number);
+        return p.length === 3 && !p.some(isNaN) ? new Date(p[0], p[1] - 1, p[2]) : null;
+    }
 
-        function formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
-            return `${year}-${month}-${day}`;
-        }
+    function formatDate(d) {
+        return d.getFullYear() + "-" +
+            String(d.getMonth() + 1).padStart(2, "0") + "-" +
+            String(d.getDate()).padStart(2, "0");
+    }
 
-        function addDays(date, days) {
-            const next = new Date(date);
-            next.setDate(next.getDate() + days);
-            return next;
-        }
-
-        function normalizeRows() {
-            const tbody = document.getElementById("dziennik-body");
-            const rows = Array.from(tbody.querySelectorAll("tr"));
-            if (rows.length === 0) {
-                return;
-            }
-
-            const firstDayInput = rows[0].querySelector("input[name='dzien[]']");
-            const firstDateInput = rows[0].querySelector("input[name='data[]']");
-            const firstDay = parseInt(firstDayInput.value, 10);
-            const firstDate = parseDate(firstDateInput.value);
-
-            rows.forEach((row, index) => {
-                const dayInput = row.querySelector("input[name='dzien[]']");
-                const dateInput = row.querySelector("input[name='data[]']");
-                if (index === 0) {
-                    dayInput.readOnly = false;
-                    dateInput.readOnly = false;
-                    return;
-                }
-                dayInput.readOnly = true;
-                dateInput.readOnly = true;
-                if (!Number.isInteger(firstDay) || !firstDate) {
-                    dayInput.value = "";
-                    dateInput.value = "";
-                    return;
-                }
-                dayInput.value = firstDay + index;
-                dateInput.value = formatDate(addDays(firstDate, index));
-            });
-        }
-
-        let activePicker = null;
-
-        function closePickers(except) {
-            document.querySelectorAll(".effects-picker.open").forEach((picker) => {
-                if (picker !== except) {
-                    picker.classList.remove("open");
-                }
-            });
-            if (!except) {
-                activePicker = null;
-            }
-        }
-
-        function positionPanel(picker) {
-            const button = picker.querySelector(".effects-display");
-            const panel = picker.querySelector(".effects-panel");
-            const rect = button.getBoundingClientRect();
-            const padding = 10;
-            const width = rect.width;
-
-            panel.style.width = `${width}px`;
-            let left = rect.left;
-            let top = rect.bottom + 6;
-            const panelRect = panel.getBoundingClientRect();
-
-            if (left + panelRect.width > window.innerWidth - padding) {
-                left = window.innerWidth - panelRect.width - padding;
-            }
-            if (left < padding) {
-                left = padding;
-            }
-            if (top + panelRect.height > window.innerHeight - padding) {
-                top = rect.top - panelRect.height - 6;
-            }
-
-            panel.style.left = `${left}px`;
-            panel.style.top = `${top}px`;
-        }
-
-        function togglePicker(picker) {
-            const isOpen = picker.classList.toggle("open");
-            if (isOpen) {
-                closePickers(picker);
-                activePicker = picker;
-                positionPanel(picker);
-            } else if (activePicker === picker) {
-                activePicker = null;
-            }
-        }
-
-        function syncEffects(picker) {
-            const checks = Array.from(picker.querySelectorAll(".effect-check"));
-            const rawValues = checks.filter((check) => check.checked).map((check) => check.value);
-            const displayValues = rawValues.map((value) => String(value).padStart(2, "0"));
-            const hidden = picker.querySelector(".effects-value");
-            const display = picker.querySelector(".effects-display");
-            hidden.value = rawValues.join(", ");
-            display.textContent = displayValues.length ? displayValues.join(", ") : "Wybierz";
-            if (checks.length) {
-                checks[0].required = rawValues.length === 0;
-            }
-        }
-
-        function isRowComplete(row) {
-            const requiredElements = Array.from(
-                row.querySelectorAll("input[required]:not(.effect-check), textarea[required], select[required]")
-            );
-            const basicReady = requiredElements.every((element) => element.value.trim() !== "");
-            if (!basicReady) {
-                return false;
-            }
-            const checks = Array.from(row.querySelectorAll(".effect-check"));
-            return checks.length === 0 || checks.some((check) => check.checked);
-        }
-
-        function createEffectsPicker() {
-            const picker = document.createElement("div");
-            picker.className = "effects-picker";
-
-            const display = document.createElement("button");
-            display.type = "button";
-            display.className = "effects-display";
-            display.textContent = "Wybierz";
-            display.addEventListener("click", (event) => {
-                event.preventDefault();
-                togglePicker(picker);
-            });
-
-            const panel = document.createElement("div");
-            panel.className = "effects-panel";
-            panel.innerHTML = effectsOptions;
-
-            const hidden = document.createElement("input");
-            hidden.type = "hidden";
-            hidden.name = "efekty[]";
-            hidden.className = "effects-value";
-
-            picker.appendChild(display);
-            picker.appendChild(panel);
-            picker.appendChild(hidden);
-
-            panel.querySelectorAll(".effect-check").forEach((check, index) => {
-                if (index === 0) {
-                    check.required = true;
-                }
-                check.addEventListener("change", () => syncEffects(picker));
-            });
-
-            syncEffects(picker);
-            return picker;
-        }
-
-        function addRow() {
-            const tbody = document.getElementById("dziennik-body");
-            const rows = Array.from(tbody.querySelectorAll("tr"));
-            const lastRow = rows[rows.length - 1];
-            if (!isRowComplete(lastRow)) {
-                return;
-            }
-
-            const row = document.createElement("tr");
-
-            const cellDay = document.createElement("td");
-            const inputDay = document.createElement("input");
-            inputDay.type = "number";
-            inputDay.name = "dzien[]";
-            inputDay.min = "1";
-            inputDay.required = true;
-            inputDay.className = "day-input";
-            cellDay.appendChild(inputDay);
-
-            const cellDate = document.createElement("td");
-            const inputDate = document.createElement("input");
-            inputDate.type = "date";
-            inputDate.name = "data[]";
-            inputDate.required = true;
-            cellDate.appendChild(inputDate);
-
-            const cellDesc = document.createElement("td");
-            const inputDesc = document.createElement("textarea");
-            inputDesc.name = "opis[]";
-            inputDesc.required = true;
-            inputDesc.rows = 2;
-            inputDesc.className = "opis-textarea";
-            inputDesc.addEventListener("input", () => autoGrow(inputDesc));
-            cellDesc.appendChild(inputDesc);
-
-            const cellEffects = document.createElement("td");
-            const picker = createEffectsPicker();
-            cellEffects.appendChild(picker);
-            const hiddenSignature = document.createElement("input");
-            hiddenSignature.type = "hidden";
-            hiddenSignature.name = "podpis[]";
-            hiddenSignature.value = "";
-            cellEffects.appendChild(hiddenSignature);
-
-            const cellActions = document.createElement("td");
-            const button = document.createElement("button");
-            button.type = "button";
-            button.textContent = "Usuń";
-            button.className = "btn tiny";
-            button.onclick = function () { deleteRow(this); };
-            cellActions.appendChild(button);
-
-            row.appendChild(cellDay);
-            row.appendChild(cellDate);
-            row.appendChild(cellDesc);
-            row.appendChild(cellEffects);
-            row.appendChild(cellActions);
-
-            tbody.appendChild(row);
-            normalizeRows();
-            autoGrow(inputDesc);
-        }
-
-        function deleteRow(button) {
-            const tbody = document.getElementById("dziennik-body");
-            if (tbody.rows.length <= 1) {
-                return; // do not remove the last row
-            }
-            const currentRow = button.closest("tr");
-            currentRow.remove();
-            normalizeRows();
-        }
-
-        document.querySelectorAll(".effects-picker").forEach((picker) => {
-            const display = picker.querySelector(".effects-display");
-            display.addEventListener("click", (event) => {
-                event.preventDefault();
-                togglePicker(picker);
-            });
-            picker.querySelectorAll(".effect-check").forEach((check, index) => {
-                if (index === 0) {
-                    check.required = true;
-                }
-                check.addEventListener("change", () => syncEffects(picker));
-            });
-            syncEffects(picker);
+    function normalizeRows() {
+        const rows = Array.from(document.getElementById("dziennik-body").querySelectorAll("tr"));
+        if (!rows.length) return;
+        const firstDay = parseInt(rows[0].querySelector("[name='dzien[]']").value, 10);
+        const firstDate = parseDate(rows[0].querySelector("[name='data[]']").value);
+        rows.forEach(function (row, i) {
+            const di = row.querySelector("[name='dzien[]']");
+            const dt = row.querySelector("[name='data[]']");
+            if (i === 0) { di.readOnly = false; dt.readOnly = false; return; }
+            di.readOnly = true; dt.readOnly = true;
+            if (!Number.isInteger(firstDay) || !firstDate) { di.value = ""; dt.value = ""; return; }
+            const next = new Date(firstDate); next.setDate(firstDate.getDate() + i);
+            di.value = firstDay + i; dt.value = formatDate(next);
         });
+    }
 
-        document.addEventListener("click", (event) => {
-            const picker = event.target.closest(".effects-picker");
-            if (!picker) {
-                closePickers();
-            }
+    let activePicker = null;
+
+    function closePickers(except) {
+        document.querySelectorAll(".effects-picker.open").forEach(function (p) {
+            if (p !== except) p.classList.remove("open");
         });
+        if (!except) activePicker = null;
+    }
 
-        window.addEventListener("scroll", () => {
-            if (activePicker) {
-                positionPanel(activePicker);
-            }
+    function positionPanel(picker) {
+        const btn = picker.querySelector(".effects-display");
+        const panel = picker.querySelector(".effects-panel");
+        const r = btn.getBoundingClientRect();
+        panel.style.width = r.width + "px";
+        let left = r.left, top = r.bottom + 6;
+        const pr = panel.getBoundingClientRect();
+        if (left + pr.width > window.innerWidth - 10) left = window.innerWidth - pr.width - 10;
+        if (left < 10) left = 10;
+        if (top + pr.height > window.innerHeight - 10) top = r.top - pr.height - 6;
+        panel.style.left = left + "px"; panel.style.top = top + "px";
+    }
+
+    function togglePicker(picker) {
+        const open = picker.classList.toggle("open");
+        if (open) { closePickers(picker); activePicker = picker; positionPanel(picker); }
+        else if (activePicker === picker) activePicker = null;
+    }
+
+    function syncEffects(picker) {
+        const checks = Array.from(picker.querySelectorAll(".effect-check"));
+        const vals = checks.filter(function (c) { return c.checked; }).map(function (c) { return c.value; });
+        picker.querySelector(".effects-value").value = vals.join(", ");
+        picker.querySelector(".effects-display").textContent = vals.length
+            ? vals.map(function (v) { return String(v).padStart(2, "0"); }).join(", ") : "Wybierz";
+        if (checks.length) checks[0].required = vals.length === 0;
+    }
+
+    function createPicker() {
+        const picker = document.createElement("div");
+        picker.className = "effects-picker";
+        const btn = document.createElement("button");
+        btn.type = "button"; btn.className = "effects-display"; btn.textContent = "Wybierz";
+        btn.addEventListener("click", function (e) { e.preventDefault(); togglePicker(picker); });
+        const panel = document.createElement("div");
+        panel.className = "effects-panel"; panel.innerHTML = effectsOptions;
+        const hidden = document.createElement("input");
+        hidden.type = "hidden"; hidden.name = "efekty[]"; hidden.className = "effects-value";
+        picker.appendChild(btn); picker.appendChild(panel); picker.appendChild(hidden);
+        panel.querySelectorAll(".effect-check").forEach(function (c, i) {
+            if (i === 0) c.required = true;
+            c.addEventListener("change", function () { syncEffects(picker); });
         });
+        syncEffects(picker);
+        return picker;
+    }
 
-        window.addEventListener("resize", () => {
-            if (activePicker) {
-                positionPanel(activePicker);
-            }
-        });
+    function isRowComplete(row) {
+        const reqs = Array.from(row.querySelectorAll("input[required]:not(.effect-check), textarea[required]"));
+        return reqs.every(function (el) { return el.value.trim() !== ""; }) &&
+            (Array.from(row.querySelectorAll(".effect-check")).some(function (c) { return c.checked; }));
+    }
 
-        document.addEventListener("input", (event) => {
-            const target = event.target;
-            if (target.name === "dzien[]" || target.name === "data[]") {
-                normalizeRows();
-            }
-            if (target.classList.contains("opis-textarea")) {
-                autoGrow(target);
-            }
-        });
+    function addRow() {
+        const tbody = document.getElementById("dziennik-body");
+        const rows = tbody.querySelectorAll("tr");
+        if (rows.length && !isRowComplete(rows[rows.length - 1])) return;
+        const row = document.createElement("tr");
+        const tdDay = document.createElement("td");
+        const inDay = document.createElement("input");
+        inDay.type = "number"; inDay.name = "dzien[]"; inDay.min = "1"; inDay.required = true; inDay.className = "day-input";
+        tdDay.appendChild(inDay);
+        const tdDate = document.createElement("td");
+        const inDate = document.createElement("input");
+        inDate.type = "date"; inDate.name = "data[]"; inDate.required = true;
+        tdDate.appendChild(inDate);
+        const tdDesc = document.createElement("td");
+        const ta = document.createElement("textarea");
+        ta.name = "opis[]"; ta.required = true; ta.rows = 2; ta.className = "opis-textarea";
+        ta.addEventListener("input", function () { autoGrow(ta); });
+        tdDesc.appendChild(ta);
+        const tdEff = document.createElement("td");
+        tdEff.appendChild(createPicker());
+        const hSig = document.createElement("input");
+        hSig.type = "hidden"; hSig.name = "podpis[]"; hSig.value = "";
+        tdEff.appendChild(hSig);
+        const tdAct = document.createElement("td");
+        const btnDel = document.createElement("button");
+        btnDel.type = "button"; btnDel.textContent = "Usuń"; btnDel.className = "btn btn-sm btn-danger";
+        btnDel.onclick = function () { deleteRow(btnDel); };
+        tdAct.appendChild(btnDel);
+        [tdDay, tdDate, tdDesc, tdEff, tdAct].forEach(function (td) { row.appendChild(td); });
+        tbody.appendChild(row);
+        normalizeRows(); autoGrow(ta);
+    }
 
-        document.querySelectorAll(".opis-textarea").forEach((textarea) => {
-            autoGrow(textarea);
-        });
-
-        const tooltip = document.createElement("div");
-        tooltip.className = "info-tooltip";
-        document.body.appendChild(tooltip);
-
-        function positionTooltip(target) {
-            const rect = target.getBoundingClientRect();
-            const padding = 10;
-            const tooltipRect = tooltip.getBoundingClientRect();
-            let top = rect.bottom + 8;
-            let left = rect.left;
-
-            if (left + tooltipRect.width > window.innerWidth - padding) {
-                left = window.innerWidth - tooltipRect.width - padding;
-            }
-            if (left < padding) {
-                left = padding;
-            }
-            if (top + tooltipRect.height > window.innerHeight - padding) {
-                top = rect.top - tooltipRect.height - 8;
-            }
-
-            tooltip.style.left = `${left}px`;
-            tooltip.style.top = `${top}px`;
-        }
-
-        function showTooltip(event) {
-            const target = event.currentTarget;
-            const text = target.getAttribute("data-tooltip");
-            if (!text) {
-                return;
-            }
-            tooltip.textContent = text;
-            tooltip.classList.add("visible");
-            positionTooltip(target);
-        }
-
-        function hideTooltip() {
-            tooltip.classList.remove("visible");
-        }
-
-        function bindTooltips(scope) {
-            scope.querySelectorAll(".info-icon").forEach((icon) => {
-                icon.addEventListener("mouseenter", showTooltip);
-                icon.addEventListener("mouseleave", hideTooltip);
-                icon.addEventListener("focus", showTooltip);
-                icon.addEventListener("blur", hideTooltip);
-            });
-        }
-
-        bindTooltips(document);
-
-        window.addEventListener("scroll", () => {
-            const active = document.querySelector(".info-icon:hover");
-            if (active) {
-                positionTooltip(active);
-            }
-        });
-
-        window.addEventListener("resize", () => {
-            const active = document.querySelector(".info-icon:hover");
-            if (active) {
-                positionTooltip(active);
-            }
-        });
-
+    function deleteRow(btn) {
+        const tbody = document.getElementById("dziennik-body");
+        if (tbody.rows.length <= 1) return;
+        btn.closest("tr").remove();
         normalizeRows();
-    </script>
-</body>
-</html>
+    }
+
+    // Init existing pickers
+    document.querySelectorAll(".effects-picker").forEach(function (picker) {
+        picker.querySelector(".effects-display").addEventListener("click", function (e) {
+            e.preventDefault(); togglePicker(picker);
+        });
+        picker.querySelectorAll(".effect-check").forEach(function (c, i) {
+            if (i === 0) c.required = true;
+            c.addEventListener("change", function () { syncEffects(picker); });
+        });
+        syncEffects(picker);
+    });
+
+    document.addEventListener("click", function (e) { if (!e.target.closest(".effects-picker")) closePickers(); });
+    window.addEventListener("scroll", function () { if (activePicker) positionPanel(activePicker); });
+    window.addEventListener("resize", function () { if (activePicker) positionPanel(activePicker); });
+    document.addEventListener("input", function (e) {
+        if (e.target.name === "dzien[]" || e.target.name === "data[]") normalizeRows();
+        if (e.target.classList.contains("opis-textarea")) autoGrow(e.target);
+    });
+    document.querySelectorAll(".opis-textarea").forEach(autoGrow);
+
+    // Tooltip
+    const tooltip = document.createElement("div");
+    tooltip.className = "info-tooltip"; document.body.appendChild(tooltip);
+    function positionTooltip(t) {
+        const r = t.getBoundingClientRect(), tr = tooltip.getBoundingClientRect();
+        let top = r.bottom + 8, left = r.left;
+        if (left + tr.width > window.innerWidth - 10) left = window.innerWidth - tr.width - 10;
+        if (left < 10) left = 10;
+        if (top + tr.height > window.innerHeight - 10) top = r.top - tr.height - 8;
+        tooltip.style.left = left + "px"; tooltip.style.top = top + "px";
+    }
+    document.querySelectorAll(".info-icon").forEach(function (icon) {
+        icon.addEventListener("mouseenter", function () {
+            tooltip.textContent = icon.dataset.tooltip; tooltip.classList.add("visible"); positionTooltip(icon);
+        });
+        icon.addEventListener("mouseleave", function () { tooltip.classList.remove("visible"); });
+    });
+
+    normalizeRows();
+</script>
+{% endblock %}

@@ -1,10 +1,10 @@
 {
   "21324": {
     "zal6": {
-      "imie_nazwisko": "Kacper Woszczyło",
+      "imie_nazwisko": "Kacper WoszczyĹ‚o",
       "nr_albumu": "21324",
       "kierunek": "Informatyka",
-      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie uĹĽytkowe (PBDiOU)",
       "rok_akademicki": "2025/2026",
       "miejsce_praktyki": "Testowe",
       "data_start": "2026-04-06",
@@ -103,7 +103,7 @@
       "imie_nazwisko": "Test Testownikow",
       "nr_albumu": "21370",
       "kierunek": "Informatyka",
-      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "specjalnosc": "Administracja systemĂłw i sieci komputerowych (ASiSK)",
       "rok_akademicki": "2025/2026",
       "miejsce_praktyki": "Przykladowa Firma",
       "data_start": "2026-03-10",
@@ -137,62 +137,62 @@
       "imie_nazwisko": "Test Testownikow",
       "nr_albumu": "21370",
       "kierunek": "Informatyka",
-      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "specjalnosc": "Administracja systemĂłw i sieci komputerowych (ASiSK)",
       "wymiar_godzin": "960",
       "potwierdzenie_opiekuna": "test",
       "opinia_opiekuna": "test",
       "efekty": [
         {
           "nr": 1,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 2,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 3,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 4,
-          "status": "nie uzyskał/a"
+          "status": "nie uzyskaĹ‚/a"
         },
         {
           "nr": 5,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 6,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 7,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 8,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 9,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 10,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 11,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 12,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         },
         {
           "nr": 13,
-          "status": "uzyskał/a"
+          "status": "uzyskaĹ‚/a"
         }
       ]
     }
@@ -236,6 +236,71 @@
       "efekty": [
         {
           "nr": 1,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 2,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 3,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 4,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 5,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 6,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 7,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 8,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 9,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 10,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 11,
+          "status": "uzyskaĹ‚/a"
+        },
+        {
+          "nr": 12,
+          "status": "nie uzyskaĹ‚/a"
+        },
+        {
+          "nr": 13,
+          "status": "nie uzyskaĹ‚/a"
+        }
+      ]
+    }
+  },
+  "12345": {
+    "zal4": {
+      "imie_nazwisko": "Jan Kowalski",
+      "nr_albumu": "12345",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemow i sieci komputerowych (ASiSK)",
+      "wymiar_godzin": "960",
+      "potwierdzenie_opiekuna": "",
+      "opinia_opiekuna": "",
+      "efekty": [
+        {
+          "nr": 1,
           "status": "uzyskał/a"
         },
         {
@@ -280,11 +345,11 @@
         },
         {
           "nr": 12,
-          "status": "nie uzyskał/a"
+          "status": "uzyskał/a"
         },
         {
           "nr": 13,
-          "status": "nie uzyskał/a"
+          "status": "uzyskał/a"
         }
       ]
     }

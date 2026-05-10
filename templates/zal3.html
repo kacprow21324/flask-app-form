@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% block title %}Załącznik 3 – Karta praktyki{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = val('imie_nazwisko') | plec %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
+
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        {# ── Nagłówek dokumentu ── #}
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+            <div class="doc-badge">Załącznik nr 3</div>
+        </div>
+
+        <h1 class="doc-title">Karta praktyki zawodowej</h1>
+        <h2 class="doc-subtitle">Skierowanie na praktykę</h2>
+
+        <form method="post"
+              action="{{ url_for('zal3_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal3') }}">
+
+            {# ── Sekcja A: dane skierowania ── #}
+            <div class="form-section">
+                <div class="form-section-label">A. Dane skierowania</div>
+                <div class="doc-intro-text">
+                    Na podstawie porozumienia nr
+                    <span class="inline-field-wrap">
+                        <input class="inline-field" type="text" name="nr_porozumienia"
+                               value="{{ val('nr_porozumienia') }}" placeholder="nr">
+                    </span>
+                    z dnia
+                    <span class="inline-field-wrap">
+                        <input class="inline-field inline-date" type="date" name="data_porozumienia"
+                               value="{{ val('data_porozumienia') }}">
+                    </span>
+                    r., kieruję niżej wymienionego studenta na praktykę zawodową do zakładu pracy:
+                </div>
+                <div class="field-group" style="margin-top:10px">
+                    <label for="zaklad_pracy">Nazwa instytucji / zakładu pracy</label>
+                    <input id="zaklad_pracy" type="text" name="zaklad_pracy"
+                           value="{{ val('zaklad_pracy') }}" required>
+                </div>
+            </div>
+
+            {# ── Sekcja B: dane studenta ── #}
+            <div class="form-section">
+                <div class="form-section-label">B. Dane studenta</div>
+                <div class="form-row-2" style="margin-top:12px">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">Imię i nazwisko</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nr_albumu">Numer albumu</label>
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label>Studia</label>
+                        <div class="radio-group">
+                            <label class="radio">
+                                <input type="radio" name="rodzaj_studiow" value="stacjonarne"
+                                    {% if not data or data.get('rodzaj_studiow','stacjonarne')=='stacjonarne' %}checked{% endif %}>
+                                stacjonarne
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="rodzaj_studiow" value="niestacjonarne"
+                                    {% if data and data.get('rodzaj_studiow')=='niestacjonarne' %}checked{% endif %}>
+                                niestacjonarne
+                            </label>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label>Kierunek studiów</label>
+                        <input type="text" value="Informatyka" readonly>
+                    </div>
+                    <div class="field-group">
+                        <label for="specjalnosc">Specjalność</label>
+                        <select id="specjalnosc" name="specjalnosc" required>
+                            <option value="" disabled {% if not data or not data.get('specjalnosc') %}selected{% endif %}>Wybierz specjalność</option>
+                            {% for sp in specialties %}
+                                <option value="{{ sp }}" {% if data and data.get('specjalnosc') == sp %}selected{% endif %}>{{ sp }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="doc-info-box">
+                    Czas trwania praktyki: <strong>6 miesięcy (120 dni roboczych)</strong> – inżynierskie stacjonarne
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="uczelniany_opiekun">Uczelniany opiekun praktyki zawodowej</label>
+                        <input id="uczelniany_opiekun" type="text" name="uczelniany_opiekun"
+                               value="{{ val('uczelniany_opiekun') }}" placeholder="Imię i nazwisko">
+                    </div>
+                    <div class="field-group"></div>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="data_start">Data rozpoczęcia praktyki</label>
+                        <input id="data_start" type="date" name="data_start" value="{{ val('data_start') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="data_end">Data zakończenia praktyki</label>
+                        <input id="data_end" type="date" name="data_end" value="{{ val('data_end') }}">
+                    </div>
+                </div>
+            </div>
+
+            {# ── Sekcja C: zakładowy opiekun ── #}
+            <div class="form-section">
+                <div class="form-section-label">C. Zakładowy opiekun praktyki</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="zakladowy_opiekun_nazwisko">Imię i nazwisko zakładowego opiekuna</label>
+                        <input id="zakladowy_opiekun_nazwisko" type="text" name="zakladowy_opiekun_nazwisko"
+                               value="{{ val('zakladowy_opiekun_nazwisko') }}"
+                               placeholder="Imię i nazwisko, funkcja, stanowisko">
+                    </div>
+                    <div class="field-group">
+                        <label for="zakladowy_opiekun_funkcja">Funkcja / stanowisko</label>
+                        <input id="zakladowy_opiekun_funkcja" type="text" name="zakladowy_opiekun_funkcja"
+                               value="{{ val('zakladowy_opiekun_funkcja') }}">
+                    </div>
+                </div>
+                <div class="sig-row">
+                    <div class="sig-box">
+                        <label for="potwierdzenie_zgloszenia">Potwierdzenie zgłoszenia studenta na praktykę</label>
+                        <input id="potwierdzenie_zgloszenia" type="text" name="potwierdzenie_zgloszenia"
+                               value="{{ val('potwierdzenie_zgloszenia') }}"
+                               placeholder="Data, pieczęć i podpis zakładowego opiekuna">
+                    </div>
+                    <div class="sig-box">
+                        <label for="potwierdzenie_bhp">Potwierdzenie odbycia szkolenia BHP</label>
+                        <input id="potwierdzenie_bhp" type="text" name="potwierdzenie_bhp"
+                               value="{{ val('potwierdzenie_bhp') }}"
+                               placeholder="Data, pieczęć i podpis upoważnionego pracownika">
+                    </div>
+                </div>
+            </div>
+
+            {# ── Sekcja D: zaświadczenie ── #}
+            <div class="form-section">
+                <div class="form-section-label">D. Zaświadczenie odbycia praktyki zawodowej</div>
+                <p class="doc-intro-text">
+                    Zaświadczam, że {{ g('student', 'studentka') }} <strong>{{ val('imie_nazwisko') or '...' }}</strong>
+                    {{ g('odbył', 'odbyła') }} praktykę zawodową w:
+                </p>
+                <div class="field-group">
+                    <label for="zaswiadczenie_zaklad">Nazwa zakładu / instytucji</label>
+                    <input id="zaswiadczenie_zaklad" type="text" name="zaswiadczenie_zaklad"
+                           value="{{ val('zaswiadczenie_zaklad') }}">
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="zaswiadczenie_okres_od">Okres od</label>
+                        <input id="zaswiadczenie_okres_od" type="date" name="zaswiadczenie_okres_od"
+                               value="{{ val('zaswiadczenie_okres_od') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="zaswiadczenie_okres_do">Okres do</label>
+                        <input id="zaswiadczenie_okres_do" type="date" name="zaswiadczenie_okres_do"
+                               value="{{ val('zaswiadczenie_okres_do') }}">
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label for="zaswiadczenie_uwagi">Uwagi</label>
+                    <textarea id="zaswiadczenie_uwagi" name="zaswiadczenie_uwagi" rows="3">{{ val('zaswiadczenie_uwagi') }}</textarea>
+                </div>
+                <div class="sig-box" style="margin-top:10px">
+                    <label for="zaswiadczenie_podpis">Miejscowość, data, pieczęć i podpis kierownika zakładu</label>
+                    <input id="zaswiadczenie_podpis" type="text" name="zaswiadczenie_podpis"
+                           value="{{ val('zaswiadczenie_podpis') }}"
+                           placeholder="Data, pieczęć i podpis">
+                </div>
+            </div>
+
+            {# ── Sekcja E: oceny ── #}
+            <div class="form-section">
+                <div class="form-section-label">E. Ocena przebiegu praktyki zawodowej</div>
+
+                <div class="grade-panel">
+                    <div class="grade-panel-title">Ocena zakładowego opiekuna praktyki</div>
+                    <div class="form-row-2">
+                        <div class="field-group">
+                            <label for="ocena_zakladowa_param">Ocena parametryczna (skala 2–5)</label>
+                            <select id="ocena_zakladowa_param" name="ocena_zakladowa_param">
+                                <option value="">— brak oceny —</option>
+                                {% for g in [2,3,4,5] %}
+                                    <option value="{{ g }}"
+                                        {% if data and data.get('ocena_zakladowa_param')|string == g|string %}selected{% endif %}>{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label for="ocena_zakladowa_opis">Ocena opisowa</label>
+                        <textarea id="ocena_zakladowa_opis" name="ocena_zakladowa_opis" rows="3">{{ val('ocena_zakladowa_opis') }}</textarea>
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_zakladowy">Data, pieczęć i podpis zakładowego opiekuna</label>
+                        <input id="podpis_zakladowy" type="text" name="podpis_zakladowy"
+                               value="{{ val('podpis_zakladowy') }}"
+                               placeholder="Data, pieczęć i podpis">
+                    </div>
+                </div>
+
+                <div class="grade-panel">
+                    <div class="grade-panel-title">Ocena uczelnianego opiekuna praktyki</div>
+                    <div class="form-row-2">
+                        <div class="field-group">
+                            <label for="ocena_uczelniana_param">Ocena parametryczna (skala 2–5)</label>
+                            <select id="ocena_uczelniana_param" name="ocena_uczelniana_param">
+                                <option value="">— brak oceny —</option>
+                                {% for g in [2,3,4,5] %}
+                                    <option value="{{ g }}"
+                                        {% if data and data.get('ocena_uczelniana_param')|string == g|string %}selected{% endif %}>{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label for="ocena_uczelniana_opis">Ocena opisowa</label>
+                        <textarea id="ocena_uczelniana_opis" name="ocena_uczelniana_opis" rows="3">{{ val('ocena_uczelniana_opis') }}</textarea>
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_uczelniany">Data, pieczęć i podpis uczelnianego opiekuna</label>
+                        <input id="podpis_uczelniany" type="text" name="podpis_uczelniany"
+                               value="{{ val('podpis_uczelniany') }}"
+                               placeholder="Data, pieczęć i podpis">
+                    </div>
+                </div>
+
+                <div class="grade-panel">
+                    <div class="grade-panel-title">Ocena sprawozdania z praktyki</div>
+                    <div class="form-row-2">
+                        <div class="field-group">
+                            <label for="ocena_sprawozdania">Ocena parametryczna (skala 2–5)</label>
+                            <select id="ocena_sprawozdania" name="ocena_sprawozdania">
+                                <option value="">— brak oceny —</option>
+                                {% for g in [2,3,4,5] %}
+                                    <option value="{{ g }}"
+                                        {% if data and data.get('ocena_sprawozdania')|string == g|string %}selected{% endif %}>{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_sprawozdanie">Data i podpis uczelnianego opiekuna praktyki</label>
+                        <input id="podpis_sprawozdanie" type="text" name="podpis_sprawozdanie"
+                               value="{{ val('podpis_sprawozdanie') }}"
+                               placeholder="Data i podpis">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 3{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

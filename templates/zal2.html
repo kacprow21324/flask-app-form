@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Załącznik 2 – Program praktyki zawodowej{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+            <div class="doc-badge">Załącznik nr 2</div>
+        </div>
+
+        <h1 class="doc-title">Program praktyki zawodowej</h1>
+        <h2 class="doc-subtitle">Kierunek: Informatyka – studia inżynierskie</h2>
+
+        <form method="post"
+              action="{{ url_for('zal2_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal2') }}">
+
+            <div class="form-section">
+                <div class="form-section-label">Dane studenta i zakładu</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
+                    </div>
+                    <div class="field-group">
+                        <label for="zaklad_pracy">Zakład pracy / instytucja</label>
+                        <input id="zaklad_pracy" type="text" name="zaklad_pracy"
+                               value="{{ val('zaklad_pracy') }}" required>
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label for="data_start">Data rozpoczęcia</label>
+                        <input id="data_start" type="date" name="data_start" value="{{ val('data_start') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="data_end">Data zakończenia</label>
+                        <input id="data_end" type="date" name="data_end" value="{{ val('data_end') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="data_uzgodnienia">Data uzgodnienia programu</label>
+                        <input id="data_uzgodnienia" type="date" name="data_uzgodnienia"
+                               value="{{ val('data_uzgodnienia') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-label">Ramowy program praktyki</div>
+                <div class="doc-info-box">
+                    Poniżej przedstawiony jest ramowy program praktyki zawodowej dla kierunku Informatyka.
+                    Student realizuje program pod nadzorem zakładowego opiekuna praktyki.
+                </div>
+                <div class="table-wrap" style="margin-top:14px">
+                    <table class="effects-table">
+                        <thead>
+                            <tr>
+                                <th class="col-nr">Lp.</th>
+                                <th>Zakres tematyczny / zadania</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="col-nr">1</td><td>Zapoznanie się z organizacją i regulaminem zakładu pracy, przepisami BHP i p.poż.</td></tr>
+                            <tr><td class="col-nr">2</td><td>Zapoznanie się ze strukturą organizacyjną, profilem i zakresem działalności zakładu.</td></tr>
+                            <tr><td class="col-nr">3</td><td>Zapoznanie się z infrastrukturą informatyczną zakładu (sieci, serwery, oprogramowanie).</td></tr>
+                            <tr><td class="col-nr">4</td><td>Uczestnictwo w projektowaniu, wdrażaniu lub administrowaniu systemami informatycznymi.</td></tr>
+                            <tr><td class="col-nr">5</td><td>Programowanie i testowanie aplikacji lub modułów oprogramowania użytkowego.</td></tr>
+                            <tr><td class="col-nr">6</td><td>Administrowanie bazami danych i utrzymanie ciągłości działania systemów.</td></tr>
+                            <tr><td class="col-nr">7</td><td>Udział w realizacji projektów IT zgodnie ze specjalnością studiów.</td></tr>
+                            <tr><td class="col-nr">8</td><td>Prowadzenie dokumentacji technicznej i raportów z wykonanych prac.</td></tr>
+                            <tr><td class="col-nr">9</td><td>Podsumowanie praktyki i opracowanie sprawozdania końcowego.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-label">Podpisy</div>
+                <div class="sig-row">
+                    <div class="sig-box">
+                        <label for="podpis_zakladowy">Podpis zakładowego opiekuna praktyki</label>
+                        <input id="podpis_zakladowy" type="text" name="podpis_zakladowy"
+                               value="{{ val('podpis_zakladowy') }}"
+                               placeholder="Data, pieczęć i podpis">
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_uczelniany">Podpis uczelnianego opiekuna praktyki</label>
+                        <input id="podpis_uczelniany" type="text" name="podpis_uczelniany"
+                               value="{{ val('podpis_uczelniany') }}"
+                               placeholder="Data i podpis">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 2{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

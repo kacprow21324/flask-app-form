@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block doc_title %}Dokument{% endblock %} – ANS Elbląg</title>
+    <style>
+        @page { size: A4; margin: 2cm 2.5cm; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Cambria", "Georgia", "Times New Roman", serif;
+            font-size: 11pt;
+            color: #000;
+            background: #fff;
+            line-height: 1.45;
+        }
+        .print-toolbar {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: #1f4ed8; color: #fff;
+            padding: 8px 20px;
+            display: flex; gap: 14px; align-items: center;
+            font-family: Arial, sans-serif; font-size: 13px;
+            z-index: 9999;
+        }
+        .print-toolbar button {
+            background: #fff; color: #1f4ed8;
+            border: none; padding: 5px 14px;
+            font-weight: 700; cursor: pointer; font-size: 13px;
+        }
+        .print-toolbar a { color: rgba(255,255,255,0.85); text-decoration: none; }
+        body { padding-top: 46px; }
+        @media print {
+            .print-toolbar { display: none; }
+            body { padding-top: 0; }
+            @page { margin: 2cm 2.5cm; }
+        }
+        /* Document layout */
+        .doc-page { max-width: 168mm; margin: 16px auto; padding: 0; }
+        @media print { .doc-page { max-width: 100%; margin: 0; } }
+        /* Header */
+        .p-letterhead {
+            display: flex; justify-content: space-between;
+            align-items: flex-start; gap: 12px;
+            padding-bottom: 8pt; border-bottom: 1.5pt solid #000;
+            margin-bottom: 14pt;
+        }
+        .p-inst-name { font-weight: bold; font-size: 10pt; }
+        .p-inst-dept  { font-style: italic; font-size: 9pt; color: #333; margin-top: 2pt; }
+        .p-badge {
+            font-size: 8pt; font-weight: bold;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            border: 0.75pt solid #555; padding: 3pt 7pt;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        /* Title */
+        .p-title {
+            text-align: center; font-size: 12pt;
+            font-weight: bold; text-transform: uppercase;
+            letter-spacing: 0.04em; line-height: 1.35;
+            margin: 8pt 0 4pt;
+        }
+        .p-subtitle {
+            text-align: center; font-size: 10pt;
+            font-style: italic; color: #444;
+            margin-bottom: 14pt;
+        }
+        /* Sections */
+        .p-section { border-top: 0.5pt solid #ccc; padding: 10pt 0 4pt; }
+        .p-section:first-of-type { border-top: none; }
+        .p-section-label {
+            font-family: Arial, sans-serif;
+            font-size: 7.5pt; font-weight: bold;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            color: #444; margin-bottom: 8pt;
+        }
+        /* Fields */
+        .p-field { margin-bottom: 8pt; }
+        .p-field-label {
+            font-size: 8pt; color: #555;
+            font-family: Arial, sans-serif;
+            margin-bottom: 2pt; display: block;
+        }
+        .p-field-value {
+            font-size: 10pt; border-bottom: 0.5pt solid #999;
+            min-height: 14pt; padding-bottom: 1pt;
+            display: block; min-width: 100%;
+        }
+        .p-field-value.empty { color: #bbb; }
+        /* Two-column */
+        .p-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12pt; margin-bottom: 8pt; }
+        .p-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10pt; margin-bottom: 8pt; }
+        /* Intro text */
+        .p-intro { font-size: 10pt; margin-bottom: 10pt; line-height: 1.55; color: #111; }
+        /* Table */
+        .p-table { width: 100%; border-collapse: collapse; margin-bottom: 10pt; font-size: 9pt; }
+        .p-table th { background: #f0f0f0; font-size: 8pt; font-weight: bold; text-align: left; font-family: Arial, sans-serif; }
+        .p-table th, .p-table td { border: 0.5pt solid #aaa; padding: 5pt 6pt; vertical-align: top; }
+        /* Signature */
+        .p-sig-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20pt; margin-top: 12pt; }
+        .p-sig-box { border: 0.5pt dashed #999; padding: 8pt; min-height: 36pt; }
+        .p-sig-label { font-size: 8pt; color: #666; font-style: italic; font-family: Arial, sans-serif; margin-bottom: 4pt; display: block; }
+        .p-sig-value { font-size: 10pt; min-height: 20pt; }
+        /* Badge for grade */
+        .p-grade { font-weight: bold; font-size: 12pt; background: #1f4ed8; color: #fff; padding: 1pt 8pt; display: inline-block; }
+        /* Info box */
+        .p-info { background: #f0f5ff; border-left: 2pt solid #1f4ed8; padding: 6pt 10pt; font-size: 9.5pt; margin: 8pt 0; }
+        /* Radio/checkbox display */
+        .p-choice { display: inline-block; margin-right: 14pt; }
+        .p-choice-check { display: inline-block; width: 10pt; height: 10pt; border: 0.75pt solid #555; text-align: center; line-height: 10pt; font-size: 8pt; margin-right: 3pt; vertical-align: middle; }
+        .p-choice-check.checked::after { content: "✓"; }
+        /* Effects badge */
+        .badge-ok  { background: #e8f5e9; color: #1f7a3b; padding: 1pt 6pt; font-size: 8.5pt; }
+        .badge-nok { background: #fce8eb; color: #b00020; padding: 1pt 6pt; font-size: 8.5pt; }
+    </style>
+</head>
+<body>
+<div class="print-toolbar">
+    <button onclick="window.print()">Drukuj / Zapisz PDF</button>
+    <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}">← Powrót do podglądu</a>
+    <span style="margin-left:auto;opacity:.8">{{ att.title if att else '' }} – nr albumu {{ nr_albumu }}</span>
+</div>
+<div class="doc-page">
+{% block content %}{% endblock %}
+</div>
+<script>
+    // Auto-open print dialog after brief delay so fonts load
+    // window.addEventListener('load', function() { setTimeout(window.print, 600); });
+</script>
+</body>
+</html>

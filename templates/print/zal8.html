@@ -1,0 +1,48 @@
+{% extends "print/base_print.html" %}
+{% from "print/_macros.html" import field, sig, letterhead %}
+{% block doc_title %}Załącznik 8 – Protokół zaliczenia{% endblock %}
+{% block content %}
+{{ letterhead('8') }}
+<h1 class="p-title">Protokół zaliczenia praktyki zawodowej</h1>
+<div class="p-section">
+    <div class="p-row-2">{{ field('Student / ka', data.imie_nazwisko) }}{{ field('Nr albumu', data.nr_albumu) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">Skład komisji zaliczającej</div>
+    {{ field('Data zaliczenia', data.data_zaliczenia) }}
+    <div class="p-row-2">{{ field('Przewodniczący komisji', data.przewodniczacy) }}{{ field('Członek komisji', data.czlonek_2) }}</div>
+    <div class="p-row-2">{{ field('Członek komisji', data.czlonek_3) }}{{ field('Członek komisji', data.czlonek_4) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">Miejsca odbywania praktyki</div>
+    <table class="p-table">
+        <thead><tr><th style="width:24pt">Lp.</th><th>Nazwa zakładu / instytucji</th><th style="width:90pt">Okres praktyki</th><th style="width:60pt">Liczba dni</th></tr></thead>
+        <tbody>
+        {% for mp in data.get('miejsca_praktyki', []) %}
+            <tr><td style="text-align:center">{{ loop.index }}</td><td>{{ mp.nazwa }}</td><td>{{ mp.okres }}</td><td style="text-align:center">{{ mp.dni }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="p-section">
+    <div class="p-section-label">Oceny</div>
+    <div class="p-row-3">
+        <div class="p-field"><span class="p-field-label">S – sprawozdanie</span><span class="p-grade">{{ data.ocena_s or '—' }}</span></div>
+        <div class="p-field"><span class="p-field-label">U – uczelniana</span><span class="p-grade">{{ data.ocena_u or '—' }}</span></div>
+        <div class="p-field"><span class="p-field-label">Z – zakładowa</span><span class="p-grade">{{ data.ocena_z or '—' }}</span></div>
+    </div>
+    <div class="p-section-label" style="margin-top:8pt">Mini-zadania egzaminacyjne</div>
+    <table class="p-table">
+        <thead><tr><th style="width:28pt">Nr</th><th>Treść zadania</th><th style="width:50pt">Ocena</th></tr></thead>
+        <tbody>
+        {% for mt in data.get('mini_zadania', []) %}
+            <tr><td style="text-align:center">{{ loop.index }}</td><td>{{ mt.tresc }}</td><td style="text-align:center">{% if mt.ocena %}<span class="p-grade">{{ mt.ocena }}</span>{% endif %}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="p-row-2" style="margin-top:10pt">
+        <div class="p-field"><span class="p-field-label">E – ocena egzaminu końcowego</span><span class="p-grade" style="font-size:14pt">{{ data.ocena_e or '—' }}</span></div>
+        <div class="p-field"><span class="p-field-label">K – ocena końcowa (K = 0,4·E + 0,1·S + 0,2·U + 0,3·Z)</span><span class="p-grade" style="font-size:14pt;background:#0a3a8a">{{ data.ocena_k or '—' }}</span></div>
+    </div>
+</div>
+{% endblock %}

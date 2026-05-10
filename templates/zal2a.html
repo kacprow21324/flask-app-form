@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Załącznik 2a – Program i harmonogram praktyki{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% macro dzial_val(nr) %}
+    {% if data and data.efekty_plan is defined %}
+        {% for ep in data.efekty_plan %}{% if ep.nr == nr %}{{ ep.dzial_prace }}{% endif %}{% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+            <div class="doc-badge">Załącznik nr 2a</div>
+        </div>
+
+        <h1 class="doc-title">Indywidualny program i harmonogram<br>praktyki zawodowej</h1>
+
+        <form method="post"
+              action="{{ url_for('zal2a_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal2a') }}">
+
+            {# ── Dane studenta ── #}
+            <div class="form-section">
+                <div class="form-section-label">Dane studenta</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">Imię i nazwisko</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label>Kierunek studiów</label>
+                        <input type="text" value="Informatyka" readonly>
+                    </div>
+                    <div class="field-group">
+                        <label for="specjalnosc">Specjalność</label>
+                        <select id="specjalnosc" name="specjalnosc" required>
+                            <option value="" disabled {% if not data or not data.get('specjalnosc') %}selected{% endif %}>Wybierz specjalność</option>
+                            {% for sp in specialties %}
+                                <option value="{{ sp }}" {% if data and data.get('specjalnosc') == sp %}selected{% endif %}>{{ sp }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="miejsce_praktyki">Miejsce praktyki</label>
+                        <input id="miejsce_praktyki" type="text" name="miejsce_praktyki"
+                               value="{{ val('miejsce_praktyki') }}" required>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="data_start">Data rozpoczęcia</label>
+                        <input id="data_start" type="date" name="data_start" value="{{ val('data_start') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="data_end">Data zakończenia</label>
+                        <input id="data_end" type="date" name="data_end" value="{{ val('data_end') }}">
+                    </div>
+                </div>
+            </div>
+
+            {# ── Efekty uczenia się ── #}
+            <div class="form-section">
+                <div class="form-section-label">Planowane efekty uczenia się i zakres prac</div>
+                <div class="table-wrap">
+                    <table class="effects-table">
+                        <thead>
+                            <tr>
+                                <th class="col-nr">Nr</th>
+                                <th>Efekt uczenia się</th>
+                                <th>Planowane działy pracy / opis realizacji</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for effect in effects %}
+                            <tr>
+                                <td class="col-nr">{{ "%02d" | format(effect.nr) }}</td>
+                                <td>{{ effect.opis }}</td>
+                                <td>
+                                    <input type="text" name="dzial_{{ effect.nr }}"
+                                           value="{{ dzial_val(effect.nr) }}"
+                                           placeholder="Opis planowanych prac…">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {# ── Harmonogram ── #}
+            <div class="form-section">
+                <div class="form-section-label">Harmonogram tygodniowy / miesięczny</div>
+                <div class="table-wrap">
+                    <table class="effects-table">
+                        <thead>
+                            <tr>
+                                <th class="col-nr">Lp.</th>
+                                <th>Dział / obszar prac</th>
+                                <th style="width:100px">Liczba dni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in range(1, 14) %}
+                            {% set h_row = namespace(dzial='', dni='') %}
+                            {% if data and data.harmonogram is defined %}
+                                {% for h in data.harmonogram %}
+                                    {% if h.lp == i %}
+                                        {% set h_row.dzial = h.dzial %}
+                                        {% set h_row.dni = h.dni %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <tr>
+                                <td class="col-nr">{{ i }}</td>
+                                <td><input type="text" name="h_dzial_{{ i }}" value="{{ h_row.dzial }}" placeholder="Dział…"></td>
+                                <td><input type="number" name="h_dni_{{ i }}" value="{{ h_row.dni }}" min="0" placeholder="0"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {# ── Podpisy ── #}
+            <div class="form-section">
+                <div class="form-section-label">Uzgodnienia i podpisy</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="data_uzgodnienia">Data uzgodnienia programu</label>
+                        <input id="data_uzgodnienia" type="date" name="data_uzgodnienia"
+                               value="{{ val('data_uzgodnienia') }}">
+                    </div>
+                    <div class="field-group"></div>
+                </div>
+                <div class="sig-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="sig-box">
+                        <label for="podpis_studenta">Podpis studenta</label>
+                        <input id="podpis_studenta" type="text" name="podpis_studenta"
+                               value="{{ val('podpis_studenta') }}" placeholder="Data i podpis">
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_zakladowy">Podpis zakładowego opiekuna</label>
+                        <input id="podpis_zakladowy" type="text" name="podpis_zakladowy"
+                               value="{{ val('podpis_zakladowy') }}" placeholder="Data, pieczęć i podpis">
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_uczelniany">Podpis uczelnianego opiekuna</label>
+                        <input id="podpis_uczelniany" type="text" name="podpis_uczelniany"
+                               value="{{ val('podpis_uczelniany') }}" placeholder="Data i podpis">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 2a{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

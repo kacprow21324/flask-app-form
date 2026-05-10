@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Logowanie – System Praktyk ANS Elbląg</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .login-wrap { width: 100%; max-width: 400px; padding: 20px; }
+        .login-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .login-brand-mark {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            font-family: "Spectral", serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+            padding: 4px 12px;
+            margin-bottom: 12px;
+        }
+        .login-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 32px;
+            box-shadow: 0 4px 24px rgba(13, 27, 61, 0.12);
+        }
+        .login-title { text-align: center; margin-bottom: 4px; }
+        .login-subtitle { text-align: center; margin-bottom: 24px; font-size: 0.88rem; }
+        .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+        .btn-full { width: 100%; padding: 11px; font-size: 1rem; margin-top: 6px; }
+        .login-hint {
+            margin-top: 20px;
+            padding: 10px 14px;
+            background: var(--panel-2);
+            border-left: 3px solid var(--accent);
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+        .login-hint strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="login-wrap">
+        <div class="login-header">
+            <div class="login-brand-mark">ANS</div>
+            <p style="color:var(--muted); font-size:0.88rem; margin:0">System Rozliczania Praktyk Zawodowych</p>
+        </div>
+
+        <div class="login-card">
+            <h1 class="login-title">Logowanie</h1>
+            <p class="login-subtitle subtitle">Akademia Nauk Stosowanych w Elblągu</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}" style="margin-bottom:12px">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('login_page') }}">
+                <div class="field">
+                    <label for="email">Adres e-mail</label>
+                    <input type="email" id="email" name="email"
+                           placeholder="login@ans-elblag.pl" required autocomplete="email">
+                </div>
+                <div class="field">
+                    <label for="password">Hasło</label>
+                    <input type="password" id="password" name="password"
+                           placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-full">Zaloguj się</button>
+            </form>
+
+            <div class="login-hint">
+                <strong>Konta testowe:</strong><br>
+                student@student.ans-elblag.pl / Student123!<br>
+                opiekun@ans-elblag.pl / Opiekun123!<br>
+                admin@ans-elblag.pl / Admin123!
+            </div>
+        </div>
+    </div>
+</body>
+</html>

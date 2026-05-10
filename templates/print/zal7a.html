@@ -1,0 +1,29 @@
+{% extends "print/base_print.html" %}
+{% from "print/_macros.html" import field, sig, choice, letterhead %}
+{% block doc_title %}Załącznik 7a – Sprawozdanie{% endblock %}
+{% block content %}
+{{ letterhead('7a') }}
+<h1 class="p-title">Sprawozdanie z praktyki zawodowej</h1>
+<h2 class="p-subtitle">Studia niestacjonarne</h2>
+<div class="p-section">
+    <div class="p-row-2">{{ field('Imię i nazwisko', data.imie_nazwisko) }}{{ field('Nr albumu', data.nr_albumu) }}</div>
+    <div class="p-row-3">{{ field('Kierunek', 'Informatyka') }}{{ field('Specjalność', data.specjalnosc) }}{{ field('Rok akademicki', data.rok_akademicki) }}</div>
+    {{ field('Miejsce odbywania praktyki', data.miejsce_praktyki) }}
+</div>
+<div class="p-section">
+    <div class="p-section-label">1. Charakterystyka zakładu pracy / instytucji</div>
+    <p class="p-intro" style="min-height:60pt">{{ data.charakterystyka or '' }}</p>
+</div>
+<div class="p-section">
+    <div class="p-section-label">2. Opis wykonywanych prac i zadań</div>
+    <p class="p-intro" style="min-height:80pt">{{ data.opis_prac or '' }}</p>
+</div>
+<div class="p-section">
+    <div class="p-section-label">3. Nabyta wiedza i umiejętności</div>
+    <p class="p-intro" style="min-height:60pt">{{ data.wiedza_umiejetnosci or '' }}</p>
+</div>
+<div class="p-section">
+    <div class="p-sig-row">{{ sig('Data sporządzenia sprawozdania', data.data) }}{{ sig('Podpis studenta', data.podpis_studenta) }}</div>
+    <div class="p-sig-row" style="margin-top:10pt">{{ sig('Potwierdzenie bezpośredniego przełożonego (data, pieczęć)', data.podpis_przelozonego) }}<div></div></div>
+</div>
+{% endblock %}

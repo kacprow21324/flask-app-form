@@ -1,141 +1,229 @@
-<!doctype html>
-<html lang="pl">
-<head>
-    <meta charset="utf-8">
-    <title>Podgląd formularzy</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-</head>
-<body>
-    <div class="page">
-        <header class="page-header">
-            <div class="brand">Rozliczanie praktyk</div>
-        </header>
+{% extends "base.html" %}
+{% block title %}Student {{ nr_albumu }}{% endblock %}
+{% macro g(r, m, f) %}{{ f if (r and r.get('plec') == 'K') else m }}{% endmacro %}
+{% block content %}
+<div class="page">
 
-        <main class="card">
-            <div class="doc-header">
-                <div class="doc-mark">Podgląd</div>
-                <h1>Podgląd formularzy</h1>
-                <p class="subtitle">Nr albumu: {{ nr_albumu }}</p>
+    <div class="page-top">
+        <div>
+            <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót do listy</a>
+            {% set ns = namespace(name='') %}
+            {% for key in ['zal3','zal4','zal6','zal1','zal7','zal7a','zal9'] %}
+                {% if not ns.name and student.get(key) and student[key].get('imie_nazwisko') %}
+                    {% set ns.name = student[key]['imie_nazwisko'] %}
+                {% endif %}
+            {% endfor %}
+            <h1>{{ ns.name or ('Nr albumu ' ~ nr_albumu) }}</h1>
+            <p class="subtitle">Nr albumu: <strong>{{ nr_albumu }}</strong></p>
+        </div>
+        <div class="page-top-actions">
+            <form method="post" action="{{ url_for('student_delete', nr_albumu=nr_albumu) }}"
+                  onsubmit="return confirm('Usunąć cały rekord tego studenta wraz ze wszystkimi załącznikami?')">
+                <button class="btn btn-danger" type="submit">Usuń cały rekord</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="attachments-grid">
+
+        {% for att in attachments %}
+        {% set r = student.get(att.key) %}
+        <div class="attachment-card {% if r %}card-filled{% else %}card-empty{% endif %}">
+            <div class="attachment-head">
+                <div>
+                    <div class="attachment-label">Załącznik nr {{ att.nr }}</div>
+                    <div class="attachment-title">{{ att.title }}</div>
+                </div>
+                <div class="attachment-actions">
+                    {% if r %}
+                        <a href="{{ url_for(att.key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Edytuj</a>
+                        <a href="{{ url_for('pobierz_docx', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-primary">⬇ Pobierz .docx</a>
+                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary" target="_blank">Drukuj PDF</a>
+                        <form method="post" action="{{ url_for(att.key ~ '_delete', nr_albumu=nr_albumu) }}"
+                              onsubmit="return confirm('Usunąć Załącznik {{ att.nr }}?')">
+                            <button class="btn btn-sm btn-danger" type="submit">Usuń</button>
+                        </form>
+                    {% else %}
+                        <a href="{{ url_for(att.key) }}?nr={{ nr_albumu }}" class="btn btn-sm">Wypełnij</a>
+                    {% endif %}
+                </div>
             </div>
 
-            {% if missing %}
-                <div class="error">Brak danych dla tego numeru albumu.</div>
-            {% else %}
-                {% if zal4 %}
-                    <section class="preview-section">
-                        <h2>Załącznik 4</h2>
-                        <div class="preview-grid">
-                            <div class="preview-item">
-                                <span class="preview-label">Student</span>
-                                <span class="preview-value">{{ zal4.imie_nazwisko }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Kierunek</span>
-                                <span class="preview-value">{{ zal4.kierunek }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Specjalność</span>
-                                <span class="preview-value">{{ zal4.specjalnosc }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Wymiar godzin</span>
-                                <span class="preview-value">{{ zal4.wymiar_godzin }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Potwierdzenie opiekuna</span>
-                                <span class="preview-value">{{ zal4.potwierdzenie_opiekuna }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Opinia opiekuna</span>
-                                <span class="preview-value">{{ zal4.opinia_opiekuna }}</span>
-                            </div>
-                        </div>
+            {% if r %}
 
-                        <div class="table-wrap">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Nr</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for efekt in zal4.efekty %}
-                                        <tr>
-                                            <td>{{ "%02d"|format(efekt.nr) }}</td>
-                                            <td>{{ efekt.status }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-                {% endif %}
+            {# ── Zał. 1 ── #}
+            {% if att.key == 'zal1' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Zakład pracy</span><span class="detail-value">{{ r.get('nazwa_zakladu') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Reprezentant</span><span class="detail-value">{{ r.get('reprezentant_nazwisko') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Termin praktyki</span><span class="detail-value">{{ r.get('data_start') or '—' }} – {{ r.get('data_end') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Uczelniany opiekun</span><span class="detail-value">{{ r.get('uczelniany_opiekun') or '—' }}</span></div>
+            </div>
 
-                {% if zal6 %}
-                    <section class="preview-section">
-                        <h2>Załącznik 6</h2>
-                        <div class="preview-grid">
-                            <div class="preview-item">
-                                <span class="preview-label">Student</span>
-                                <span class="preview-value">{{ zal6.imie_nazwisko }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Kierunek</span>
-                                <span class="preview-value">{{ zal6.kierunek }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Specjalnosc</span>
-                                <span class="preview-value">{{ zal6.specjalnosc }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Rok studiów</span>
-                                <span class="preview-value">{{ zal6.rok_akademicki }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Miejsce praktyki</span>
-                                <span class="preview-value">{{ zal6.miejsce_praktyki }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Daty praktyki</span>
-                                <span class="preview-value">{{ zal6.data_start }} - {{ zal6.data_end }}</span>
-                            </div>
-                            <div class="preview-item">
-                                <span class="preview-label">Wykaz załączników</span>
-                                <span class="preview-value">{{ zal6.wykaz_zalacznikow }}</span>
-                            </div>
-                        </div>
+            {# ── Zał. 2 ── #}
+            {% elif att.key == 'zal2' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Zakład pracy</span><span class="detail-value">{{ r.get('zaklad_pracy') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Termin praktyki</span><span class="detail-value">{{ r.get('data_start') or '—' }} – {{ r.get('data_end') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Data uzgodnienia</span><span class="detail-value">{{ r.get('data_uzgodnienia') or '—' }}</span></div>
+            </div>
 
-                        <div class="table-wrap">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Dzień</th>
-                                        <th>Data</th>
-                                        <th>Opis</th>
-                                        <th>Efekty</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for wpis in zal6.dziennik %}
-                                        <tr>
-                                            <td>{{ wpis.dzien }}</td>
-                                            <td>{{ wpis.data }}</td>
-                                            <td>{{ wpis.opis }}</td>
-                                            <td>{{ wpis.efekty }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-                {% endif %}
+            {# ── Zał. 2a ── #}
+            {% elif att.key == 'zal2a' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Miejsce praktyki</span><span class="detail-value">{{ r.get('miejsce_praktyki') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Specjalność</span><span class="detail-value">{{ r.get('specjalnosc') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Termin</span><span class="detail-value">{{ r.get('data_start') or '—' }} – {{ r.get('data_end') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Działów w harmonogramie</span><span class="detail-value">{{ r.get('harmonogram', []) | length }}</span></div>
+            </div>
+
+            {# ── Zał. 3 ── #}
+            {% elif att.key == 'zal3' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Zakład pracy</span><span class="detail-value">{{ r.get('zaklad_pracy') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Specjalność</span><span class="detail-value">{{ r.get('specjalnosc') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Uczelniany opiekun</span><span class="detail-value">{{ r.get('uczelniany_opiekun') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Termin praktyki</span><span class="detail-value">{{ r.get('data_start') or '—' }} – {{ r.get('data_end') or '—' }}</span></div>
+                <div class="detail-item">
+                    <span class="detail-label">Ocena zakładowa</span>
+                    <span class="detail-value">
+                        {% if r.get('ocena_zakladowa_param') %}<span class="grade-badge">{{ r.ocena_zakladowa_param }}</span>{% else %}—{% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Ocena uczelniana</span>
+                    <span class="detail-value">
+                        {% if r.get('ocena_uczelniana_param') %}<span class="grade-badge">{{ r.ocena_uczelniana_param }}</span>{% else %}—{% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Ocena sprawozdania</span>
+                    <span class="detail-value">
+                        {% if r.get('ocena_sprawozdania') %}<span class="grade-badge">{{ r.ocena_sprawozdania }}</span>{% else %}—{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            {# ── Zał. 4 ── #}
+            {% elif att.key == 'zal4' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Specjalność</span><span class="detail-value">{{ r.get('specjalnosc') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Wymiar godzin</span><span class="detail-value">{{ r.get('wymiar_godzin') or '—' }} h</span></div>
+                <div class="detail-item"><span class="detail-label">Opinia opiekuna</span><span class="detail-value">{{ r.get('opinia_opiekuna') or '—' }}</span></div>
+            </div>
+            <div class="effects-summary">
+                <table class="summary-table">
+                    <thead><tr><th>Nr</th><th>Efekt uczenia się</th><th>Status</th></tr></thead>
+                    <tbody>
+                        {% for efekt in r.get('efekty', []) %}
+                        <tr>
+                            <td class="nr-cell">{{ "%02d" | format(efekt.nr) }}</td>
+                            <td>{{ effect_map.get(efekt.nr, '—') }}</td>
+                            <td>
+                                {% if efekt.status == 'uzyskał/a' %}<span class="badge badge-ok">uzyskał/a</span>
+                                {% elif efekt.status == 'nie uzyskał/a' %}<span class="badge badge-nok">nie uzyskał/a</span>
+                                {% else %}<span class="badge badge-empty">—</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# ── Zał. 4a ── #}
+            {% elif att.key == 'zal4a' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Data złożenia</span><span class="detail-value">{{ r.get('data_zlozenia') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Data oceny</span><span class="detail-value">{{ r.get('data_oceny') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Rekomendacja</span><span class="detail-value">{{ r.get('rekomendacja') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Uwagi</span><span class="detail-value">{{ r.get('uwagi') or '—' }}</span></div>
+            </div>
+
+            {# ── Zał. 4b ── #}
+            {% elif att.key == 'zal4b' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Pracodawca</span><span class="detail-value">{{ r.get('pracodawca') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Stanowisko</span><span class="detail-value">{{ r.get('stanowisko') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Specjalność</span><span class="detail-value">{{ r.get('specjalnosc') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Okres zatrudnienia</span><span class="detail-value">{{ r.get('okres_od') or '—' }} – {{ r.get('okres_do') or '—' }}</span></div>
+            </div>
+
+            {# ── Zał. 5 ── #}
+            {% elif att.key == 'zal5' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Rok akademicki</span><span class="detail-value">{{ r.get('rok_akademicki') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Forma studiów</span><span class="detail-value">{{ r.get('forma_studiow') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Semestr</span><span class="detail-value">{{ r.get('semestr') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Odpowiedzi</span><span class="detail-value">{{ r.get('pytania', []) | length }} / 14</span></div>
+            </div>
+
+            {# ── Zał. 6 ── #}
+            {% elif att.key == 'zal6' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Miejsce praktyki</span><span class="detail-value">{{ r.get('miejsce_praktyki') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Rok akademicki</span><span class="detail-value">{{ r.get('rok_akademicki') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Termin</span><span class="detail-value">{{ r.get('data_start') or '—' }} – {{ r.get('data_end') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Liczba wpisów</span><span class="detail-value">{{ r.get('dziennik', []) | length }} dni</span></div>
+            </div>
+            {% if r.get('dziennik') %}
+            <div class="table-wrap" style="margin:12px 20px 16px">
+                <table class="summary-table">
+                    <thead><tr><th style="width:60px">Dzień</th><th style="width:110px">Data</th><th>Opis wykonanych prac</th><th style="width:90px">Efekty</th></tr></thead>
+                    <tbody>
+                        {% for wpis in r.dziennik %}
+                        <tr>
+                            <td class="nr-cell">{{ wpis.dzien }}</td>
+                            <td>{{ wpis.data }}</td>
+                            <td>{{ wpis.opis }}</td>
+                            <td>{{ wpis.efekty }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% endif %}
 
-            <div class="actions">
-                <a class="btn secondary" href="{{ url_for('index') }}">Powrót</a>
+            {# ── Zał. 7 / 7a ── #}
+            {% elif att.key in ('zal7', 'zal7a') %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Miejsce praktyki</span><span class="detail-value">{{ r.get('miejsce_praktyki') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Rok akademicki</span><span class="detail-value">{{ r.get('rok_akademicki') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Specjalność</span><span class="detail-value">{{ r.get('specjalnosc') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Rodzaj studiów</span><span class="detail-value">{{ r.get('rodzaj_studiow') or '—' }}</span></div>
             </div>
-        </main>
+
+            {# ── Zał. 8 ── #}
+            {% elif att.key == 'zal8' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Data zaliczenia</span><span class="detail-value">{{ r.get('data_zaliczenia') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Ocena S (sprawozdanie)</span><span class="detail-value">{% if r.get('ocena_s') %}<span class="grade-badge">{{ r.ocena_s }}</span>{% else %}—{% endif %}</span></div>
+                <div class="detail-item"><span class="detail-label">Ocena E (egzamin)</span><span class="detail-value">{% if r.get('ocena_e') %}<span class="grade-badge">{{ r.ocena_e }}</span>{% else %}—{% endif %}</span></div>
+                <div class="detail-item"><span class="detail-label">Ocena K (końcowa)</span><span class="detail-value">{% if r.get('ocena_k') %}<span class="grade-badge">{{ r.ocena_k }}</span>{% else %}—{% endif %}</span></div>
+            </div>
+
+            {# ── Zał. 9 ── #}
+            {% elif att.key == 'zal9' %}
+            <div class="detail-grid">
+                <div class="detail-item"><span class="detail-label">Nazwa instytucji</span><span class="detail-value">{{ r.get('nazwa_instytucji') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Termin praktyki</span><span class="detail-value">{{ r.get('termin_od') or '—' }} – {{ r.get('termin_do') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Opiekun zakładowy</span><span class="detail-value">{{ r.get('opiekun_imie_nazwisko') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Kontakt</span><span class="detail-value">{{ r.get('opiekun_email') or r.get('opiekun_telefon') or '—' }}</span></div>
+            </div>
+
+            {% else %}
+            <div class="detail-grid">
+                {% if r.get('imie_nazwisko') %}
+                <div class="detail-item"><span class="detail-label">Student/ka</span><span class="detail-value">{{ r.imie_nazwisko }}</span></div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <p class="empty-attachment">Formularz nie został jeszcze wypełniony.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

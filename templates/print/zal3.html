@@ -1,0 +1,67 @@
+{% extends "print/base_print.html" %}
+{% from "print/_macros.html" import field, sig, choice, letterhead %}
+{% block doc_title %}Załącznik 3 – Karta praktyki{% endblock %}
+{% block content %}
+{{ letterhead('3') }}
+<h1 class="p-title">Karta praktyki zawodowej</h1>
+<h2 class="p-subtitle">Skierowanie na praktykę</h2>
+<div class="p-section">
+    <div class="p-section-label">A. Dane skierowania</div>
+    <p class="p-intro">Na podstawie porozumienia nr <strong>{{ data.nr_porozumienia or '…' }}</strong> z dnia <strong>{{ data.data_porozumienia or '…' }}</strong> r., kieruję niżej wymienionego studenta na praktykę zawodową do zakładu pracy:</p>
+    {{ field('Nazwa instytucji / zakładu pracy', data.zaklad_pracy) }}
+</div>
+<div class="p-section">
+    <div class="p-section-label">B. Dane studenta</div>
+    <div class="p-row-2">{{ field('Imię i nazwisko', data.imie_nazwisko) }}{{ field('Numer albumu', data.nr_albumu) }}</div>
+    <div class="p-row-3">
+        <div class="p-field"><span class="p-field-label">Studia</span><div style="padding-top:4pt">{{ choice('', data.rodzaj_studiow, 'stacjonarne') }}{{ choice('', data.rodzaj_studiow, 'niestacjonarne') }}</div></div>
+        {{ field('Kierunek studiów', 'Informatyka') }}
+        {{ field('Specjalność', data.specjalnosc) }}
+    </div>
+    <div class="p-info">Czas trwania praktyki: <strong>6 miesięcy (120 dni roboczych)</strong> – inżynierskie stacjonarne</div>
+    <div class="p-row-2">{{ field('Uczelniany opiekun praktyki zawodowej', data.uczelniany_opiekun) }}<div></div></div>
+    <div class="p-row-2">{{ field('Data rozpoczęcia praktyki', data.data_start) }}{{ field('Data zakończenia praktyki', data.data_end) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">C. Zakładowy opiekun praktyki</div>
+    <div class="p-row-2">{{ field('Imię i nazwisko zakładowego opiekuna', data.zakladowy_opiekun_nazwisko) }}{{ field('Funkcja / stanowisko', data.zakladowy_opiekun_funkcja) }}</div>
+    <div class="p-sig-row">{{ sig('Potwierdzenie zgłoszenia studenta na praktykę (data, pieczęć)', data.potwierdzenie_zgloszenia) }}{{ sig('Potwierdzenie odbycia szkolenia BHP (data, pieczęć)', data.potwierdzenie_bhp) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">D. Zaświadczenie odbycia praktyki zawodowej</div>
+    <p class="p-intro">Zaświadczam, że student <strong>{{ data.imie_nazwisko or '…' }}</strong> odbył/a praktykę zawodową w:</p>
+    {{ field('Nazwa zakładu / instytucji', data.zaswiadczenie_zaklad) }}
+    <div class="p-row-2">{{ field('Okres od', data.zaswiadczenie_okres_od) }}{{ field('Okres do', data.zaswiadczenie_okres_do) }}</div>
+    {{ field('Uwagi', data.zaswiadczenie_uwagi) }}
+    {{ sig('Miejscowość, data, pieczęć i podpis kierownika zakładu', data.zaswiadczenie_podpis) }}
+</div>
+<div class="p-section">
+    <div class="p-section-label">E. Ocena przebiegu praktyki zawodowej</div>
+    <div style="margin-bottom:10pt">
+        <strong>Ocena zakładowego opiekuna praktyki</strong><br>
+        <div class="p-row-2" style="margin-top:6pt">
+            <div class="p-field"><span class="p-field-label">Ocena parametryczna (2–5)</span><span class="p-grade">{{ data.ocena_zakladowa_param or '—' }}</span></div>
+            <div></div>
+        </div>
+        {{ field('Ocena opisowa', data.ocena_zakladowa_opis) }}
+        {{ sig('Data, pieczęć i podpis zakładowego opiekuna', data.podpis_zakladowy) }}
+    </div>
+    <div style="margin-bottom:10pt">
+        <strong>Ocena uczelnianego opiekuna praktyki</strong><br>
+        <div class="p-row-2" style="margin-top:6pt">
+            <div class="p-field"><span class="p-field-label">Ocena parametryczna (2–5)</span><span class="p-grade">{{ data.ocena_uczelniana_param or '—' }}</span></div>
+            <div></div>
+        </div>
+        {{ field('Ocena opisowa', data.ocena_uczelniana_opis) }}
+        {{ sig('Data, pieczęć i podpis uczelnianego opiekuna', data.podpis_uczelniany) }}
+    </div>
+    <div>
+        <strong>Ocena sprawozdania z praktyki</strong><br>
+        <div class="p-row-2" style="margin-top:6pt">
+            <div class="p-field"><span class="p-field-label">Ocena parametryczna (2–5)</span><span class="p-grade">{{ data.ocena_sprawozdania or '—' }}</span></div>
+            <div></div>
+        </div>
+        {{ sig('Data i podpis uczelnianego opiekuna praktyki', data.podpis_sprawozdanie) }}
+    </div>
+</div>
+{% endblock %}

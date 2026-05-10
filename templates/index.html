@@ -1,49 +1,79 @@
-<!doctype html>
-<html lang="pl">
-<head>
-    <meta charset="utf-8">
-    <title>Rozliczanie praktyk</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
-</head>
-<body>
-    <div class="page">
-        <header class="page-header">
-            <div class="brand">Rozliczanie praktyk</div>
-        </header>
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page">
 
-        <main class="card hero">
-            <h1>Rozliczanie praktyk studenckich</h1>
-            <p class="subtitle">Wybierz formularz, aby uzupełnić wymagane załączniki.</p>
-            <div class="menu">
-                <div class="menu-item">
-                    <a class="btn" href="{{ url_for('zal4') }}">Załącznik 4</a>
-                    <p class="menu-note">Zał 4: potwierdzenie efektów uczenia się.</p>
-                </div>
-                <div class="menu-item">
-                    <a class="btn secondary" href="{{ url_for('zal6') }}">Załącznik 6</a>
-                    <p class="menu-note">Zał 6: dziennik praktyk zawodowych.</p>
-                </div>
-            </div>
+    <h1>Dashboard</h1>
 
-            <div class="filled">
-                <h2>Wypełnione formularze</h2>
-                {% if students %}
-                    <ul class="filled-list">
-                        {% for student in students %}
-                            <li>
-                                <a class="filled-link" href="{{ url_for('podglad', nr_albumu=student.nr_albumu) }}">
-                                    {{ student.imie_nazwisko or "Brak imienia i nazwiska" }}
-                                </a>
-                                <span class="filled-meta">Nr albumu: {{ student.nr_albumu }}</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="subtitle">Brak zapisanych formularzy.</p>
-                {% endif %}
-            </div>
-        </main>
+    <div class="card">
+        <div class="card-header">
+            <h2>Lista studentów</h2>
+            <input
+                id="search"
+                type="search"
+                class="search-input"
+                placeholder="Szukaj po nazwisku lub nr albumu…"
+                autocomplete="off"
+            >
+        </div>
+
+        {% if students %}
+        <div class="table-wrap">
+            <table class="table" id="students-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Nr albumu</th>
+                        <th>Wypełnione</th>
+                        <th class="col-actions">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr class="student-row">
+                        <td><strong>{{ s.imie_nazwisko or "—" }}</strong></td>
+                        <td>{{ s.nr_albumu }}</td>
+                        <td>
+                            <div class="progress-pill">
+                                <div class="progress-bar-wrap">
+                                    <div class="progress-bar-fill"
+                                         style="width: {{ (s.count / attachments|length * 100) | int }}%"></div>
+                                </div>
+                                {{ s.count }}&nbsp;/&nbsp;{{ attachments | length }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row-actions">
+                                <a href="{{ url_for('student_detail', nr_albumu=s.nr_albumu) }}"
+                                   class="btn btn-sm">Podgląd</a>
+                                <form method="post"
+                                      action="{{ url_for('student_delete', nr_albumu=s.nr_albumu) }}"
+                                      onsubmit="return confirm('Usunąć cały rekord studenta {{ s.imie_nazwisko }}?')">
+                                    <button class="btn btn-sm btn-danger" type="submit">Usuń</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty-state">Brak zapisanych formularzy. Dodaj pierwszy rekord wybierając formularz z menu „Nowy formularz".</p>
+        {% endif %}
     </div>
-</body>
-</html>
+
+</div>
+
+<script>
+    const search = document.getElementById("search");
+    if (search) {
+        search.addEventListener("input", function () {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll(".student-row").forEach(function (row) {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
+            });
+        });
+    }
+</script>
+{% endblock %}

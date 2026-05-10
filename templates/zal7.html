@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Załącznik {{ '7a' if sn else '7' }} – Sprawozdanie z praktyki{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = val('imie_nazwisko') | plec %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
+
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+            <div class="doc-badge">Załącznik nr {{ '7a' if sn else '7' }}</div>
+        </div>
+
+        <h1 class="doc-title">Sprawozdanie z praktyki zawodowej</h1>
+        {% if sn %}
+        <h2 class="doc-subtitle">Studia niestacjonarne</h2>
+        {% endif %}
+
+        {% set form_action = url_for(('zal7a_edit' if sn else 'zal7_edit'), nr_albumu=edit_nr) if edit_nr else url_for('zal7a' if sn else 'zal7') %}
+        <form method="post" action="{{ form_action }}">
+
+            {# ── Dane studenta ── #}
+            <div class="form-section">
+                <div class="form-section-label">Dane studenta</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">Imię i nazwisko</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label>Kierunek studiów</label>
+                        <input type="text" value="Informatyka" readonly>
+                    </div>
+                    <div class="field-group">
+                        <label for="specjalnosc">Specjalność</label>
+                        <select id="specjalnosc" name="specjalnosc" required>
+                            <option value="" disabled {% if not data or not data.get('specjalnosc') %}selected{% endif %}>Wybierz specjalność</option>
+                            {% for sp in specialties %}
+                                <option value="{{ sp }}" {% if data and data.get('specjalnosc') == sp %}selected{% endif %}>{{ sp }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% if not sn %}
+                    <div class="field-group">
+                        <label>Forma studiów</label>
+                        <div class="radio-group">
+                            <label class="radio">
+                                <input type="radio" name="rodzaj_studiow" value="stacjonarne"
+                                    {% if not data or data.get('rodzaj_studiow','stacjonarne')=='stacjonarne' %}checked{% endif %}>
+                                stacjonarne
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="rodzaj_studiow" value="niestacjonarne"
+                                    {% if data and data.get('rodzaj_studiow')=='niestacjonarne' %}checked{% endif %}>
+                                niestacjonarne
+                            </label>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="field-group">
+                        <label>Forma studiów</label>
+                        <input type="text" value="niestacjonarne" readonly>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="rok_akademicki">Rok akademicki</label>
+                        <input id="rok_akademicki" type="text" name="rok_akademicki"
+                               value="{{ val('rok_akademicki') }}" placeholder="np. 2024/2025">
+                    </div>
+                    <div class="field-group">
+                        <label for="miejsce_praktyki">Miejsce odbywania praktyki</label>
+                        <input id="miejsce_praktyki" type="text" name="miejsce_praktyki"
+                               value="{{ val('miejsce_praktyki') }}" required>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Treść sprawozdania ── #}
+            <div class="form-section">
+                <div class="form-section-label">Treść sprawozdania</div>
+
+                <div class="field-group" style="margin-bottom:16px">
+                    <label for="charakterystyka">
+                        1. Charakterystyka zakładu pracy / instytucji
+                        <span style="font-weight:400; color:var(--muted)">(profil, struktura, zakres działalności)</span>
+                    </label>
+                    <textarea id="charakterystyka" name="charakterystyka" rows="6">{{ val('charakterystyka') }}</textarea>
+                </div>
+
+                <div class="field-group" style="margin-bottom:16px">
+                    <label for="opis_prac">
+                        2. Opis wykonywanych prac i zadań
+                        <span style="font-weight:400; color:var(--muted)">(szczegółowy opis czynności, projektów, technologii)</span>
+                    </label>
+                    <textarea id="opis_prac" name="opis_prac" rows="8">{{ val('opis_prac') }}</textarea>
+                </div>
+
+                <div class="field-group">
+                    <label for="wiedza_umiejetnosci">
+                        3. Nabyta wiedza i umiejętności
+                        <span style="font-weight:400; color:var(--muted)">(refleksja, osiągnięcia, wnioski)</span>
+                    </label>
+                    <textarea id="wiedza_umiejetnosci" name="wiedza_umiejetnosci" rows="6">{{ val('wiedza_umiejetnosci') }}</textarea>
+                </div>
+            </div>
+
+            {# ── Podpisy ── #}
+            <div class="form-section">
+                <div class="form-section-label">Podpisy</div>
+                <div class="sig-row">
+                    <div class="sig-box">
+                        <label for="data">Data sporządzenia sprawozdania</label>
+                        <input id="data" type="date" name="data" value="{{ val('data') }}">
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_studenta">Podpis studenta</label>
+                        <input id="podpis_studenta" type="text" name="podpis_studenta"
+                               value="{{ val('podpis_studenta') }}" placeholder="Imię, nazwisko i podpis">
+                    </div>
+                </div>
+                {% if sn %}
+                <div class="sig-row" style="margin-top:10px">
+                    <div class="sig-box">
+                        <label for="podpis_przelozonego">Potwierdzenie bezpośredniego przełożonego</label>
+                        <input id="podpis_przelozonego" type="text" name="podpis_przelozonego"
+                               value="{{ val('podpis_przelozonego') }}"
+                               placeholder="Data, pieczęć i podpis przełożonego">
+                    </div>
+                    <div class="sig-box"></div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik {{ '7a' if sn else '7' }}{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

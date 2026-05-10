@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Załącznik 1 – Porozumienie z zakładem pracy{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = val('imie_nazwisko') | plec %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
+
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+            <div class="doc-badge">Załącznik nr 1</div>
+        </div>
+
+        <h1 class="doc-title">Porozumienie o organizację praktyki zawodowej<br>studenta Akademii Nauk Stosowanych w Elblągu</h1>
+
+        <form method="post"
+              action="{{ url_for('zal1_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal1') }}">
+
+            {# ── Dane dokumentu ── #}
+            <div class="form-section">
+                <div class="form-section-label">Dane dokumentu</div>
+                <div class="doc-intro-text">
+                    Porozumienie nr
+                    <span class="inline-field-wrap">
+                        <input class="inline-field" type="text" name="nr_porozumienia"
+                               value="{{ val('nr_porozumienia') }}" placeholder="nr">
+                    </span>
+                    zawarte w
+                    <span class="inline-field-wrap">
+                        <input class="inline-field" type="text" name="miejscowosc"
+                               value="{{ val('miejscowosc') }}" placeholder="miejscowość">
+                    </span>
+                    dnia
+                    <span class="inline-field-wrap">
+                        <input class="inline-field inline-date" type="date" name="data"
+                               value="{{ val('data') }}">
+                    </span>
+                </div>
+            </div>
+
+            {# ── Dane studenta ── #}
+            <div class="form-section">
+                <div class="form-section-label">A. Dane studenta</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">Imię i nazwisko</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label>Kierunek studiów</label>
+                        <input type="text" value="Informatyka" readonly>
+                    </div>
+                    <div class="field-group">
+                        <label for="specjalnosc">Specjalność</label>
+                        <select id="specjalnosc" name="specjalnosc" required>
+                            <option value="" disabled {% if not data or not data.get('specjalnosc') %}selected{% endif %}>Wybierz specjalność</option>
+                            {% for sp in specialties %}
+                                <option value="{{ sp }}" {% if data and data.get('specjalnosc') == sp %}selected{% endif %}>{{ sp }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Forma studiów</label>
+                        <div class="radio-group">
+                            <label class="radio">
+                                <input type="radio" name="rodzaj_studiow" value="stacjonarne"
+                                    {% if not data or data.get('rodzaj_studiow','stacjonarne')=='stacjonarne' %}checked{% endif %}>
+                                stacjonarne
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="rodzaj_studiow" value="niestacjonarne"
+                                    {% if data and data.get('rodzaj_studiow')=='niestacjonarne' %}checked{% endif %}>
+                                niestacjonarne
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Dane zakładu pracy ── #}
+            <div class="form-section">
+                <div class="form-section-label">B. Dane zakładu pracy</div>
+                <div class="field-group" style="margin-bottom:14px">
+                    <label for="nazwa_zakladu">Nazwa instytucji / zakładu pracy</label>
+                    <input id="nazwa_zakladu" type="text" name="nazwa_zakladu"
+                           value="{{ val('nazwa_zakladu') }}" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="adres_zakladu">Adres</label>
+                        <input id="adres_zakladu" type="text" name="adres_zakladu"
+                               value="{{ val('adres_zakladu') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="nip_zakladu">NIP</label>
+                        <input id="nip_zakladu" type="text" name="nip_zakladu"
+                               value="{{ val('nip_zakladu') }}" placeholder="000-000-00-00">
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="reprezentant_nazwisko">Reprezentant zakładu – imię i nazwisko</label>
+                        <input id="reprezentant_nazwisko" type="text" name="reprezentant_nazwisko"
+                               value="{{ val('reprezentant_nazwisko') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="reprezentant_stanowisko">Stanowisko / funkcja</label>
+                        <input id="reprezentant_stanowisko" type="text" name="reprezentant_stanowisko"
+                               value="{{ val('reprezentant_stanowisko') }}">
+                    </div>
+                </div>
+            </div>
+
+            {# ── Termin i godziny ── #}
+            <div class="form-section">
+                <div class="form-section-label">C. Termin praktyki</div>
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label for="data_start">Data rozpoczęcia</label>
+                        <input id="data_start" type="date" name="data_start" value="{{ val('data_start') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="data_end">Data zakończenia</label>
+                        <input id="data_end" type="date" name="data_end" value="{{ val('data_end') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="liczba_godzin">Liczba godzin</label>
+                        <input id="liczba_godzin" type="number" name="liczba_godzin"
+                               value="{{ val('liczba_godzin') or 960 }}" min="0">
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label for="uczelniany_opiekun">Uczelniany opiekun praktyki</label>
+                    <input id="uczelniany_opiekun" type="text" name="uczelniany_opiekun"
+                           value="{{ val('uczelniany_opiekun') }}" placeholder="Imię i nazwisko">
+                </div>
+            </div>
+
+            {# ── Podpisy ── #}
+            <div class="form-section">
+                <div class="form-section-label">D. Podpisy</div>
+                <div class="sig-row">
+                    <div class="sig-box">
+                        <label for="podpis_zakladowy">Podpis zakładowego opiekuna</label>
+                        <input id="podpis_zakladowy" type="text" name="podpis_zakladowy"
+                               value="{{ val('podpis_zakladowy') }}"
+                               placeholder="Data, pieczęć i podpis">
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_uczelniany">Podpis uczelnianego opiekuna / Dyrektor IIS</label>
+                        <input id="podpis_uczelniany" type="text" name="podpis_uczelniany"
+                               value="{{ val('podpis_uczelniany') }}"
+                               placeholder="Data, pieczęć i podpis">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 1{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

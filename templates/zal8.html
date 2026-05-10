@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% block title %}Załącznik 8 – Protokół zaliczenia praktyki{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+            <div class="doc-badge">Załącznik nr 8</div>
+        </div>
+
+        <h1 class="doc-title">Protokół zaliczenia praktyki zawodowej</h1>
+
+        <form method="post"
+              action="{{ url_for('zal8_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal8') }}">
+
+            {# ── Dane studenta ── #}
+            <div class="form-section">
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">Student / ka</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Skład komisji ── #}
+            <div class="form-section">
+                <div class="form-section-label">Skład komisji zaliczającej</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="data_zaliczenia">Data zaliczenia</label>
+                        <input id="data_zaliczenia" type="date" name="data_zaliczenia"
+                               value="{{ val('data_zaliczenia') }}">
+                    </div>
+                    <div class="field-group"></div>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="przewodniczacy">Przewodniczący komisji</label>
+                        <input id="przewodniczacy" type="text" name="przewodniczacy"
+                               value="{{ val('przewodniczacy') }}" placeholder="Imię i nazwisko, stanowisko">
+                    </div>
+                    <div class="field-group">
+                        <label for="czlonek_2">Członek komisji</label>
+                        <input id="czlonek_2" type="text" name="czlonek_2"
+                               value="{{ val('czlonek_2') }}" placeholder="Imię i nazwisko">
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="czlonek_3">Członek komisji</label>
+                        <input id="czlonek_3" type="text" name="czlonek_3" value="{{ val('czlonek_3') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="czlonek_4">Członek komisji</label>
+                        <input id="czlonek_4" type="text" name="czlonek_4" value="{{ val('czlonek_4') }}">
+                    </div>
+                </div>
+            </div>
+
+            {# ── Miejsca praktyki ── #}
+            <div class="form-section">
+                <div class="form-section-label">Miejsca odbywania praktyki</div>
+                <div class="table-wrap">
+                    <table class="effects-table">
+                        <thead>
+                            <tr>
+                                <th class="col-nr">Lp.</th>
+                                <th>Nazwa zakładu / instytucji</th>
+                                <th style="width:160px">Okres praktyki</th>
+                                <th style="width:100px">Liczba dni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in range(1, 6) %}
+                            {% set mp = namespace(nazwa='', okres='', dni='') %}
+                            {% if data and data.miejsca_praktyki is defined and (i-1) < data.miejsca_praktyki|length %}
+                                {% set mp.nazwa = data.miejsca_praktyki[i-1].get('nazwa','') %}
+                                {% set mp.okres = data.miejsca_praktyki[i-1].get('okres','') %}
+                                {% set mp.dni = data.miejsca_praktyki[i-1].get('dni','') %}
+                            {% endif %}
+                            <tr>
+                                <td class="col-nr">{{ i }}</td>
+                                <td><input type="text" name="miejsce_nazwa_{{ i }}" value="{{ mp.nazwa }}"></td>
+                                <td><input type="text" name="miejsce_okres_{{ i }}" value="{{ mp.okres }}" placeholder="od – do"></td>
+                                <td><input type="number" name="miejsce_dni_{{ i }}" value="{{ mp.dni }}" min="0"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {# ── Oceny cząstkowe ── #}
+            <div class="form-section">
+                <div class="form-section-label">Oceny cząstkowe</div>
+
+                <div class="grade-panel">
+                    <div class="grade-panel-title">S – Ocena sprawozdania z praktyki</div>
+                    <div class="form-row-3">
+                        <div class="field-group">
+                            <label for="ocena_s">Ocena S (skala 2–5)</label>
+                            <select id="ocena_s" name="ocena_s">
+                                <option value="">— brak —</option>
+                                {% for g in [2,3,4,5] %}
+                                    <option value="{{ g }}" {% if val('ocena_s')|string == g|string %}selected{% endif %}>{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="data_s">Data oceny sprawozdania</label>
+                            <input id="data_s" type="date" name="data_s" value="{{ val('data_s') }}">
+                        </div>
+                        <div class="field-group">
+                            <label for="podpis_s">Podpis oceniającego</label>
+                            <input id="podpis_s" type="text" name="podpis_s" value="{{ val('podpis_s') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grade-panel">
+                    <div class="grade-panel-title">U – Ocena uczelnianego opiekuna / Z – Ocena zakładowego opiekuna</div>
+                    <p class="doc-intro-text" style="margin-bottom:10px">
+                        Wartości pobrane z Załącznika 3 (jeśli wypełniony). Można edytować ręcznie.
+                    </p>
+                    <div class="form-row-2">
+                        <div class="field-group">
+                            <label for="ocena_u">Ocena U – uczelnianego opiekuna (skala 2–5)</label>
+                            <select id="ocena_u" name="ocena_u">
+                                <option value="">— brak —</option>
+                                {% for g in [2,3,4,5] %}
+                                    <option value="{{ g }}" {% if val('ocena_u')|string == g|string %}selected{% endif %}>{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="ocena_z">Ocena Z – zakładowego opiekuna (skala 2–5)</label>
+                            <select id="ocena_z" name="ocena_z">
+                                <option value="">— brak —</option>
+                                {% for g in [2,3,4,5] %}
+                                    <option value="{{ g }}" {% if val('ocena_z')|string == g|string %}selected{% endif %}>{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Mini-zadania i ocena egzaminu ── #}
+            <div class="form-section">
+                <div class="form-section-label">Mini-zadania egzaminacyjne i ocena egzaminu</div>
+
+                {% for i in range(1, 4) %}
+                {% set mt = namespace(tresc='', ocena='') %}
+                {% if data and data.mini_zadania is defined and (i-1) < data.mini_zadania|length %}
+                    {% set mt.tresc = data.mini_zadania[i-1].get('tresc','') %}
+                    {% set mt.ocena = data.mini_zadania[i-1].get('ocena','') %}
+                {% endif %}
+                <div class="grade-panel">
+                    <div class="grade-panel-title">Mini-zadanie {{ i }}</div>
+                    <div class="form-row-2">
+                        <div class="field-group">
+                            <label>Treść zadania</label>
+                            <textarea name="mini_{{ i }}" rows="2">{{ mt.tresc }}</textarea>
+                        </div>
+                        <div class="field-group">
+                            <label>Ocena (skala 2–5)</label>
+                            <select name="mini_ocena_{{ i }}">
+                                <option value="">— brak —</option>
+                                {% for g in [2,3,4,5] %}
+                                    <option value="{{ g }}" {% if mt.ocena|string == g|string %}selected{% endif %}>{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="grade-panel">
+                    <div class="grade-panel-title">E – Ocena egzaminu końcowego</div>
+                    <div class="form-row-2">
+                        <div class="field-group">
+                            <label for="ocena_e">Ocena E (skala 2–5)</label>
+                            <select id="ocena_e" name="ocena_e" onchange="calcK()">
+                                <option value="">— brak —</option>
+                                {% for g in [2,3,4,5] %}
+                                    <option value="{{ g }}" {% if val('ocena_e')|string == g|string %}selected{% endif %}>{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field-group"></div>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Ocena końcowa K ── #}
+            <div class="form-section">
+                <div class="form-section-label">Ocena końcowa K = 0,4·E + 0,1·S + 0,2·U + 0,3·Z</div>
+                <div class="doc-info-box">
+                    Wzór: <strong>K = 0,4·E + 0,1·S + 0,2·U + 0,3·Z</strong>.
+                    Wynik zostanie zaokrąglony do pełnej oceny według skali 2–5.
+                </div>
+                <div class="form-row-2" style="margin-top:12px">
+                    <div class="field-group">
+                        <label for="ocena_k">Ocena końcowa K (obliczona)</label>
+                        <input id="ocena_k" type="text" name="ocena_k"
+                               value="{{ val('ocena_k') }}" placeholder="np. 4"
+                               style="font-weight:700;font-size:1.1rem;background:var(--panel-2)">
+                    </div>
+                    <div class="field-group">
+                        <button type="button" class="btn btn-secondary" onclick="calcK()" style="align-self:flex-end">
+                            Przelicz ocenę K
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 8{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+function gradeVal(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const v = parseFloat(el.value);
+    return isNaN(v) ? null : v;
+}
+
+function roundGrade(x) {
+    if (x < 2.75) return 2;
+    if (x < 3.25) return 3;
+    if (x < 3.75) return 3.5;
+    if (x < 4.25) return 4;
+    if (x < 4.75) return 4.5;
+    return 5;
+}
+
+function calcK() {
+    const E = gradeVal('ocena_e');
+    const S = gradeVal('ocena_s');
+    const U = gradeVal('ocena_u');
+    const Z = gradeVal('ocena_z');
+    const kField = document.getElementById('ocena_k');
+    if (E === null || S === null || U === null || Z === null) {
+        kField.value = '';
+        return;
+    }
+    kField.value = roundGrade(0.4 * E + 0.1 * S + 0.2 * U + 0.3 * Z);
+}
+
+['ocena_e', 'ocena_s', 'ocena_u', 'ocena_z'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', calcK);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Załącznik 4b – Wniosek o zaliczenie efektów uczenia się{% endblock %}
+{% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% macro efekt_val(nr, field) %}
+    {% if data and data.efekty_wniosek is defined %}
+        {% for ew in data.efekty_wniosek %}{% if ew.nr == nr %}{{ ew[field] }}{% endif %}{% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% block content %}
+<div class="page page-form">
+
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+
+    <div class="doc-card">
+
+        <div class="doc-letterhead">
+            <div class="doc-institution">
+                <div class="doc-institution-name">Akademia Nauk Stosowanych w Elblągu</div>
+                <div class="doc-institution-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+            </div>
+            <div class="doc-badge">Załącznik nr 4b</div>
+        </div>
+
+        <h1 class="doc-title">Wniosek studenta o zaliczenie efektów uczenia się<br>z tytułu doświadczenia zawodowego</h1>
+
+        <form method="post"
+              action="{{ url_for('zal4b_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal4b') }}">
+
+            {# ── Dane studenta ── #}
+            <div class="form-section">
+                <div class="form-section-label">A. Dane studenta</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="imie_nazwisko">Imię i nazwisko</label>
+                        <input id="imie_nazwisko" type="text" name="imie_nazwisko"
+                               value="{{ val('imie_nazwisko') }}"
+                               pattern=".+ .+" title="Podaj imię i nazwisko" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="nr_albumu">Nr albumu</label>
+                        <input id="nr_albumu" type="text" name="nr_albumu"
+                               value="{{ val('nr_albumu') }}"
+                               inputmode="numeric" pattern="[0-9]+"
+                               title="Wpisz tylko cyfry" required
+                               {% if edit_nr %}readonly{% endif %}>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label>Kierunek studiów</label>
+                        <input type="text" value="Informatyka" readonly>
+                    </div>
+                    <div class="field-group">
+                        <label for="specjalnosc">Specjalność</label>
+                        <select id="specjalnosc" name="specjalnosc" required>
+                            <option value="" disabled {% if not data or not data.get('specjalnosc') %}selected{% endif %}>Wybierz specjalność</option>
+                            {% for sp in specialties %}
+                                <option value="{{ sp }}" {% if data and data.get('specjalnosc') == sp %}selected{% endif %}>{{ sp }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Dane pracodawcy ── #}
+            <div class="form-section">
+                <div class="form-section-label">B. Dane pracodawcy i zatrudnienia</div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="pracodawca">Nazwa pracodawcy / firmy</label>
+                        <input id="pracodawca" type="text" name="pracodawca"
+                               value="{{ val('pracodawca') }}" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="adres_pracodawcy">Adres pracodawcy</label>
+                        <input id="adres_pracodawcy" type="text" name="adres_pracodawcy"
+                               value="{{ val('adres_pracodawcy') }}">
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="field-group">
+                        <label for="stanowisko">Zajmowane stanowisko</label>
+                        <input id="stanowisko" type="text" name="stanowisko"
+                               value="{{ val('stanowisko') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="okres_od">Zatrudnienie od</label>
+                        <input id="okres_od" type="date" name="okres_od" value="{{ val('okres_od') }}">
+                    </div>
+                    <div class="field-group">
+                        <label for="okres_do">Zatrudnienie do</label>
+                        <input id="okres_do" type="date" name="okres_do" value="{{ val('okres_do') }}">
+                    </div>
+                </div>
+            </div>
+
+            {# ── Uzasadnienie per efekt ── #}
+            <div class="form-section">
+                <div class="form-section-label">C. Uzasadnienie i dowody realizacji efektów uczenia się</div>
+                <div class="table-wrap">
+                    <table class="effects-table">
+                        <thead>
+                            <tr>
+                                <th class="col-nr">Nr</th>
+                                <th>Efekt uczenia się</th>
+                                <th>Uzasadnienie (jak efekt był realizowany)</th>
+                                <th>Dowody / dokumenty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for effect in effects %}
+                            <tr>
+                                <td class="col-nr">{{ "%02d" | format(effect.nr) }}</td>
+                                <td>{{ effect.opis }}</td>
+                                <td>
+                                    <textarea name="uzasadnienie_{{ effect.nr }}"
+                                              rows="2" style="width:100%;resize:vertical">{{ efekt_val(effect.nr, 'uzasadnienie') }}</textarea>
+                                </td>
+                                <td>
+                                    <input type="text" name="dowody_{{ effect.nr }}"
+                                           value="{{ efekt_val(effect.nr, 'dowody') }}"
+                                           placeholder="np. zaświadczenie, kod projektu…">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {# ── Wykaz dokumentów i podpis ── #}
+            <div class="form-section">
+                <div class="form-section-label">D. Wykaz dokumentów i podpis</div>
+                <div class="field-group" style="margin-bottom:14px">
+                    <label for="wykaz_dokumentow">Wykaz załączonych dokumentów</label>
+                    <textarea id="wykaz_dokumentow" name="wykaz_dokumentow" rows="3">{{ val('wykaz_dokumentow') }}</textarea>
+                </div>
+                <div class="sig-row">
+                    <div class="sig-box">
+                        <label for="data">Data złożenia wniosku</label>
+                        <input id="data" type="date" name="data" value="{{ val('data') }}">
+                    </div>
+                    <div class="sig-box">
+                        <label for="podpis_studenta">Podpis studenta</label>
+                        <input id="podpis_studenta" type="text" name="podpis_studenta"
+                               value="{{ val('podpis_studenta') }}" placeholder="Imię, nazwisko i podpis">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">
+                    {% if edit_nr %}Zapisz zmiany{% else %}Zapisz Załącznik 4b{% endif %}
+                </button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

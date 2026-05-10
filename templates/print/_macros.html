@@ -1,0 +1,29 @@
+{% macro field(label, value, empty_text='') %}
+<div class="p-field">
+    <span class="p-field-label">{{ label }}</span>
+    <span class="p-field-value {% if not value %}empty{% endif %}">{{ value or empty_text or '—' }}</span>
+</div>
+{% endmacro %}
+
+{% macro sig(label, value) %}
+<div class="p-sig-box">
+    <span class="p-sig-label">{{ label }}</span>
+    <span class="p-sig-value">{{ value or '' }}</span>
+</div>
+{% endmacro %}
+
+{% macro choice(label, selected, option) %}
+<span class="p-choice">
+    <span class="p-choice-check {% if selected == option %}checked{% endif %}"></span>{{ option }}
+</span>
+{% endmacro %}
+
+{% macro letterhead(badge_nr) %}
+<div class="p-letterhead">
+    <div>
+        <div class="p-inst-name">Akademia Nauk Stosowanych w Elblągu</div>
+        <div class="p-inst-dept">Instytut Informatyki Stosowanej im. Krzysztofa Brzeskiego</div>
+    </div>
+    <div class="p-badge">Załącznik nr {{ badge_nr }}</div>
+</div>
+{% endmacro %}
