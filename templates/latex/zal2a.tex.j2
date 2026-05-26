@@ -1,0 +1,95 @@
+% ANS Elblag – Załącznik nr 2a – Indywidualny program i harmonogram
+\input{base}
+\begin{document}
+
+\letterhead{2a}
+
+\doctitle{INDYWIDUALNY PROGRAM I HARMONOGRAM PRAKTYKI ZAWODOWEJ}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Imię i nazwisko}{(( data.imie_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Nr albumu}{(( data.nr_albumu | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\threecolW}
+\pfield{Kierunek}{Informatyka}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Specjalność}{(( data.specjalnosc | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Miejsce praktyki}{(( data.miejsce_praktyki | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\twocolA}
+\pfield{Data rozpoczęcia}{(( data.data_start | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Data zakończenia}{(( data.data_end | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{Planowane efekty uczenia się i zakres prac}
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.25}
+\fontsize{9}{11}\selectfont
+\begin{tabularx}{\linewidth}{%
+  |>{\centering\arraybackslash}p{28pt}%
+  |X%
+  |X|%
+}
+\hline
+\rowcolor{lightgray}
+\textbf{Nr} & \textbf{Efekt uczenia się} & \textbf{Planowane działy pracy} \\
+\hline
+((*- for ep in data.get('efekty_plan', []) *))
+\textbf{(( '%02d' | format(ep.nr) ))} & (( effect_map.get(ep.nr, '---') | le )) & (( ep.dzial_prace | le )) \\
+\hline
+((*- endfor *))
+\end{tabularx}
+\normalsize
+
+\sectionrule
+\sectionlabel{Harmonogram}
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.25}
+\fontsize{9}{11}\selectfont
+\begin{tabularx}{\linewidth}{%
+  |>{\centering\arraybackslash}p{24pt}%
+  |X%
+  |>{\centering\arraybackslash}p{52pt}|%
+}
+\hline
+\rowcolor{lightgray}
+\textbf{Lp.} & \textbf{Dział / obszar prac} & \textbf{Liczba dni} \\
+\hline
+((*- for h in data.get('harmonogram', []) *))
+(( h.lp | le )) & (( h.dzial | le )) & (( h.dni | le )) \\
+\hline
+((*- endfor *))
+\end{tabularx}
+\normalsize
+
+\vspace{10pt}
+\sectionrule
+\vspace{6pt}
+
+\newlength{\threesigW}
+\setlength{\threesigW}{0.31\linewidth}
+\begin{minipage}[t]{\threesigW}
+\psig{Podpis studenta}{(( data.podpis_studenta | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threesigW}
+\psig{Podpis zakładowego opiekuna (data, pieczęć)}{(( data.podpis_zakladowy | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threesigW}
+\psig{Podpis uczelnianego opiekuna (data)}{(( data.podpis_uczelniany | le ))}
+\end{minipage}
+
+\end{document}

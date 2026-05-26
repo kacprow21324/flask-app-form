@@ -1,0 +1,83 @@
+% ANS Elblag – Załącznik nr 1 – Porozumienie z zakładem pracy
+\input{base}
+\begin{document}
+
+\letterhead{1}
+
+\doctitle{POROZUMIENIE O ORGANIZACJĘ PRAKTYKI ZAWODOWEJ STUDENTA\\
+AKADEMII NAUK STOSOWANYCH W ELBLĄGU}
+
+\vspace{4pt}
+Porozumienie nr \textbf{(( data.nr_porozumienia | le ))} zawarte w
+\textbf{(( data.miejscowosc | le ))} dnia \textbf{(( data.data | le ))}
+
+\sectionrule
+\sectionlabel{A. Dane studenta}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Imię i nazwisko}{(( data.imie_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Nr albumu}{(( data.nr_albumu | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\threecolW}
+\pfield{Kierunek}{Informatyka}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Specjalność}{(( data.specjalnosc | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Forma studiów}{(( data.rodzaj_studiow | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{B. Dane zakładu pracy}
+
+\pfield{Nazwa instytucji / zakładu pracy}{(( data.nazwa_zakladu | le ))}
+
+\vspace{4pt}
+\begin{minipage}[t]{\twocolA}
+\pfield{Adres}{(( data.adres_zakladu | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{NIP}{(( data.nip_zakladu | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\twocolA}
+\pfield{Reprezentant -- imię i nazwisko}{(( data.reprezentant_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Stanowisko}{(( data.reprezentant_stanowisko | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{C. Termin i warunki praktyki}
+
+\begin{minipage}[t]{\threecolW}
+\pfield{Data rozpoczęcia}{(( data.data_start | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Data zakończenia}{(( data.data_end | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Liczba godzin}{(( data.liczba_godzin | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\pfield{Uczelniany opiekun praktyki}{(( data.uczelniany_opiekun | le ))}
+
+\sectionrule
+\sectionlabel{D. Podpisy}
+
+\vspace{6pt}
+\begin{minipage}[t]{\twocolA}
+\psig{Podpis zakładowego opiekuna (data, pieczęć)}{(( data.podpis_zakladowy | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\psig{Podpis uczelnianego opiekuna / Dyrektor IIS (data, pieczęć)}{(( data.podpis_uczelniany | le ))}
+\end{minipage}
+
+\end{document}

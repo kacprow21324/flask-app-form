@@ -1,0 +1,111 @@
+% ANS Elblag – Załącznik nr 8 – Protokół zaliczenia praktyki zawodowej
+\input{base}
+\begin{document}
+
+\letterhead{8}
+
+\doctitle{PROTOKÓŁ ZALICZENIA PRAKTYKI ZAWODOWEJ}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Student / ka}{(( data.imie_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Nr albumu}{(( data.nr_albumu | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{Skład komisji zaliczającej}
+
+\pfield{Data zaliczenia}{(( data.data_zaliczenia | le ))}
+
+\vspace{4pt}
+\begin{minipage}[t]{\twocolA}
+\pfield{Przewodniczący komisji}{(( data.przewodniczacy | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Członek komisji}{(( data.czlonek_2 | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\twocolA}
+\pfield{Członek komisji}{(( data.czlonek_3 | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Członek komisji}{(( data.czlonek_4 | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{Miejsca odbywania praktyki}
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.3}
+\fontsize{9}{11}\selectfont
+\begin{tabularx}{\linewidth}{%
+  |>{\centering\arraybackslash}p{20pt}%
+  |X%
+  |>{\centering\arraybackslash}p{80pt}%
+  |>{\centering\arraybackslash}p{50pt}|%
+}
+\hline
+\rowcolor{lightgray}
+\textbf{Lp.} & \textbf{Nazwa zakładu / instytucji} &
+\textbf{Okres praktyki} & \textbf{Liczba dni} \\
+\hline
+((*- for mp in data.get('miejsca_praktyki', []) *))
+(( loop.index )) & (( mp.nazwa | le )) & (( mp.okres | le )) & (( mp.dni | le )) \\
+\hline
+((*- endfor *))
+\end{tabularx}
+\normalsize
+
+\sectionrule
+\sectionlabel{Oceny}
+
+\vspace{4pt}
+\begin{minipage}[t]{\threecolW}
+{\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}S -- sprawozdanie}\\[2pt]
+\grade{(( data.ocena_s | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+{\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}U -- uczelniana}\\[2pt]
+\grade{(( data.ocena_u | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+{\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}Z -- zakładowa}\\[2pt]
+\grade{(( data.ocena_z | le ))}
+\end{minipage}
+
+\vspace{8pt}
+\sectionlabel{Mini-zadania egzaminacyjne}
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.3}
+\fontsize{9}{11}\selectfont
+\begin{tabularx}{\linewidth}{%
+  |>{\centering\arraybackslash}p{24pt}%
+  |X%
+  |>{\centering\arraybackslash}p{46pt}|%
+}
+\hline
+\rowcolor{lightgray}
+\textbf{Nr} & \textbf{Treść zadania} & \textbf{Ocena} \\
+\hline
+((*- for mt in data.get('mini_zadania', []) *))
+(( loop.index )) & (( mt.tresc | le )) & ((*- if mt.ocena *))\grade{(( mt.ocena | le ))}((*- else *))---((*- endif *)) \\
+\hline
+((*- endfor *))
+\end{tabularx}
+\normalsize
+
+\vspace{8pt}
+\begin{minipage}[t]{\twocolA}
+{\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}E -- ocena egzaminu końcowego}\\[2pt]
+{\fontsize{14}{17}\selectfont\grade{(( data.ocena_e | le ))}}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+{\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}K -- ocena końcowa
+  ($K = 0{,}4E + 0{,}1S + 0{,}2U + 0{,}3Z$)}\\[2pt]
+{\fontsize{14}{17}\selectfont\grade{(( data.ocena_k | le ))}}
+\end{minipage}
+
+\end{document}

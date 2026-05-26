@@ -1,0 +1,68 @@
+% ANS Elblag – Załącznik nr 9 – Oświadczenie instytucji przyjmującej studenta
+\input{base}
+\begin{document}
+
+\letterhead{9}
+
+\doctitle{OŚWIADCZENIE INSTYTUCJI PRZYJMUJĄCEJ STUDENTA NA PRAKTYKĘ ZAWODOWĄ}
+
+\begin{flushright}
+\fontsize{10}{13}\selectfont
+(( data.miejscowosc | le )), dnia (( data.data | le ))
+\end{flushright}
+
+\sectionrule
+\sectionlabel{A. Dane studenta}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Imię i nazwisko studenta}{(( data.imie_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Nr albumu}{(( data.nr_albumu | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{B. Dane instytucji przyjmującej}
+
+\pfield{Pełna nazwa instytucji / firmy}{(( data.nazwa_instytucji | le ))}
+
+\vspace{4pt}
+\begin{minipage}[t]{\twocolA}
+\pfield{Termin praktyki -- od}{(( data.termin_od | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Termin praktyki -- do}{(( data.termin_do | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{C. Dane opiekuna zakładowego}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Imię i nazwisko opiekuna}{(( data.opiekun_imie_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Stanowisko / funkcja}{(( data.opiekun_stanowisko | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\twocolA}
+\pfield{Telefon kontaktowy}{(( data.opiekun_telefon | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Adres e-mail}{(( data.opiekun_email | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{D. Osoba upoważniona do podpisania}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Imię i nazwisko}{(( data.upowazniont_imie_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Stanowisko / funkcja}{(( data.upowazniont_stanowisko | le ))}
+\end{minipage}
+
+\vspace{8pt}
+\psig{Data, pieczęć i podpis upoważnionego}{(( data.podpis | le ))}
+
+\end{document}

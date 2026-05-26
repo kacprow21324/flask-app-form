@@ -33,11 +33,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.Text, nullable=False)
     first_name = db.Column(db.Text, nullable=False)
     last_name = db.Column(db.Text, nullable=False)
-    role = db.Column(
-        db.Text,
-        nullable=False,
-        # Dozwolone role zgodnie ze schematem bazy danych
-    )
+    role = db.Column(db.Text, nullable=False)
     album_number = db.Column(db.Text, unique=True)
 
     # SQLAlchemy InstrumentedAttribute przesłania UserMixin.is_active (property True).
@@ -49,11 +45,6 @@ class User(UserMixin, db.Model):
     failed_login_attempts = db.Column(db.Integer, nullable=False, default=0)
     locked_until = db.Column(db.DateTime)
     avatar_url = db.Column(db.Text)
-
-    # Pola OAuth – nie istnieją w ems_schema.sql, dodane dla obsługi logowania zewnętrznego
-    oauth_provider = db.Column(db.Text)   # 'microsoft' | 'google' | 'local'
-    oauth_id = db.Column(db.Text)         # OID z Microsoft / sub z Google
-    tenant_id = db.Column(db.Text)        # Azure tenant ID
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(

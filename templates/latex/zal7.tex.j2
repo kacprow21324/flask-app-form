@@ -1,0 +1,69 @@
+% ANS Elblag – Załącznik nr 7 – Sprawozdanie z praktyki zawodowej (stacjonarne)
+\input{base}
+\begin{document}
+
+\letterhead{7}
+
+\doctitle{SPRAWOZDANIE Z PRAKTYKI ZAWODOWEJ}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Imię i nazwisko}{(( data.imie_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Nr albumu}{(( data.nr_albumu | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\threecolW}
+\pfield{Kierunek}{Informatyka}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Specjalność}{(( data.specjalnosc | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Rok akademicki}{(( data.rok_akademicki | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\pfield{Miejsce odbywania praktyki}{(( data.miejsce_praktyki | le ))}
+
+\sectionrule
+\sectionlabel{1. Charakterystyka zakładu pracy / instytucji}
+
+\vspace{4pt}
+\begin{minipage}[t]{\linewidth}
+\fontsize{10}{14}\selectfont
+(( data.charakterystyka | le ))
+\vspace{36pt}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{2. Opis wykonywanych prac i zadań}
+
+\vspace{4pt}
+\begin{minipage}[t]{\linewidth}
+\fontsize{10}{14}\selectfont
+(( data.opis_prac | le ))
+\vspace{48pt}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{3. Nabyta wiedza i umiejętności}
+
+\vspace{4pt}
+\begin{minipage}[t]{\linewidth}
+\fontsize{10}{14}\selectfont
+(( data.wiedza_umiejetnosci | le ))
+\vspace{36pt}
+\end{minipage}
+
+\sectionrule
+\vspace{6pt}
+\begin{minipage}[t]{\twocolA}
+\psig{Data sporządzenia sprawozdania}{(( data.data | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\psig{Podpis studenta}{(( data.podpis_studenta | le ))}
+\end{minipage}
+
+\end{document}

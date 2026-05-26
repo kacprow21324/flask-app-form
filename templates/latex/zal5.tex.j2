@@ -1,0 +1,59 @@
+% ANS Elblag – Załącznik nr 5 – Kwestionariusz ankiety ewaluacyjnej
+\input{base}
+\begin{document}
+
+\letterhead{5}
+
+\doctitle{KWESTIONARIUSZ ANKIETY EWALUACYJNEJ PRAKTYKI ZAWODOWEJ}
+
+\begin{minipage}[t]{\threecolW}
+\pfield{Nr albumu}{(( data.nr_albumu | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Rok akademicki}{(( data.rok_akademicki | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Semestr}{(( data.semestr | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\twocolA}
+\pfield{Kierunek}{Informatyka}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Forma studiów}{(( data.forma_studiow | le ))}
+\end{minipage}
+
+\sectionrule
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.4}
+\fontsize{8.5}{11}\selectfont
+\begin{tabularx}{\linewidth}{%
+  |>{\centering\arraybackslash}p{18pt}%
+  |X%
+  |p{120pt}|%
+}
+\hline
+\rowcolor{lightgray}
+\textbf{Nr} & \textbf{Pytanie} & \textbf{Odpowiedź} \\
+\hline
+((*- for i in range(1, 15) *))
+((*-   set cur_ans = namespace(val='---') *))
+((*-   for p in data.get('pytania', []) *))
+((*-     if p.nr == i *))
+((*-       set cur_ans.val = p.odpowiedz *))
+((*-     endif *))
+((*-   endfor *))
+(( i )). & (( (questions[i-1] if questions and i <= questions|length else '---') | le )) & (( cur_ans.val | le )) \\
+\hline
+((*- endfor *))
+\end{tabularx}
+\normalsize
+
+((*- if data.uwagi *))
+\sectionrule
+\pfield{Uwagi i komentarze}{(( data.uwagi | le ))}
+((*- endif *))
+
+\end{document}

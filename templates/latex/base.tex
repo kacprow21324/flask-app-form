@@ -1,0 +1,177 @@
+% ============================================================
+%  ANS Elblag – shared LaTeX preamble for all internship forms
+%  Engine: XeLaTeX (UTF-8, Polish characters native)
+%  Include in each form with: \input{base}
+% ============================================================
+\documentclass[11pt,a4paper]{article}
+
+% ── Encoding & language ──────────────────────────────────────
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{polish}
+
+% Font: prefer Calibri (available on Windows), fall back to TeX Gyre Termes
+\IfFontExistsTF{Calibri}{
+  \setmainfont{Calibri}
+  \setsansfont{Calibri}
+}{
+  \setmainfont{TeX Gyre Termes}
+  \setsansfont{TeX Gyre Heros}
+}
+
+% ── Page geometry ─────────────────────────────────────────────
+\usepackage[
+  a4paper,
+  top=2cm, bottom=2cm,
+  left=2.5cm, right=2.5cm,
+  headheight=0pt, headsep=0pt,
+  footskip=1cm
+]{geometry}
+
+% ── Core packages ─────────────────────────────────────────────
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage{ifthen}
+\usepackage{setspace}
+\usepackage{colortbl}   % for \rowcolor in tabular
+\usepackage{calc}       % for \dimexpr arithmetic
+
+% ── Colors ───────────────────────────────────────────────────
+\definecolor{ansblue}{RGB}{31,78,138}
+\definecolor{lightgray}{RGB}{240,240,240}
+\definecolor{midgray}{RGB}{170,170,170}
+\definecolor{darkgray}{RGB}{68,68,68}
+\definecolor{sectiongray}{RGB}{100,100,100}
+
+% ── No indentation, paragraph spacing ─────────────────────────
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt plus1pt}
+
+% ── No page numbers by default
+\pagestyle{empty}
+
+% ── Column type for centered+arraybackslash in tabularx ───────
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+
+% ──────────────────────────────────────────────────────────────
+% \letterhead{badge_nr}  — ANS header with horizontal rule
+% ──────────────────────────────────────────────────────────────
+\newcommand{\letterhead}[1]{%
+  \noindent
+  \begin{minipage}[t]{0.68\linewidth}
+    {\bfseries\fontsize{10}{13}\selectfont
+      Akademia Nauk Stosowanych w~Elblągu}\\[3pt]
+    {\itshape\fontsize{9}{12}\selectfont\color{darkgray}%
+      Instytut Informatyki Stosowanej im.~Krzysztofa Brzeskiego}
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[t]{0.30\linewidth}
+    \raggedleft
+    \setlength{\fboxsep}{4pt}
+    \fbox{%
+      \parbox{0.92\linewidth}{%
+        \centering
+        \fontsize{7.5}{9}\selectfont\bfseries
+        Zał. nr~#1%
+      }%
+    }%
+  \end{minipage}
+  \par\vspace{4pt}
+  \noindent\rule{\linewidth}{1pt}
+  \par\vspace{6pt}
+}
+
+% ──────────────────────────────────────────────────────────────
+% \pfield{label}{value}  — labeled field with underline
+% ──────────────────────────────────────────────────────────────
+\newcommand{\pfield}[2]{%
+  \par
+  {\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}#1}
+  \par\noindent
+  \makebox[\linewidth][l]{\fontsize{10}{13}\selectfont #2}%
+  \par\vspace{-2pt}
+  \noindent{\color{midgray}\rule{\linewidth}{0.4pt}}
+  \par\vspace{3pt}
+}
+
+% ──────────────────────────────────────────────────────────────
+% \psig{label}{value}  — signature box with dashed border
+%  Uses \fbox with a minimum height achieved via \vspace inside
+% ──────────────────────────────────────────────────────────────
+\newcommand{\psig}[2]{%
+  \par
+  \begingroup
+  \setlength{\fboxsep}{5pt}
+  \setlength{\fboxrule}{0.4pt}
+  \noindent\fbox{%
+    \begin{minipage}[c][36pt][t]{\dimexpr\linewidth-\fboxsep*2-\fboxrule*2\relax}
+      {\fontsize{8}{10}\selectfont\sffamily\itshape\color{sectiongray}#1}\\[4pt]
+      {\fontsize{10}{13}\selectfont #2}
+    \end{minipage}%
+  }%
+  \endgroup
+  \par\vspace{4pt}
+}
+
+% ──────────────────────────────────────────────────────────────
+% \sectionlabel{text}  — small uppercase section heading
+% ──────────────────────────────────────────────────────────────
+\newcommand{\sectionlabel}[1]{%
+  \par\vspace{4pt}
+  {\fontsize{7.5}{10}\selectfont\sffamily\bfseries\color{sectiongray}#1}%
+  \par\vspace{3pt}
+}
+
+% ──────────────────────────────────────────────────────────────
+% \doctitle{text}  — centered bold uppercase title
+% ──────────────────────────────────────────────────────────────
+\newcommand{\doctitle}[1]{%
+  \begin{center}
+    {\fontsize{12}{15}\selectfont\bfseries #1}
+  \end{center}
+  \vspace{2pt}
+}
+
+% ──────────────────────────────────────────────────────────────
+% \docsubtitle{text}  — centered italic subtitle
+% ──────────────────────────────────────────────────────────────
+\newcommand{\docsubtitle}[1]{%
+  \begin{center}
+    {\fontsize{10}{13}\selectfont\itshape\color{darkgray}#1}
+  \end{center}
+  \vspace{4pt}
+}
+
+% ──────────────────────────────────────────────────────────────
+% \sectionrule  — thin horizontal separator between sections
+% ──────────────────────────────────────────────────────────────
+\newcommand{\sectionrule}{%
+  \par\vspace{4pt}
+  \noindent{\color{lightgray}\rule{\linewidth}{0.5pt}}%
+  \par\vspace{3pt}
+}
+
+% ──────────────────────────────────────────────────────────────
+% \grade{value}  — highlighted grade badge (colored box)
+% ──────────────────────────────────────────────────────────────
+\newcommand{\grade}[1]{%
+  \colorbox{ansblue}{%
+    \color{white}\bfseries\fontsize{12}{14}\selectfont\,#1\,%
+  }%
+}
+
+% ── Column widths for two-column and three-column rows ────────
+\newlength{\twocolA}
+\newlength{\twocolB}
+\setlength{\twocolA}{0.475\linewidth}
+\setlength{\twocolB}{0.475\linewidth}
+
+\newlength{\threecolW}
+\setlength{\threecolW}{0.313\linewidth}

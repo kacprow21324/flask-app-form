@@ -1,0 +1,83 @@
+% ANS Elblag – Załącznik nr 4b – Wniosek studenta o zaliczenie efektów
+\input{base}
+\begin{document}
+
+\letterhead{4b}
+
+\doctitle{WNIOSEK STUDENTA O ZALICZENIE EFEKTÓW UCZENIA SIĘ\\Z TYTUŁU DOŚWIADCZENIA ZAWODOWEGO}
+
+\sectionrule
+\sectionlabel{A. Dane studenta}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Imię i nazwisko}{(( data.imie_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Nr albumu}{(( data.nr_albumu | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\twocolA}
+\pfield{Kierunek}{Informatyka}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Specjalność}{(( data.specjalnosc | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{B. Dane pracodawcy}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Pracodawca}{(( data.pracodawca | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Adres pracodawcy}{(( data.adres_pracodawcy | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\threecolW}
+\pfield{Stanowisko}{(( data.stanowisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Zatrudnienie od}{(( data.okres_od | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Zatrudnienie do}{(( data.okres_do | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{C. Uzasadnienie efektów}
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.3}
+\fontsize{9}{11}\selectfont
+\begin{tabularx}{\linewidth}{%
+  |>{\centering\arraybackslash}p{28pt}%
+  |X%
+  |X%
+  |X|%
+}
+\hline
+\rowcolor{lightgray}
+\textbf{Nr} & \textbf{Efekt uczenia się} & \textbf{Uzasadnienie} & \textbf{Dowody} \\
+\hline
+((*- for ew in data.get('efekty_wniosek', []) *))
+\textbf{(( '%02d' | format(ew.nr) ))} & (( effect_map.get(ew.nr, '---') | le )) & (( ew.uzasadnienie | le )) & (( ew.dowody | le )) \\
+\hline
+((*- endfor *))
+\end{tabularx}
+\normalsize
+
+\sectionrule
+
+\pfield{Wykaz załączonych dokumentów}{(( data.wykaz_dokumentow | le ))}
+
+\vspace{6pt}
+\begin{minipage}[t]{\twocolA}
+\psig{Data złożenia wniosku}{(( data.data | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\psig{Podpis studenta}{(( data.podpis_studenta | le ))}
+\end{minipage}
+
+\end{document}

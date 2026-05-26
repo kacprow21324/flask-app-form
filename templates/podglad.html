@@ -16,19 +16,34 @@
             <h1>{{ ns.name or ('Nr albumu ' ~ nr_albumu) }}</h1>
             <p class="subtitle">Nr albumu: <strong>{{ nr_albumu }}</strong></p>
         </div>
+        {% if user_role in ('admin', 'dziekanat') %}
         <div class="page-top-actions">
+            {% if user_role == 'admin' %}
+            <form method="post" action="{{ url_for('admin_fill_test_data', nr_albumu=nr_albumu) }}"
+                  onsubmit="return confirm('Nadpisać WSZYSTKIE formularze tego studenta danymi testowymi?')">
+                <button class="btn btn-sm btn-secondary" type="submit">Wypełnij danymi testowymi</button>
+            </form>
+            {% endif %}
             <form method="post" action="{{ url_for('student_delete', nr_albumu=nr_albumu) }}"
                   onsubmit="return confirm('Usunąć cały rekord tego studenta wraz ze wszystkimi załącznikami?')">
                 <button class="btn btn-danger" type="submit">Usuń cały rekord</button>
             </form>
         </div>
+        {% endif %}
     </div>
 
     <div class="attachments-grid">
 
         {% for att in attachments %}
         {% set r = student.get(att.key) %}
-        <div class="attachment-card {% if r %}card-filled{% else %}card-empty{% endif %}">
+        {% set status = r.get('_status', 'draft') if r else '' %}
+        {% set wf = document_workflow.get(att.key, {}) %}
+        {% set reviewer_role = wf.get('reviewer') %}
+        {% set is_creator = att.key in editable_forms %}
+        {% set is_reviewer = reviewer_role and (user_role == reviewer_role or user_role == 'admin') %}
+        {% set can_edit = is_creator and (status in ('draft', 'rejected') or user_role == 'admin') %}
+
+        <div id="doc-{{ att.key }}" class="attachment-card {% if r %}card-filled{% else %}card-empty{% endif %}">
             <div class="attachment-head">
                 <div>
                     <div class="attachment-label">Załącznik nr {{ att.nr }}</div>
@@ -36,18 +51,67 @@
                 </div>
                 <div class="attachment-actions">
                     {% if r %}
-                        <a href="{{ url_for(att.key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Edytuj</a>
-                        <a href="{{ url_for('pobierz_docx', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-primary">⬇ Pobierz .docx</a>
-                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary" target="_blank">Drukuj PDF</a>
+                        {% set sl = status_labels.get(status, ('Szkic', 'status-draft')) %}
+                        <span class="status-badge {{ sl[1] }}">{{ sl[0] }}</span>
+
+                        {% if can_edit %}
+                            <a href="{{ url_for(att.key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Edytuj</a>
+                        {% endif %}
+
+                        <a href="{{ url_for('pobierz_pdf', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-primary">⬇ PDF</a>
+                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary" target="_blank">Drukuj</a>
+
+                        {% if can_edit %}
                         <form method="post" action="{{ url_for(att.key ~ '_delete', nr_albumu=nr_albumu) }}"
                               onsubmit="return confirm('Usunąć Załącznik {{ att.nr }}?')">
                             <button class="btn btn-sm btn-danger" type="submit">Usuń</button>
                         </form>
+                        {% endif %}
+
+                        {% if is_creator and reviewer_role and status in ('draft', 'rejected') %}
+                        <form method="post" action="{{ url_for('wyslij_do_oceny', nr_albumu=nr_albumu, zal_key=att.key) }}">
+                            <button type="submit" class="btn btn-sm btn-send">Wyślij do zatwierdzenia →</button>
+                        </form>
+                        {% endif %}
+
+                        {% if is_reviewer and status == 'pending' %}
+                        <form method="post" action="{{ url_for('zatwierdz_dokument', nr_albumu=nr_albumu, zal_key=att.key) }}">
+                            <button type="submit" class="btn btn-sm btn-success">Zatwierdź</button>
+                        </form>
+                        <button type="button" class="btn btn-sm btn-danger"
+                                onclick="toggleReject('{{ att.key }}')">Odrzuć…</button>
+                        {% endif %}
+
                     {% else %}
-                        <a href="{{ url_for(att.key) }}?nr={{ nr_albumu }}" class="btn btn-sm">Wypełnij</a>
+                        {% if is_creator %}
+                            <a href="{{ url_for(att.key) }}?nr={{ nr_albumu }}" class="btn btn-sm">Wypełnij</a>
+                        {% else %}
+                            <span class="badge badge-empty">Oczekuje na opiekuna</span>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
+
+            {% if r and is_reviewer and status == 'pending' %}
+            <div id="reject-form-{{ att.key }}" class="reject-form" style="display:none">
+                <form method="post" action="{{ url_for('odrzuc_dokument', nr_albumu=nr_albumu, zal_key=att.key) }}">
+                    <label style="font-size:0.82rem; color:var(--muted); display:block; margin-bottom:6px">Powód odrzucenia (wymagany):</label>
+                    <textarea name="comment" placeholder="Opisz co należy poprawić…" required class="reject-textarea"></textarea>
+                    <div class="reject-actions">
+                        <button type="submit" class="btn btn-sm btn-danger">Potwierdź odrzucenie</button>
+                        <button type="button" class="btn btn-sm btn-secondary"
+                                onclick="toggleReject('{{ att.key }}')">Anuluj</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+            {% if r and status == 'rejected' and r.get('_rejection_comment') %}
+            <div class="rejection-notice">
+                <strong>Powód odrzucenia:</strong> {{ r._rejection_comment }}
+                {% if r.get('_rejection_by') %}<span class="rejection-by"> — {{ r._rejection_by }}</span>{% endif %}
+            </div>
+            {% endif %}
 
             {% if r %}
 
@@ -226,4 +290,10 @@
 
     </div>
 </div>
+<script>
+function toggleReject(key) {
+    const form = document.getElementById('reject-form-' + key);
+    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+</script>
 {% endblock %}

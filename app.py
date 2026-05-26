@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, login_user, current_user
+from datetime import date as _date
 import json
 import os
-from generate_docx import generate as docx_generate
 
 from config import Config
 from models import db, User, LearningEffect
@@ -55,6 +55,79 @@ ATTACHMENTS = [
     {"key": "zal9",  "nr": "9",  "title": "Oświadczenie instytucji"},
 ]
 
+# Które formularze może tworzyć/edytować każda rola
+ROLE_FORM_ACCESS = {
+    'student':   {'zal1', 'zal2a', 'zal4b', 'zal5', 'zal6', 'zal7', 'zal7a'},
+    'uopz':      {'zal2', 'zal4a'},
+    'zopz':      {'zal3', 'zal4', 'zal9'},
+    'dziekanat': {'zal8'},
+    'admin':     {a['key'] for a in ATTACHMENTS},
+}
+
+# Kolejność dokumentów dla studenta (tylko te, które student wypełnia)
+STUDENT_WORKFLOW = [
+    {
+        "step": 1, "key": "zal1", "nr": "1",
+        "title": "Porozumienie z zakładem pracy",
+        "when": "przed praktyką",
+        "hint": "Złóż jako pierwsze – uzgodnij warunki z zakładem pracy. Po złożeniu trafi do zatwierdzenia przez Opiekuna Uczelnianego.",
+    },
+    {
+        "step": 2, "key": "zal2a", "nr": "2a",
+        "title": "Program i harmonogram praktyki",
+        "when": "przed praktyką",
+        "hint": "Ustal indywidualny plan zadań i harmonogram. Wymaga zatwierdzenia przez Opiekuna Zakładowego.",
+    },
+    {
+        "step": 3, "key": "zal4b", "nr": "4b",
+        "title": "Wniosek o zaliczenie efektów",
+        "when": "opcjonalnie",
+        "hint": "Tylko jeśli ubiegasz się o zaliczenie efektów na podstawie pracy zawodowej lub stażu. Opiekun Uczelniany odpowie Zał. 4a.",
+    },
+    {
+        "step": 4, "key": "zal6", "nr": "6",
+        "title": "Dziennik praktyki zawodowej",
+        "when": "w trakcie",
+        "hint": "Wypełniaj każdego dnia. Po zakończeniu wyślij do zatwierdzenia przez Opiekuna Zakładowego.",
+    },
+    {
+        "step": 5, "key": "zal7", "nr": "7",
+        "title": "Sprawozdanie z praktyki",
+        "when": "po praktyce",
+        "hint": "Napisz po zakończeniu – opisz charakter zakładu, wykonane prace i nabyte umiejętności.",
+    },
+    {
+        "step": 6, "key": "zal5", "nr": "5",
+        "title": "Kwestionariusz ankiety",
+        "when": "po praktyce",
+        "hint": "Anonimowa ankieta oceniająca przebieg praktyki. Wypełnij jako ostatni dokument.",
+    },
+]
+
+# Kto zatwierdza każdy dokument
+DOCUMENT_WORKFLOW = {
+    'zal1':  {'reviewer': 'uopz', 'reviewer_label': 'Opiekun Uczelniany (UOPZ)'},
+    'zal2':  {'reviewer': None},
+    'zal2a': {'reviewer': 'zopz', 'reviewer_label': 'Opiekun Zakładowy (ZOPZ)'},
+    'zal3':  {'reviewer': 'uopz', 'reviewer_label': 'Opiekun Uczelniany (UOPZ)'},
+    'zal4':  {'reviewer': None},
+    'zal4a': {'reviewer': None},
+    'zal4b': {'reviewer': 'uopz', 'reviewer_label': 'Opiekun Uczelniany (UOPZ)'},
+    'zal5':  {'reviewer': None},
+    'zal6':  {'reviewer': 'zopz', 'reviewer_label': 'Opiekun Zakładowy (ZOPZ)'},
+    'zal7':  {'reviewer': None},
+    'zal7a': {'reviewer': 'zopz', 'reviewer_label': 'Opiekun Zakładowy (ZOPZ)'},
+    'zal8':  {'reviewer': None},
+    'zal9':  {'reviewer': None},
+}
+
+STATUS_LABELS = {
+    'draft':    ('Szkic',            'status-draft'),
+    'pending':  ('Oczekuje',         'status-pending'),
+    'approved': ('Zatwierdzone',     'status-approved'),
+    'rejected': ('Odrzucono',        'status-rejected'),
+}
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -66,7 +139,7 @@ def load_data():
             with open(DB_FILE, 'r', encoding=enc) as f:
                 data = json.load(f)
             if enc != 'utf-8':
-                save_data(data)  # re-save as UTF-8
+                save_data(data)
             return data
         except (json.JSONDecodeError, UnicodeDecodeError):
             continue
@@ -91,6 +164,42 @@ def is_digits_only(v):
     return v.isdigit()
 
 
+def can_edit_form(form_key):
+    """Czy aktualna rola użytkownika może edytować dany formularz."""
+    return form_key in ROLE_FORM_ACCESS.get(current_user.role, set())
+
+
+def guard_form(form_key):
+    """Zwraca redirect jeśli rola nie ma dostępu, None jeśli OK."""
+    if not can_edit_form(form_key):
+        flash("Nie masz uprawnień do edycji tego formularza.", "error")
+        return redirect(url_for("index"))
+    return None
+
+
+def student_nr(form_value):
+    """Dla studentów zawsze używa ich własnego numeru albumu."""
+    if current_user.role == 'student':
+        return current_user.album_number or ''
+    return form_value
+
+
+def get_doc_status(nr_albumu, zal_key):
+    """Zwraca aktualny status dokumentu."""
+    data = load_data()
+    return data.get(nr_albumu, {}).get(zal_key, {}).get('_status', 'draft')
+
+
+def can_edit_now(nr_albumu, zal_key):
+    """Czy dokument może być teraz edytowany przez aktualnego użytkownika?"""
+    if current_user.role == 'admin':
+        return True
+    status = get_doc_status(nr_albumu, zal_key)
+    if status in ('pending', 'approved'):
+        return False
+    return True
+
+
 def _delete_attachment(nr_albumu, key):
     data = load_data()
     has_other = False
@@ -103,16 +212,49 @@ def _delete_attachment(nr_albumu, key):
     return has_other
 
 
+def build_prefill(nr=''):
+    """Returns initial form data with pre-filled fields based on the current user's role."""
+    if current_user.role == 'student':
+        album = current_user.album_number or ''
+        name  = current_user.full_name
+        return {'nr_albumu': album, 'imie_nazwisko': name} if (album or name) else None
+    base = {'nr_albumu': nr} if nr else {}
+    if current_user.role == 'uopz':
+        base.update({
+            'uczelniany_opiekun': current_user.full_name,
+            'podpis_uczelniany':  current_user.full_name,
+            'podpis_uopz':        current_user.full_name,
+        })
+    elif current_user.role == 'zopz':
+        base.update({
+            'zakladowy_opiekun_nazwisko': current_user.full_name,
+            'opiekun_imie_nazwisko':      current_user.full_name,
+        })
+    return base or None
+
+
 def _persist(nr_albumu, key, record, label):
     data = load_data()
     data.setdefault(nr_albumu, {})
+    # Zachowaj status: rejected → draft przy edycji, approved/pending zostaje
+    existing = data[nr_albumu].get(key, {})
+    existing_status = existing.get('_status', 'draft')
+    if existing_status in ('draft', 'rejected'):
+        record['_status'] = 'draft'
+        record.pop('_rejection_comment', None)
+        record.pop('_rejection_by', None)
+    else:
+        record['_status'] = existing_status
+        for meta_key in ('_rejection_comment', '_rejection_by'):
+            if meta_key in existing:
+                record[meta_key] = existing[meta_key]
     data[nr_albumu][key] = record
     save_data(data)
     flash(f"{label} został/a zapisany/a.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
 
-# ── Logowanie ─────────────────────────────────────────────────────────────────
+# ── Strony ogólne ─────────────────────────────────────────────────────────────
 
 @app.route("/regulamin")
 @login_required
@@ -122,7 +264,10 @@ def regulamin():
 
 @app.route("/student/<nr_albumu>/<zal_key>/pobierz")
 @login_required
-def pobierz_docx(nr_albumu, zal_key):
+def pobierz_pdf(nr_albumu, zal_key):
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     valid_keys = {a["key"] for a in ATTACHMENTS}
     if zal_key not in valid_keys:
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
@@ -132,16 +277,26 @@ def pobierz_docx(nr_albumu, zal_key):
         flash("Brak danych do pobrania.", "error")
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
     effects = get_effects()
-    buf = docx_generate(zal_key, record, effects)
+    effect_map = {e.nr: e.opis for e in effects}
     att = next((a for a in ATTACHMENTS if a["key"] == zal_key), None)
-    filename = f"Zal_{att['nr']}_{nr_albumu}.docx" if att else f"{zal_key}_{nr_albumu}.docx"
-    return send_file(buf, as_attachment=True, download_name=filename,
-                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    from generate_pdf import generate_pdf
+    ctx = dict(
+        data=record, nr_albumu=nr_albumu, att=att,
+        effects=effects, effect_map=effect_map,
+        questions=SURVEY_QUESTIONS, options=SURVEY_OPTIONS,
+        specialties=SPECIALTIES, sn=(zal_key == "zal7a"),
+    )
+    buf = generate_pdf(app, zal_key, ctx)
+    filename = f"Zal_{att['nr']}_{nr_albumu}.pdf" if att else f"{zal_key}_{nr_albumu}.pdf"
+    return send_file(buf, as_attachment=True, download_name=filename, mimetype="application/pdf")
 
 
 @app.route("/student/<nr_albumu>/<zal_key>/drukuj")
 @login_required
 def drukuj(nr_albumu, zal_key):
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     valid_keys = {a["key"] for a in ATTACHMENTS}
     if zal_key not in valid_keys:
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
@@ -184,6 +339,32 @@ def login_page():
 @login_required
 def index():
     data = load_data()
+    role = current_user.role
+    editable = ROLE_FORM_ACCESS.get(role, set())
+
+    if role == 'student':
+        nr = current_user.album_number or ''
+        student_forms = data.get(nr, {}) if nr else {}
+        filled = [a["key"] for a in ATTACHMENTS if a["key"] in student_forms]
+        name = ""
+        for key in ("zal1", "zal2a", "zal6", "zal7", "zal7a"):
+            if key in student_forms:
+                name = student_forms[key].get("imie_nazwisko", "")
+                if name:
+                    break
+        workflow = [
+            {**step,
+             "done": step["key"] in student_forms,
+             "status": student_forms.get(step["key"], {}).get('_status', 'draft') if step["key"] in student_forms else ''}
+            for step in STUDENT_WORKFLOW
+        ]
+        return render_template("index.html",
+            role=role, nr_albumu=nr, student_forms=student_forms,
+            filled=filled, attachments=ATTACHMENTS,
+            workflow=workflow, name=name, editable_forms=editable,
+            status_labels=STATUS_LABELS)
+
+    # Widok pracowniczy – lista wszystkich studentów
     students = []
     for nr in sorted(data.keys()):
         forms = data[nr]
@@ -200,7 +381,36 @@ def index():
             "filled": filled,
             "count": len(filled),
         })
-    return render_template("index.html", students=students, attachments=ATTACHMENTS)
+
+    # Dokumenty oczekujące na zatwierdzenie przez aktualnego użytkownika
+    pending_reviews = []
+    if role in ('uopz', 'zopz', 'admin'):
+        for nr, forms in data.items():
+            student_name = ""
+            for key in ("zal3", "zal4", "zal6", "zal1", "zal7", "zal9"):
+                if key in forms and isinstance(forms[key], dict):
+                    student_name = forms[key].get("imie_nazwisko", "")
+                    if student_name:
+                        break
+            for zal_key, rec in forms.items():
+                if not isinstance(rec, dict) or rec.get('_status') != 'pending':
+                    continue
+                wf = DOCUMENT_WORKFLOW.get(zal_key, {})
+                rev = wf.get('reviewer')
+                if rev and (role == 'admin' or role == rev):
+                    att = next((a for a in ATTACHMENTS if a['key'] == zal_key), None)
+                    if att:
+                        pending_reviews.append({
+                            'nr_albumu': nr,
+                            'student_name': student_name or nr,
+                            'zal_key': zal_key,
+                            'att': att,
+                            'reviewer_label': wf.get('reviewer_label', ''),
+                        })
+
+    return render_template("index.html",
+        role=role, students=students, attachments=ATTACHMENTS, editable_forms=editable,
+        pending_reviews=pending_reviews)
 
 
 # ── Szczegóły studenta ────────────────────────────────────────────────────────
@@ -208,6 +418,9 @@ def index():
 @app.route("/student/<nr_albumu>")
 @login_required
 def student_detail(nr_albumu):
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu do tego rekordu.", "error")
+        return redirect(url_for("index"))
     data = load_data()
     student = data.get(nr_albumu)
     if not student:
@@ -219,12 +432,19 @@ def student_detail(nr_albumu):
         student=student,
         attachments=ATTACHMENTS,
         effect_map=effect_map,
+        editable_forms=ROLE_FORM_ACCESS.get(current_user.role, set()),
+        user_role=current_user.role,
+        document_workflow=DOCUMENT_WORKFLOW,
+        status_labels=STATUS_LABELS,
     )
 
 
 @app.route("/student/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def student_delete(nr_albumu):
+    if current_user.role not in ('admin', 'dziekanat'):
+        flash("Brak uprawnień do usuwania rekordów studenta.", "error")
+        return redirect(url_for("index"))
     data = load_data()
     if nr_albumu in data:
         del data[nr_albumu]
@@ -233,32 +453,121 @@ def student_delete(nr_albumu):
     return redirect(url_for("index"))
 
 
+# ── Workflow: wysyłanie / zatwierdzanie / odrzucanie ─────────────────────────
+
+@app.route("/student/<nr_albumu>/<zal_key>/wyslij", methods=["POST"])
+@login_required
+def wyslij_do_oceny(nr_albumu, zal_key):
+    """Student (lub twórca) wysyła dokument do zatwierdzenia."""
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
+    wf = DOCUMENT_WORKFLOW.get(zal_key, {})
+    if not wf.get('reviewer'):
+        flash("Ten formularz nie wymaga zatwierdzenia.", "info")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    data = load_data()
+    rec = data.get(nr_albumu, {}).get(zal_key)
+    if not rec:
+        flash("Formularz nie został jeszcze wypełniony.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    if rec.get('_status') not in ('draft', 'rejected'):
+        flash("Dokument jest już w trakcie oceny lub zatwierdzony.", "info")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    rec['_status'] = 'pending'
+    rec.pop('_rejection_comment', None)
+    rec.pop('_rejection_by', None)
+    save_data(data)
+    flash(f"Dokument wysłany do zatwierdzenia przez {wf['reviewer_label']}.", "success")
+    return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+
+
+@app.route("/student/<nr_albumu>/<zal_key>/zatwierdz", methods=["POST"])
+@login_required
+def zatwierdz_dokument(nr_albumu, zal_key):
+    """Recenzent zatwierdza dokument."""
+    wf = DOCUMENT_WORKFLOW.get(zal_key, {})
+    if current_user.role != wf.get('reviewer') and current_user.role != 'admin':
+        flash("Nie masz uprawnień do zatwierdzania tego dokumentu.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    data = load_data()
+    rec = data.get(nr_albumu, {}).get(zal_key)
+    if not rec or rec.get('_status') != 'pending':
+        flash("Dokument nie oczekuje na zatwierdzenie.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    rec['_status'] = 'approved'
+    rec.pop('_rejection_comment', None)
+    rec.pop('_rejection_by', None)
+    save_data(data)
+    flash("Dokument został zatwierdzony.", "success")
+    return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+
+
+@app.route("/student/<nr_albumu>/<zal_key>/odrzuc", methods=["POST"])
+@login_required
+def odrzuc_dokument(nr_albumu, zal_key):
+    """Recenzent odrzuca dokument z komentarzem."""
+    wf = DOCUMENT_WORKFLOW.get(zal_key, {})
+    if current_user.role != wf.get('reviewer') and current_user.role != 'admin':
+        flash("Nie masz uprawnień do odrzucania tego dokumentu.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    data = load_data()
+    rec = data.get(nr_albumu, {}).get(zal_key)
+    if not rec or rec.get('_status') != 'pending':
+        flash("Dokument nie oczekuje na zatwierdzenie.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    comment = request.form.get("comment", "").strip()
+    if not comment:
+        flash("Podaj powód odrzucenia.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    rec['_status'] = 'rejected'
+    rec['_rejection_comment'] = comment
+    rec['_rejection_by'] = current_user.full_name
+    save_data(data)
+    flash("Dokument został odrzucony – student może go poprawić i przesłać ponownie.", "success")
+    return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 1 – Porozumienie z zakładem pracy
+# ZAŁ. 1 – Porozumienie z zakładem pracy  [student]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal1", methods=["GET", "POST"])
 @login_required
 def zal1():
+    g = guard_form('zal1')
+    if g: return g
     if request.method == "POST":
         return _save_zal1(None)
-    nr = request.args.get("nr", "")
-    return render_template("zal1.html", data={"nr_albumu": nr} if nr else None,
-                           edit_nr=None, specialties=SPECIALTIES)
+    nr = current_user.album_number if current_user.role == 'student' else request.args.get("nr", "")
+    return render_template("zal1.html", data=build_prefill(nr),
+                           edit_nr=None, specialties=SPECIALTIES,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal1/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal1_edit(nr_albumu):
+    g = guard_form('zal1')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     if request.method == "POST":
         return _save_zal1(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal1")
-    return render_template("zal1.html", data=existing, edit_nr=nr_albumu, specialties=SPECIALTIES)
+    return render_template("zal1.html", data=existing, edit_nr=nr_albumu, specialties=SPECIALTIES,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal1/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal1_delete(nr_albumu):
+    g = guard_form('zal1')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     has_other = _delete_attachment(nr_albumu, "zal1")
     flash("Załącznik 1 został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -267,13 +576,14 @@ def zal1_delete(nr_albumu):
 def _save_zal1(edit_nr):
     f = request.form
     imie_nazwisko = f.get("imie_nazwisko", "").strip()
-    nr_albumu     = f.get("nr_albumu", "").strip()
+    nr_albumu     = student_nr(f.get("nr_albumu", "").strip())
+    nr_locked     = (current_user.role == 'student')
     if not is_valid_full_name(imie_nazwisko):
         flash("Podaj imię i nazwisko (co najmniej dwa wyrazy).", "error")
-        return render_template("zal1.html", data=f, edit_nr=edit_nr, specialties=SPECIALTIES)
+        return render_template("zal1.html", data=f, edit_nr=edit_nr, specialties=SPECIALTIES, nr_locked=nr_locked)
     if not nr_albumu or not is_digits_only(nr_albumu):
         flash("Numer albumu może zawierać tylko cyfry.", "error")
-        return render_template("zal1.html", data=f, edit_nr=edit_nr, specialties=SPECIALTIES)
+        return render_template("zal1.html", data=f, edit_nr=edit_nr, specialties=SPECIALTIES, nr_locked=nr_locked)
     record = {
         "imie_nazwisko": imie_nazwisko,
         "nr_albumu": nr_albumu,
@@ -299,21 +609,25 @@ def _save_zal1(edit_nr):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 2 – Program praktyki zawodowej
+# ZAŁ. 2 – Program praktyki zawodowej  [uopz]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal2", methods=["GET", "POST"])
 @login_required
 def zal2():
+    g = guard_form('zal2')
+    if g: return g
     if request.method == "POST":
         return _save_zal2(None)
     nr = request.args.get("nr", "")
-    return render_template("zal2.html", data={"nr_albumu": nr} if nr else None, edit_nr=None)
+    return render_template("zal2.html", data=build_prefill(nr), edit_nr=None)
 
 
 @app.route("/zal2/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal2_edit(nr_albumu):
+    g = guard_form('zal2')
+    if g: return g
     if request.method == "POST":
         return _save_zal2(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal2")
@@ -323,6 +637,8 @@ def zal2_edit(nr_albumu):
 @app.route("/zal2/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal2_delete(nr_albumu):
+    g = guard_form('zal2')
+    if g: return g
     has_other = _delete_attachment(nr_albumu, "zal2")
     flash("Załącznik 2 został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -347,34 +663,48 @@ def _save_zal2(edit_nr):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 2a – Program i harmonogram
+# ZAŁ. 2a – Program i harmonogram  [student]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal2a", methods=["GET", "POST"])
 @login_required
 def zal2a():
+    g = guard_form('zal2a')
+    if g: return g
     effects = get_effects()
     if request.method == "POST":
         return _save_zal2a(None, effects)
-    nr = request.args.get("nr", "")
-    return render_template("zal2a.html", data={"nr_albumu": nr} if nr else None,
-                           edit_nr=None, effects=effects, specialties=SPECIALTIES)
+    nr = current_user.album_number if current_user.role == 'student' else request.args.get("nr", "")
+    return render_template("zal2a.html", data=build_prefill(nr),
+                           edit_nr=None, effects=effects, specialties=SPECIALTIES,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal2a/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal2a_edit(nr_albumu):
+    g = guard_form('zal2a')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     effects = get_effects()
     if request.method == "POST":
         return _save_zal2a(nr_albumu, effects)
     existing = load_data().get(nr_albumu, {}).get("zal2a")
     return render_template("zal2a.html", data=existing, edit_nr=nr_albumu,
-                           effects=effects, specialties=SPECIALTIES)
+                           effects=effects, specialties=SPECIALTIES,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal2a/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal2a_delete(nr_albumu):
+    g = guard_form('zal2a')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     has_other = _delete_attachment(nr_albumu, "zal2a")
     flash("Załącznik 2a został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -383,13 +713,16 @@ def zal2a_delete(nr_albumu):
 def _save_zal2a(edit_nr, effects):
     f = request.form
     imie_nazwisko = f.get("imie_nazwisko", "").strip()
-    nr_albumu     = f.get("nr_albumu", "").strip()
+    nr_albumu     = student_nr(f.get("nr_albumu", "").strip())
+    nr_locked     = (current_user.role == 'student')
     if not is_valid_full_name(imie_nazwisko):
         flash("Podaj imię i nazwisko.", "error")
-        return render_template("zal2a.html", data=f, edit_nr=edit_nr, effects=effects, specialties=SPECIALTIES)
+        return render_template("zal2a.html", data=f, edit_nr=edit_nr, effects=effects,
+                               specialties=SPECIALTIES, nr_locked=nr_locked)
     if not nr_albumu or not is_digits_only(nr_albumu):
         flash("Numer albumu może zawierać tylko cyfry.", "error")
-        return render_template("zal2a.html", data=f, edit_nr=edit_nr, effects=effects, specialties=SPECIALTIES)
+        return render_template("zal2a.html", data=f, edit_nr=edit_nr, effects=effects,
+                               specialties=SPECIALTIES, nr_locked=nr_locked)
     efekty_plan = [{"nr": e.nr, "dzial_prace": f.get(f"dzial_{e.nr}", "").strip()} for e in effects]
     harmono = []
     for i in range(1, 14):
@@ -416,22 +749,26 @@ def _save_zal2a(edit_nr, effects):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 3 – Karta praktyki zawodowej
+# ZAŁ. 3 – Karta praktyki zawodowej  [zopz]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal3", methods=["GET", "POST"])
 @login_required
 def zal3():
+    g = guard_form('zal3')
+    if g: return g
     if request.method == "POST":
         return _save_zal3(None)
     nr = request.args.get("nr", "")
-    return render_template("zal3.html", data={"nr_albumu": nr} if nr else None,
+    return render_template("zal3.html", data=build_prefill(nr),
                            edit_nr=None, specialties=SPECIALTIES)
 
 
 @app.route("/zal3/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal3_edit(nr_albumu):
+    g = guard_form('zal3')
+    if g: return g
     if request.method == "POST":
         return _save_zal3(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal3")
@@ -441,6 +778,8 @@ def zal3_edit(nr_albumu):
 @app.route("/zal3/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal3_delete(nr_albumu):
+    g = guard_form('zal3')
+    if g: return g
     has_other = _delete_attachment(nr_albumu, "zal3")
     flash("Załącznik 3 został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -490,23 +829,27 @@ def _save_zal3(edit_nr):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 4 – Potwierdzenie efektów uczenia się
+# ZAŁ. 4 – Potwierdzenie efektów uczenia się  [zopz]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal4", methods=["GET", "POST"])
 @login_required
 def zal4():
+    g = guard_form('zal4')
+    if g: return g
     effects = get_effects()
     if request.method == "POST":
         return _save_zal4(None, effects)
     nr = request.args.get("nr", "")
-    return render_template("zal4.html", data={"nr_albumu": nr} if nr else None,
+    return render_template("zal4.html", data=build_prefill(nr),
                            edit_nr=None, effects=effects, specialties=SPECIALTIES)
 
 
 @app.route("/zal4/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal4_edit(nr_albumu):
+    g = guard_form('zal4')
+    if g: return g
     effects = get_effects()
     if request.method == "POST":
         return _save_zal4(nr_albumu, effects)
@@ -518,6 +861,8 @@ def zal4_edit(nr_albumu):
 @app.route("/zal4/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal4_delete(nr_albumu):
+    g = guard_form('zal4')
+    if g: return g
     has_other = _delete_attachment(nr_albumu, "zal4")
     flash("Załącznik 4 został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -547,23 +892,27 @@ def _save_zal4(edit_nr, effects):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 4a – Merytoryczna ocena wniosku studenta
+# ZAŁ. 4a – Merytoryczna ocena wniosku studenta  [uopz]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal4a", methods=["GET", "POST"])
 @login_required
 def zal4a():
+    g = guard_form('zal4a')
+    if g: return g
     effects = get_effects()
     if request.method == "POST":
         return _save_zal4a(None, effects)
     nr = request.args.get("nr", "")
-    return render_template("zal4a.html", data={"nr_albumu": nr} if nr else None,
+    return render_template("zal4a.html", data=build_prefill(nr),
                            edit_nr=None, effects=effects)
 
 
 @app.route("/zal4a/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal4a_edit(nr_albumu):
+    g = guard_form('zal4a')
+    if g: return g
     effects = get_effects()
     if request.method == "POST":
         return _save_zal4a(nr_albumu, effects)
@@ -574,6 +923,8 @@ def zal4a_edit(nr_albumu):
 @app.route("/zal4a/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal4a_delete(nr_albumu):
+    g = guard_form('zal4a')
+    if g: return g
     has_other = _delete_attachment(nr_albumu, "zal4a")
     flash("Załącznik 4a został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -607,34 +958,48 @@ def _save_zal4a(edit_nr, effects):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 4b – Wniosek o zaliczenie efektów uczenia się
+# ZAŁ. 4b – Wniosek o zaliczenie efektów uczenia się  [student]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal4b", methods=["GET", "POST"])
 @login_required
 def zal4b():
+    g = guard_form('zal4b')
+    if g: return g
     effects = get_effects()
     if request.method == "POST":
         return _save_zal4b(None, effects)
-    nr = request.args.get("nr", "")
-    return render_template("zal4b.html", data={"nr_albumu": nr} if nr else None,
-                           edit_nr=None, effects=effects, specialties=SPECIALTIES)
+    nr = current_user.album_number if current_user.role == 'student' else request.args.get("nr", "")
+    return render_template("zal4b.html", data=build_prefill(nr),
+                           edit_nr=None, effects=effects, specialties=SPECIALTIES,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal4b/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal4b_edit(nr_albumu):
+    g = guard_form('zal4b')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     effects = get_effects()
     if request.method == "POST":
         return _save_zal4b(nr_albumu, effects)
     existing = load_data().get(nr_albumu, {}).get("zal4b")
     return render_template("zal4b.html", data=existing, edit_nr=nr_albumu,
-                           effects=effects, specialties=SPECIALTIES)
+                           effects=effects, specialties=SPECIALTIES,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal4b/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal4b_delete(nr_albumu):
+    g = guard_form('zal4b')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     has_other = _delete_attachment(nr_albumu, "zal4b")
     flash("Załącznik 4b został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -643,13 +1008,16 @@ def zal4b_delete(nr_albumu):
 def _save_zal4b(edit_nr, effects):
     f = request.form
     imie_nazwisko = f.get("imie_nazwisko", "").strip()
-    nr_albumu     = f.get("nr_albumu", "").strip()
+    nr_albumu     = student_nr(f.get("nr_albumu", "").strip())
+    nr_locked     = (current_user.role == 'student')
     if not is_valid_full_name(imie_nazwisko):
         flash("Podaj imię i nazwisko.", "error")
-        return render_template("zal4b.html", data=f, edit_nr=edit_nr, effects=effects, specialties=SPECIALTIES)
+        return render_template("zal4b.html", data=f, edit_nr=edit_nr, effects=effects,
+                               specialties=SPECIALTIES, nr_locked=nr_locked)
     if not nr_albumu or not is_digits_only(nr_albumu):
         flash("Numer albumu może zawierać tylko cyfry.", "error")
-        return render_template("zal4b.html", data=f, edit_nr=edit_nr, effects=effects, specialties=SPECIALTIES)
+        return render_template("zal4b.html", data=f, edit_nr=edit_nr, effects=effects,
+                               specialties=SPECIALTIES, nr_locked=nr_locked)
     efekty_wniosek = [
         {"nr": e.nr, "uzasadnienie": f.get(f"uzasadnienie_{e.nr}", "").strip(),
          "dowody": f.get(f"dowody_{e.nr}", "").strip()}
@@ -674,7 +1042,7 @@ def _save_zal4b(edit_nr, effects):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 5 – Kwestionariusz ankiety
+# ZAŁ. 5 – Kwestionariusz ankiety  [student]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SURVEY_QUESTIONS = [
@@ -700,26 +1068,40 @@ SURVEY_OPTIONS = ["zdecydowanie tak", "raczej tak", "trudno powiedzieć", "racze
 @app.route("/zal5", methods=["GET", "POST"])
 @login_required
 def zal5():
+    g = guard_form('zal5')
+    if g: return g
     if request.method == "POST":
         return _save_zal5(None)
-    nr = request.args.get("nr", "")
-    return render_template("zal5.html", data={"nr_albumu": nr} if nr else None,
-                           edit_nr=None, questions=SURVEY_QUESTIONS, options=SURVEY_OPTIONS)
+    nr = current_user.album_number if current_user.role == 'student' else request.args.get("nr", "")
+    return render_template("zal5.html", data=build_prefill(nr),
+                           edit_nr=None, questions=SURVEY_QUESTIONS, options=SURVEY_OPTIONS,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal5/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal5_edit(nr_albumu):
+    g = guard_form('zal5')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     if request.method == "POST":
         return _save_zal5(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal5")
     return render_template("zal5.html", data=existing, edit_nr=nr_albumu,
-                           questions=SURVEY_QUESTIONS, options=SURVEY_OPTIONS)
+                           questions=SURVEY_QUESTIONS, options=SURVEY_OPTIONS,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal5/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal5_delete(nr_albumu):
+    g = guard_form('zal5')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     has_other = _delete_attachment(nr_albumu, "zal5")
     flash("Załącznik 5 został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -727,11 +1109,12 @@ def zal5_delete(nr_albumu):
 
 def _save_zal5(edit_nr):
     f = request.form
-    nr_albumu = f.get("nr_albumu", "").strip()
+    nr_albumu = student_nr(f.get("nr_albumu", "").strip())
+    nr_locked = (current_user.role == 'student')
     if not nr_albumu or not is_digits_only(nr_albumu):
         flash("Numer albumu może zawierać tylko cyfry.", "error")
         return render_template("zal5.html", data=f, edit_nr=edit_nr,
-                               questions=SURVEY_QUESTIONS, options=SURVEY_OPTIONS)
+                               questions=SURVEY_QUESTIONS, options=SURVEY_OPTIONS, nr_locked=nr_locked)
     pytania = [{"nr": i + 1, "odpowiedz": f.get(f"q{i+1}", "")} for i in range(14)]
     record = {
         "nr_albumu": nr_albumu,
@@ -747,34 +1130,48 @@ def _save_zal5(edit_nr):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 6 – Dziennik praktyki zawodowej
+# ZAŁ. 6 – Dziennik praktyki zawodowej  [student]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal6", methods=["GET", "POST"])
 @login_required
 def zal6():
+    g = guard_form('zal6')
+    if g: return g
     effects = get_effects()
     if request.method == "POST":
         return _save_zal6(None, effects)
-    nr = request.args.get("nr", "")
-    return render_template("zal6.html", data={"nr_albumu": nr} if nr else None,
-                           edit_nr=None, effects=effects, specialties=SPECIALTIES)
+    nr = current_user.album_number if current_user.role == 'student' else request.args.get("nr", "")
+    return render_template("zal6.html", data=build_prefill(nr),
+                           edit_nr=None, effects=effects, specialties=SPECIALTIES,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal6/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal6_edit(nr_albumu):
+    g = guard_form('zal6')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     effects = get_effects()
     if request.method == "POST":
         return _save_zal6(nr_albumu, effects)
     existing = load_data().get(nr_albumu, {}).get("zal6")
     return render_template("zal6.html", data=existing, edit_nr=nr_albumu,
-                           effects=effects, specialties=SPECIALTIES)
+                           effects=effects, specialties=SPECIALTIES,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal6/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal6_delete(nr_albumu):
+    g = guard_form('zal6')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     has_other = _delete_attachment(nr_albumu, "zal6")
     flash("Załącznik 6 został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -783,13 +1180,16 @@ def zal6_delete(nr_albumu):
 def _save_zal6(edit_nr, effects):
     f = request.form
     imie_nazwisko = f.get("imie_nazwisko", "").strip()
-    nr_albumu     = f.get("nr_albumu", "").strip()
+    nr_albumu     = student_nr(f.get("nr_albumu", "").strip())
+    nr_locked     = (current_user.role == 'student')
     if not is_valid_full_name(imie_nazwisko):
         flash("Podaj imię i nazwisko.", "error")
-        return render_template("zal6.html", data=f, edit_nr=edit_nr, effects=effects, specialties=SPECIALTIES)
+        return render_template("zal6.html", data=f, edit_nr=edit_nr, effects=effects,
+                               specialties=SPECIALTIES, nr_locked=nr_locked)
     if not nr_albumu or not is_digits_only(nr_albumu):
         flash("Numer albumu może zawierać tylko cyfry.", "error")
-        return render_template("zal6.html", data=f, edit_nr=edit_nr, effects=effects, specialties=SPECIALTIES)
+        return render_template("zal6.html", data=f, edit_nr=edit_nr, effects=effects,
+                               specialties=SPECIALTIES, nr_locked=nr_locked)
     dni         = f.getlist("dzien[]")
     daty        = f.getlist("data[]")
     opisy       = f.getlist("opis[]")
@@ -816,31 +1216,45 @@ def _save_zal6(edit_nr, effects):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 7 – Sprawozdanie z praktyki zawodowej
+# ZAŁ. 7 – Sprawozdanie z praktyki zawodowej  [student]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal7", methods=["GET", "POST"])
 @login_required
 def zal7():
+    g = guard_form('zal7')
+    if g: return g
     if request.method == "POST":
         return _save_zal7(None)
-    nr = request.args.get("nr", "")
-    return render_template("zal7.html", data={"nr_albumu": nr} if nr else None,
-                           edit_nr=None, specialties=SPECIALTIES, sn=False)
+    nr = current_user.album_number if current_user.role == 'student' else request.args.get("nr", "")
+    return render_template("zal7.html", data=build_prefill(nr),
+                           edit_nr=None, specialties=SPECIALTIES, sn=False,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal7/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal7_edit(nr_albumu):
+    g = guard_form('zal7')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     if request.method == "POST":
         return _save_zal7(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal7")
-    return render_template("zal7.html", data=existing, edit_nr=nr_albumu, specialties=SPECIALTIES, sn=False)
+    return render_template("zal7.html", data=existing, edit_nr=nr_albumu, specialties=SPECIALTIES,
+                           sn=False, nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal7/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal7_delete(nr_albumu):
+    g = guard_form('zal7')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     has_other = _delete_attachment(nr_albumu, "zal7")
     flash("Załącznik 7 został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -849,15 +1263,17 @@ def zal7_delete(nr_albumu):
 def _save_zal7(edit_nr, sn=False):
     f = request.form
     imie_nazwisko = f.get("imie_nazwisko", "").strip()
-    nr_albumu     = f.get("nr_albumu", "").strip()
+    nr_albumu     = student_nr(f.get("nr_albumu", "").strip())
+    nr_locked     = (current_user.role == 'student')
     key = "zal7a" if sn else "zal7"
-    tpl = "zal7.html"
     if not is_valid_full_name(imie_nazwisko):
         flash("Podaj imię i nazwisko.", "error")
-        return render_template(tpl, data=f, edit_nr=edit_nr, specialties=SPECIALTIES, sn=sn)
+        return render_template("zal7.html", data=f, edit_nr=edit_nr, specialties=SPECIALTIES,
+                               sn=sn, nr_locked=nr_locked)
     if not nr_albumu or not is_digits_only(nr_albumu):
         flash("Numer albumu może zawierać tylko cyfry.", "error")
-        return render_template(tpl, data=f, edit_nr=edit_nr, specialties=SPECIALTIES, sn=sn)
+        return render_template("zal7.html", data=f, edit_nr=edit_nr, specialties=SPECIALTIES,
+                               sn=sn, nr_locked=nr_locked)
     record = {
         "imie_nazwisko": imie_nazwisko,
         "nr_albumu": nr_albumu,
@@ -876,42 +1292,58 @@ def _save_zal7(edit_nr, sn=False):
     return _persist(nr_albumu, key, record, f"Załącznik {'7a' if sn else '7'}")
 
 
-# ── Zał. 7a (SN – niestacjonarne) ─────────────────────────────────────────────
+# ── Zał. 7a (SN – niestacjonarne)  [student] ─────────────────────────────────
 
 @app.route("/zal7a", methods=["GET", "POST"])
 @login_required
 def zal7a():
+    g = guard_form('zal7a')
+    if g: return g
     if request.method == "POST":
         return _save_zal7(None, sn=True)
-    nr = request.args.get("nr", "")
-    return render_template("zal7.html", data={"nr_albumu": nr} if nr else None,
-                           edit_nr=None, specialties=SPECIALTIES, sn=True)
+    nr = current_user.album_number if current_user.role == 'student' else request.args.get("nr", "")
+    return render_template("zal7.html", data=build_prefill(nr),
+                           edit_nr=None, specialties=SPECIALTIES, sn=True,
+                           nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal7a/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal7a_edit(nr_albumu):
+    g = guard_form('zal7a')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     if request.method == "POST":
         return _save_zal7(nr_albumu, sn=True)
     existing = load_data().get(nr_albumu, {}).get("zal7a")
-    return render_template("zal7.html", data=existing, edit_nr=nr_albumu, specialties=SPECIALTIES, sn=True)
+    return render_template("zal7.html", data=existing, edit_nr=nr_albumu, specialties=SPECIALTIES,
+                           sn=True, nr_locked=(current_user.role == 'student'))
 
 
 @app.route("/zal7a/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal7a_delete(nr_albumu):
+    g = guard_form('zal7a')
+    if g: return g
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
     has_other = _delete_attachment(nr_albumu, "zal7a")
     flash("Załącznik 7a został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 8 – Protokół zaliczenia praktyki zawodowej
+# ZAŁ. 8 – Protokół zaliczenia praktyki  [dziekanat]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal8", methods=["GET", "POST"])
 @login_required
 def zal8():
+    g = guard_form('zal8')
+    if g: return g
     if request.method == "POST":
         return _save_zal8(None)
     nr = request.args.get("nr", "")
@@ -929,6 +1361,8 @@ def zal8():
 @app.route("/zal8/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal8_edit(nr_albumu):
+    g = guard_form('zal8')
+    if g: return g
     if request.method == "POST":
         return _save_zal8(nr_albumu)
     store = load_data().get(nr_albumu, {})
@@ -945,6 +1379,8 @@ def zal8_edit(nr_albumu):
 @app.route("/zal8/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal8_delete(nr_albumu):
+    g = guard_form('zal8')
+    if g: return g
     has_other = _delete_attachment(nr_albumu, "zal8")
     flash("Załącznik 8 został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -994,21 +1430,25 @@ def _save_zal8(edit_nr):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ZAŁ. 9 – Oświadczenie instytucji
+# ZAŁ. 9 – Oświadczenie instytucji  [zopz]
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/zal9", methods=["GET", "POST"])
 @login_required
 def zal9():
+    g = guard_form('zal9')
+    if g: return g
     if request.method == "POST":
         return _save_zal9(None)
     nr = request.args.get("nr", "")
-    return render_template("zal9.html", data={"nr_albumu": nr} if nr else None, edit_nr=None)
+    return render_template("zal9.html", data=build_prefill(nr), edit_nr=None)
 
 
 @app.route("/zal9/<nr_albumu>/edytuj", methods=["GET", "POST"])
 @login_required
 def zal9_edit(nr_albumu):
+    g = guard_form('zal9')
+    if g: return g
     if request.method == "POST":
         return _save_zal9(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal9")
@@ -1018,6 +1458,8 @@ def zal9_edit(nr_albumu):
 @app.route("/zal9/<nr_albumu>/usun", methods=["POST"])
 @login_required
 def zal9_delete(nr_albumu):
+    g = guard_form('zal9')
+    if g: return g
     has_other = _delete_attachment(nr_albumu, "zal9")
     flash("Załącznik 9 został usunięty.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu) if has_other else url_for("index"))
@@ -1050,6 +1492,196 @@ def _save_zal9(edit_nr):
         "podpis": f.get("podpis", "").strip(),
     }
     return _persist(nr_albumu, "zal9", record, "Załącznik 9")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ADMIN – wypełnianie danymi testowymi
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _build_test_data(nr_albumu, effects):
+    y = _date.today().year
+    uopz_u = User.query.filter_by(role='uopz').first()
+    zopz_u = User.query.filter_by(role='zopz').first()
+    dziek_u = User.query.filter_by(role='dziekanat').first()
+    stud_u = User.query.filter_by(album_number=nr_albumu).first()
+
+    sn = stud_u.full_name if stud_u else "Aleksandra Kowalska"
+    un = uopz_u.full_name if uopz_u else "Irena Malinowska"
+    zn = zopz_u.full_name if zopz_u else "Zbigniew Ostrowski"
+    dn = dziek_u.full_name if dziek_u else "Dorota Kamińska"
+
+    rok = f"{y-1}/{y}"
+    ds = f"{y}-04-01"
+    de = f"{y}-05-31"
+    zaklad = "Techno Systems Sp. z o.o."
+    adres = "ul. Portowa 12, 80-001 Gdańsk"
+    spec = "Administracja systemów i sieci komputerowych (ASiSK)"
+
+    return {
+        "zal1": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "nr_porozumienia": f"PZ/{y}/001", "miejscowosc": "Elbląg",
+            "data": f"{y}-03-15", "kierunek": "Informatyka", "specjalnosc": spec,
+            "rodzaj_studiow": "stacjonarne", "nazwa_zakladu": zaklad,
+            "adres_zakladu": adres, "nip_zakladu": "583-000-11-22",
+            "reprezentant_nazwisko": "Jan Wiśniewski",
+            "reprezentant_stanowisko": "Prezes Zarządu",
+            "uczelniany_opiekun": un, "data_start": ds, "data_end": de,
+            "liczba_godzin": "240", "podpis_zakladowy": "Jan Wiśniewski",
+            "podpis_uczelniany": un,
+        },
+        "zal2": {
+            "nr_albumu": nr_albumu, "zaklad_pracy": zaklad,
+            "data_start": ds, "data_end": de,
+            "data_uzgodnienia": f"{y}-03-20",
+            "podpis_zakladowy": "Jan Wiśniewski", "podpis_uczelniany": un,
+        },
+        "zal2a": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "miejsce_praktyki": f"{zaklad}, {adres}",
+            "data_start": ds, "data_end": de,
+            "efekty_plan": [{"nr": e.nr, "dzial_prace": "Administracja serwerami i sieciami LAN/WAN"} for e in effects],
+            "harmonogram": [
+                {"lp": 1, "dzial": "Zapoznanie z infrastrukturą IT", "dni": "5"},
+                {"lp": 2, "dzial": "Administracja serwerami Windows Server", "dni": "10"},
+                {"lp": 3, "dzial": "Konfiguracja urządzeń sieciowych Cisco", "dni": "10"},
+                {"lp": 4, "dzial": "Monitoring sieci i systemy backupu", "dni": "5"},
+            ],
+            "data_uzgodnienia": f"{y}-03-25",
+            "podpis_uczelniany": un, "podpis_zakladowy": zn, "podpis_studenta": sn,
+        },
+        "zal3": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "nr_porozumienia": f"PZ/{y}/001", "data_porozumienia": f"{y}-03-15",
+            "zaklad_pracy": f"{zaklad}, {adres}", "kierunek": "Informatyka",
+            "specjalnosc": spec, "rodzaj_studiow": "stacjonarne",
+            "uczelniany_opiekun": un, "data_start": ds, "data_end": de,
+            "zakladowy_opiekun_nazwisko": zn, "zakladowy_opiekun_funkcja": "Kierownik Działu IT",
+            "potwierdzenie_zgloszenia": ds, "potwierdzenie_bhp": ds,
+            "zaswiadczenie_zaklad": zaklad, "zaswiadczenie_okres_od": ds,
+            "zaswiadczenie_okres_do": de,
+            "zaswiadczenie_uwagi": "Student zrealizował program praktyki w całości.",
+            "zaswiadczenie_podpis": zn,
+            "ocena_zakladowa_param": "bardzo dobry (5)",
+            "ocena_zakladowa_opis": "Studentka wykazała się dużym zaangażowaniem i inicjatywą.",
+            "podpis_zakladowy": zn,
+            "ocena_uczelniana_param": "bardzo dobry (5)",
+            "ocena_uczelniana_opis": "Dokumentacja kompletna i rzetelnie wypełniona.",
+            "podpis_uczelniany": un,
+            "ocena_sprawozdania": "bardzo dobry (5)", "podpis_sprawozdanie": un,
+        },
+        "zal4": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "wymiar_godzin": "240", "potwierdzenie_opiekuna": zn,
+            "opinia_opiekuna": "Studentka w pełni zrealizowała zaplanowane efekty uczenia się.",
+            "efekty": [{"nr": e.nr, "status": "osiągnięty"} for e in effects],
+        },
+        "zal4a": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "data_zlozenia": f"{y}-04-05",
+            "ocena_efektow": [{"nr": e.nr, "zasadny": "tak", "uzasadnienie": "Efekt zrealizowany w ramach praktyki."} for e in effects],
+            "rekomendacja": "Zalecam zaliczenie efektów w całości.", "uwagi": "",
+            "data_oceny": f"{y}-04-10", "podpis_uopz": un,
+        },
+        "zal4b": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "pracodawca": zaklad, "adres_pracodawcy": adres,
+            "stanowisko": "Specjalista ds. systemów IT",
+            "okres_od": ds, "okres_do": de,
+            "efekty_wniosek": [{"nr": e.nr, "uzasadnienie": "Realizowałam zadania zgodnie z opisem efektu.", "dowody": "Zaświadczenie od pracodawcy"} for e in effects],
+            "wykaz_dokumentow": "1. Zaświadczenie o zatrudnieniu\n2. Zakres obowiązków",
+            "data": f"{y}-04-05", "podpis_studenta": sn,
+        },
+        "zal5": {
+            "nr_albumu": nr_albumu, "rok_akademicki": rok,
+            "kierunek": "Informatyka", "forma_studiow": "stacjonarne",
+            "semestr": "6", "liczba_godzin": "240",
+            "pytania": [{"nr": i+1, "odpowiedz": "zdecydowanie tak" if i < 12 else "raczej tak"} for i in range(14)],
+            "uwagi": "Praktyka przebiegła sprawnie i w miłej atmosferze.",
+        },
+        "zal6": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "rodzaj_studiow": "stacjonarne", "rok_akademicki": rok,
+            "miejsce_praktyki": f"{zaklad}, {adres}",
+            "data_start": ds, "data_end": de,
+            "wykaz_zalacznikow": "Zaświadczenie od pracodawcy",
+            "dziennik": [
+                {"dzien": str(i+1), "data": f"{y}-04-{i+1:02d}",
+                 "opis": f"Realizacja zadań zgodnie z harmonogramem – administracja systemami IT.",
+                 "efekty": "1,2,3", "podpis": ""}
+                for i in range(5)
+            ],
+        },
+        "zal7": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "rodzaj_studiow": "stacjonarne", "rok_akademicki": rok,
+            "miejsce_praktyki": f"{zaklad}, {adres}",
+            "charakterystyka": f"{zaklad} to firma informatyczna specjalizująca się w administracji infrastrukturą IT i bezpieczeństwie sieci. Firma obsługuje klientów z sektora MŚP.",
+            "opis_prac": "W trakcie praktyki realizowałam:\n• Administrację serwerami Windows Server 2019\n• Konfigurację przełączników sieciowych Cisco\n• Monitoring sieci przy użyciu Zabbix\n• Tworzenie i testowanie polityk backupu",
+            "wiedza_umiejetnosci": "Praktyka pozwoliła rozwinąć umiejętności administracji Windows Server, konfiguracji urządzeń sieciowych oraz monitoringu infrastruktury IT.",
+            "data": f"{y}-06-01", "podpis_studenta": sn, "podpis_przelozonego": "",
+        },
+        "zal7a": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "rodzaj_studiow": "niestacjonarne", "rok_akademicki": rok,
+            "miejsce_praktyki": f"{zaklad}, {adres}",
+            "charakterystyka": f"{zaklad} to firma informatyczna specjalizująca się w administracji infrastrukturą IT.",
+            "opis_prac": "Administracja serwerami i sieciami komputerowymi.",
+            "wiedza_umiejetnosci": "Pogłębienie wiedzy z zakresu administracji systemami IT.",
+            "data": f"{y}-06-01", "podpis_studenta": sn, "podpis_przelozonego": zn,
+        },
+        "zal8": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "miejsca_praktyki": [{"nazwa": zaklad, "okres": f"{ds} – {de}", "dni": "43"}],
+            "ocena_s": "bardzo dobry (5)", "data_s": f"{y}-06-01", "podpis_s": sn,
+            "ocena_u": "bardzo dobry (5)", "ocena_z": "bardzo dobry (5)",
+            "sklad_komisji": f"1. {dn}\n2. {un}",
+            "data_zaliczenia": f"{y}-06-15", "przewodniczacy": dn,
+            "czlonek_2": un, "czlonek_3": "", "czlonek_4": "",
+            "mini_zadania": [
+                {"tresc": "Omów strukturę sieci komputerowej w miejscu praktyki.", "ocena": "bardzo dobry (5)"},
+                {"tresc": "Przedstaw zasady administracji serwerem Windows Server.", "ocena": "bardzo dobry (5)"},
+                {"tresc": "Opisz zastosowane systemy monitoringu infrastruktury.", "ocena": "bardzo dobry (5)"},
+            ],
+            "ocena_e": "bardzo dobry (5)", "ocena_k": "bardzo dobry (5)",
+        },
+        "zal9": {
+            "imie_nazwisko": sn, "nr_albumu": nr_albumu,
+            "miejscowosc": "Gdańsk", "data": ds,
+            "nazwa_instytucji": zaklad,
+            "termin_od": ds, "termin_do": de,
+            "opiekun_imie_nazwisko": zn, "opiekun_stanowisko": "Kierownik Działu IT",
+            "opiekun_telefon": "+48 58 123 45 67",
+            "opiekun_email": "z.ostrowski@technosystems.pl",
+            "upowazniont_imie_nazwisko": "Jan Wiśniewski",
+            "upowazniont_stanowisko": "Prezes Zarządu",
+            "podpis": "Jan Wiśniewski",
+        },
+    }
+
+
+@app.route("/admin/wypelnij/<nr_albumu>", methods=["POST"])
+@login_required
+def admin_fill_test_data(nr_albumu):
+    if current_user.role != 'admin':
+        flash("Brak uprawnień.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    effects = get_effects()
+    test_data = _build_test_data(nr_albumu, effects)
+    data = load_data()
+    data.setdefault(nr_albumu, {})
+    for key, record in test_data.items():
+        record.setdefault('_status', 'draft')
+        data[nr_albumu][key] = record
+    save_data(data)
+    flash("Dane testowe wypełnione dla wszystkich formularzy.", "success")
+    return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
 
 if __name__ == "__main__":

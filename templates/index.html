@@ -3,18 +3,160 @@
 {% block content %}
 <div class="page">
 
-    <h1>Dashboard</h1>
+{# ══════════════════════ WIDOK STUDENTA ══════════════════════ #}
+{% if role == 'student' %}
+
+    <h1>Moje praktyki zawodowe</h1>
+    {% if name %}<p class="subtitle">{{ name }}{% if nr_albumu %} · nr albumu <strong>{{ nr_albumu }}</strong>{% endif %}</p>{% endif %}
+
+    {% if not nr_albumu %}
+    <div class="card" style="border-left:4px solid var(--danger)">
+        <div style="padding:20px 24px">
+            <strong>Brak numeru albumu w profilu.</strong>
+            <p>Skontaktuj się z administratorem systemu, aby przypisać numer albumu do Twojego konta.</p>
+        </div>
+    </div>
+    {% else %}
+
+    {# Pasek postępu #}
+    <div class="card" style="margin-bottom:20px">
+        <div style="padding:18px 24px; display:flex; align-items:center; gap:20px; flex-wrap:wrap">
+            <div style="flex:1; min-width:200px">
+                <div style="font-size:0.82rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em">Postęp dokumentacji</div>
+                <div class="progress-bar-wrap" style="height:10px">
+                    <div class="progress-bar-fill" style="width:{{ (filled|length / attachments|length * 100)|int }}%"></div>
+                </div>
+            </div>
+            <div style="font-size:1.4rem; font-weight:600; color:var(--accent); white-space:nowrap">
+                {{ filled|length }}&nbsp;<span style="font-size:1rem; color:var(--muted); font-weight:400">/ {{ attachments|length }}</span>
+            </div>
+            {% if nr_albumu and filled %}
+            <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Pełny podgląd →</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Przewodnik krok po kroku #}
+    <div class="card">
+        <div class="card-header">
+            <h2>Plan składania dokumentów</h2>
+            <span class="subtitle" style="font-size:0.83rem">Wykonuj kroki po kolei – kolejność ma znaczenie</span>
+        </div>
+        <div class="workflow-list">
+            {% for step in workflow %}
+            <div class="workflow-step {% if step.done %}wf-done{% endif %}">
+                <div class="wf-indicator">
+                    {% if step.done %}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    {% else %}
+                    {{ step.step }}
+                    {% endif %}
+                </div>
+                <div class="wf-body">
+                    <div class="wf-meta">
+                        <span class="wf-when wf-when--{{ step.when | replace(' ', '-') }}">{{ step.when }}</span>
+                        <span class="wf-nr">Zał. {{ step.nr }}</span>
+                    </div>
+                    <div class="wf-title">{{ step.title }}</div>
+                    <div class="wf-hint">{{ step.hint }}</div>
+                </div>
+                <div class="wf-actions">
+                    {% if step.done %}
+                        {% set sl = status_labels.get(step.status, ('Złożono', 'status-draft')) %}
+                        <span class="status-badge {{ sl[1] }}">{{ sl[0] }}</span>
+                        {% if step.status in ('draft', 'rejected') %}
+                        <a href="{{ url_for(step.key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Edytuj</a>
+                        {% endif %}
+                        <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ step.key }}" class="btn btn-sm btn-secondary">Podgląd</a>
+                    {% else %}
+                        <a href="{{ url_for(step.key) }}" class="btn btn-sm">Wypełnij →</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# Dokumenty wypełniane przez opiekunów (tylko podgląd) #}
+    {% if filled %}
+    <div class="card" style="margin-top:20px">
+        <div class="card-header">
+            <h2>Dokumenty opiekunów (tylko podgląd)</h2>
+            <span class="subtitle" style="font-size:0.83rem">Te formularze wypełniają Twoi opiekunowie i dziekanat</span>
+        </div>
+        <div style="padding:8px 20px 16px; display:flex; flex-wrap:wrap; gap:10px">
+            {% set supervisor_keys = ['zal2', 'zal3', 'zal4', 'zal4a', 'zal8', 'zal9'] %}
+            {% for att in attachments %}
+                {% if att.key in supervisor_keys %}
+                {% set r = student_forms.get(att.key) %}
+                <div class="mini-doc-card {% if r %}mini-filled{% endif %}">
+                    <span class="mini-nr">Zał. {{ att.nr }}</span>
+                    <span class="mini-title">{{ att.title }}</span>
+                    {% if r %}
+                        <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary" style="margin-top:6px">Podgląd</a>
+                    {% else %}
+                        <span class="mini-empty">Oczekuje</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %}{# koniec bloku nr_albumu #}
+
+{# ══════════════════════ WIDOK PRACOWNICZY ══════════════════════ #}
+{% else %}
+
+    {% set role_labels = {
+        'uopz': 'Opiekun Uczelniany (UOPZ)',
+        'zopz': 'Opiekun Zakładowy (ZOPZ)',
+        'dziekanat': 'Dziekanat',
+        'admin': 'Administrator'
+    } %}
+    <h1>Dashboard – {{ role_labels.get(role, role) }}</h1>
+
+    {# Informacja o zakresie formularzy dla danej roli #}
+    {% set role_desc = {
+        'uopz': 'Możesz wypełniać: Zał. 2 (Program praktyki) i Zał. 4a (Ocena wniosku studenta). Pozostałe formularze – tylko podgląd.',
+        'zopz': 'Możesz wypełniać: Zał. 3 (Karta praktyki), Zał. 4 (Potwierdzenie efektów), Zał. 9 (Oświadczenie instytucji).',
+        'dziekanat': 'Możesz wypełniać: Zał. 8 (Protokół zaliczenia praktyki). Wszystkie pozostałe formularze – tylko podgląd.',
+        'admin': 'Pełny dostęp do wszystkich formularzy wszystkich studentów.'
+    } %}
+    {% if role_desc.get(role) %}
+    <div class="role-info-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ role_desc[role] }}
+    </div>
+    {% endif %}
+
+    {% if pending_reviews %}
+    <div class="card pending-card">
+        <div class="card-header">
+            <h2>Dokumenty oczekujące na Twoją decyzję</h2>
+            <span class="status-badge status-pending">{{ pending_reviews | length }}</span>
+        </div>
+        <div class="pending-list">
+            {% for pr in pending_reviews %}
+            <div class="pending-item">
+                <div class="pending-info">
+                    <strong>Zał. {{ pr.att.nr }}</strong> — {{ pr.att.title }}
+                    <span class="pending-student">Student: {{ pr.student_name }}</span>
+                </div>
+                <a href="{{ url_for('student_detail', nr_albumu=pr.nr_albumu) }}#doc-{{ pr.zal_key }}"
+                   class="btn btn-sm">Rozpatrz →</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <div class="card">
         <div class="card-header">
             <h2>Lista studentów</h2>
-            <input
-                id="search"
-                type="search"
-                class="search-input"
-                placeholder="Szukaj po nazwisku lub nr albumu…"
-                autocomplete="off"
-            >
+            <input id="search" type="search" class="search-input"
+                   placeholder="Szukaj po nazwisku lub nr albumu…" autocomplete="off">
         </div>
 
         {% if students %}
@@ -46,11 +188,13 @@
                             <div class="row-actions">
                                 <a href="{{ url_for('student_detail', nr_albumu=s.nr_albumu) }}"
                                    class="btn btn-sm">Podgląd</a>
+                                {% if role in ('admin', 'dziekanat') %}
                                 <form method="post"
                                       action="{{ url_for('student_delete', nr_albumu=s.nr_albumu) }}"
                                       onsubmit="return confirm('Usunąć cały rekord studenta {{ s.imie_nazwisko }}?')">
                                     <button class="btn btn-sm btn-danger" type="submit">Usuń</button>
                                 </form>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -59,10 +203,11 @@
             </table>
         </div>
         {% else %}
-        <p class="empty-state">Brak zapisanych formularzy. Dodaj pierwszy rekord wybierając formularz z menu „Nowy formularz".</p>
+        <p class="empty-state">Brak zapisanych formularzy. Studenci pojawią się tu po złożeniu pierwszego dokumentu.</p>
         {% endif %}
     </div>
 
+{% endif %}
 </div>
 
 <script>

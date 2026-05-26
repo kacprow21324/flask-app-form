@@ -2,4 +2,4 @@ Flask
 Flask-SQLAlchemy
 Flask-Login
 python-dotenv
-python-docx
+weasyprint

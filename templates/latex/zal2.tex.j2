@@ -1,0 +1,68 @@
+% ANS Elblag – Załącznik nr 2 – Program praktyki zawodowej
+\input{base}
+\begin{document}
+
+\letterhead{2}
+
+\doctitle{PROGRAM PRAKTYKI ZAWODOWEJ}
+\docsubtitle{Kierunek: Informatyka -- studia inżynierskie}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Nr albumu}{(( data.nr_albumu | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Zakład pracy}{(( data.zaklad_pracy | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\begin{minipage}[t]{\threecolW}
+\pfield{Data rozpoczęcia}{(( data.data_start | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Data zakończenia}{(( data.data_end | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Data uzgodnienia}{(( data.data_uzgodnienia | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{Ramowy program praktyki}
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{|c|X|}
+\hline
+\rowcolor{lightgray}
+\textbf{\small Lp.} & \textbf{\small Zakres tematyczny / zadania} \\
+\hline
+1 & Zapoznanie się z organizacją i regulaminem zakładu pracy, przepisami BHP i p.poż. \\
+\hline
+2 & Zapoznanie się ze strukturą organizacyjną, profilem i zakresem działalności zakładu. \\
+\hline
+3 & Zapoznanie się z infrastrukturą informatyczną zakładu (sieci, serwery, oprogramowanie). \\
+\hline
+4 & Uczestnictwo w projektowaniu, wdrażaniu lub administrowaniu systemami informatycznymi. \\
+\hline
+5 & Programowanie i testowanie aplikacji lub modułów oprogramowania użytkowego. \\
+\hline
+6 & Administrowanie bazami danych i utrzymanie ciągłości działania systemów. \\
+\hline
+7 & Udział w realizacji projektów IT zgodnie ze specjalnością studiów. \\
+\hline
+8 & Prowadzenie dokumentacji technicznej i raportów z wykonanych prac. \\
+\hline
+9 & Podsumowanie praktyki i opracowanie sprawozdania końcowego. \\
+\hline
+\end{tabularx}
+
+\vspace{10pt}
+\sectionrule
+\vspace{6pt}
+\begin{minipage}[t]{\twocolA}
+\psig{Podpis zakładowego opiekuna praktyki (data, pieczęć)}{(( data.podpis_zakladowy | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\psig{Podpis uczelnianego opiekuna praktyki (data)}{(( data.podpis_uczelniany | le ))}
+\end{minipage}
+
+\end{document}

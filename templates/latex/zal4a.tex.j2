@@ -1,0 +1,56 @@
+% ANS Elblag – Załącznik nr 4a – Merytoryczna ocena wniosku studenta
+\input{base}
+\begin{document}
+
+\letterhead{4a}
+
+\doctitle{MERYTORYCZNA OCENA WNIOSKU STUDENTA\\O ZALICZENIE EFEKTÓW UCZENIA SIĘ Z PRAKTYKI ZAWODOWEJ}
+
+\begin{minipage}[t]{\twocolA}
+\pfield{Student / ka}{(( data.imie_nazwisko | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\pfield{Nr albumu}{(( data.nr_albumu | le ))}
+\end{minipage}
+
+\vspace{4pt}
+\pfield{Data złożenia wniosku}{(( data.data_zlozenia | le ))}
+
+\sectionrule
+
+\vspace{4pt}
+\renewcommand{\arraystretch}{1.3}
+\fontsize{9}{11}\selectfont
+\begin{tabularx}{\linewidth}{%
+  |>{\centering\arraybackslash}p{28pt}%
+  |X%
+  |>{\centering\arraybackslash}p{60pt}%
+  |X|%
+}
+\hline
+\rowcolor{lightgray}
+\textbf{Nr} & \textbf{Efekt uczenia się} & \textbf{Zasadność} & \textbf{Uzasadnienie} \\
+\hline
+((*- for oe in data.get('ocena_efektow', []) *))
+\textbf{(( '%02d' | format(oe.nr) ))} & (( effect_map.get(oe.nr, '---') | le )) & (( oe.zasadny | le if oe.zasadny else '---' )) & (( oe.uzasadnienie | le )) \\
+\hline
+((*- endfor *))
+\end{tabularx}
+\normalsize
+
+\sectionrule
+
+\pfield{Rekomendacja uczelnianego opiekuna}{(( data.rekomendacja | le ))}
+
+\vspace{4pt}
+\pfield{Uwagi}{(( data.uwagi | le ))}
+
+\vspace{6pt}
+\begin{minipage}[t]{\twocolA}
+\psig{Data oceny}{(( data.data_oceny | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\psig{Podpis uczelnianego opiekuna praktyki}{(( data.podpis_uopz | le ))}
+\end{minipage}
+
+\end{document}

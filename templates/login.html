@@ -76,12 +76,38 @@
             </form>
 
             <div class="login-hint">
-                <strong>Konta testowe:</strong><br>
-                student@student.ans-elblag.pl / Student123!<br>
-                opiekun@ans-elblag.pl / Opiekun123!<br>
-                admin@ans-elblag.pl / Admin123!
+                <strong>Szybkie logowanie testowe:</strong>
+                <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+                    <button type="button" class="btn btn-sm btn-ghost"
+                            onclick="quickLogin('student@student.ans-elblag.pl','Student123!')">
+                        Student
+                    </button>
+                    <button type="button" class="btn btn-sm btn-ghost"
+                            onclick="quickLogin('opiekun@ans-elblag.pl','Opiekun123!')">
+                        UOPZ
+                    </button>
+                    <button type="button" class="btn btn-sm btn-ghost"
+                            onclick="quickLogin('zopz@firma.pl','Zopz123!')">
+                        ZOPZ
+                    </button>
+                    <button type="button" class="btn btn-sm btn-ghost"
+                            onclick="quickLogin('dziekanat@ans-elblag.pl','Dziekanat123!')">
+                        Dziekanat
+                    </button>
+                    <button type="button" class="btn btn-sm btn-ghost"
+                            onclick="quickLogin('admin@ans-elblag.pl','Admin123!')">
+                        Admin
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+<script>
+function quickLogin(email, password) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = password;
+    document.querySelector('form').submit();
+}
+</script>
 </body>
 </html>
