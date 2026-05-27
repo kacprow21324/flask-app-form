@@ -35,13 +35,26 @@
         .btn-full { width: 100%; padding: 11px; font-size: 1rem; margin-top: 6px; }
         .login-hint {
             margin-top: 20px;
-            padding: 10px 14px;
-            background: var(--panel-2);
-            border-left: 3px solid var(--accent);
+            padding: 12px 14px;
+            background: var(--text);
+            border-radius: 2px;
             font-size: 0.82rem;
-            color: var(--muted);
+            color: rgba(255,255,255,0.75);
         }
-        .login-hint strong { color: var(--text); }
+        .login-hint strong { color: #ffffff; display: block; margin-bottom: 8px; }
+        .login-hint .btn-quick {
+            background: rgba(255,255,255,0.12);
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 5px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.14s;
+        }
+        .login-hint .btn-quick:hover { background: rgba(255,255,255,0.22); }
     </style>
 </head>
 <body>
@@ -77,24 +90,28 @@
 
             <div class="login-hint">
                 <strong>Szybkie logowanie testowe:</strong>
-                <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-                    <button type="button" class="btn btn-sm btn-ghost"
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button type="button" class="btn-quick"
                             onclick="quickLogin('student@student.ans-elblag.pl','Student123!')">
                         Student
                     </button>
-                    <button type="button" class="btn btn-sm btn-ghost"
+                    <button type="button" class="btn-quick"
+                            onclick="quickLogin('student2@student.ans-elblag.pl','Student123!')">
+                        Student 2
+                    </button>
+                    <button type="button" class="btn-quick"
                             onclick="quickLogin('opiekun@ans-elblag.pl','Opiekun123!')">
                         UOPZ
                     </button>
-                    <button type="button" class="btn btn-sm btn-ghost"
+                    <button type="button" class="btn-quick"
                             onclick="quickLogin('zopz@firma.pl','Zopz123!')">
                         ZOPZ
                     </button>
-                    <button type="button" class="btn btn-sm btn-ghost"
+                    <button type="button" class="btn-quick"
                             onclick="quickLogin('dziekanat@ans-elblag.pl','Dziekanat123!')">
                         Dziekanat
                     </button>
-                    <button type="button" class="btn btn-sm btn-ghost"
+                    <button type="button" class="btn-quick"
                             onclick="quickLogin('admin@ans-elblag.pl','Admin123!')">
                         Admin
                     </button>

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sqlite3 /tmp/test_ems.db)",
+      "Bash(rm /tmp/test_ems.db)",
+      "Bash(sqlite3 /tmp/test_ems2.db)",
+      "Bash(rm /tmp/test_ems2.db)",
+      "Bash(del \"C:/Users/Kacper/Desktop/flask-app-form/instance/ems.db\")",
+      "Bash(\"C:/Users/Kacper/Desktop/flask-app-form/venv/Scripts/python.exe\" seed.py)",
+      "Bash(\"C:/Users/Kacper/Desktop/flask-app-form/venv/Scripts/pip.exe\" install *)",
+      "Bash(\"C:/Users/Kacper/Desktop/flask-app-form/venv/Scripts/python.exe\" -c \"from app import app; print\\('OK – brak błędów importu'\\)\")",
+      "Bash(\"C:/Users/Kacper/Desktop/flask-app-form/venv/Scripts/python.exe\" -c \"from app import app; print\\('OK - brak bledow importu'\\)\")",
+      "Bash(C:/Users/Kacper/Desktop/flask-app-form/venv/Scripts/python.exe -c ' *)",
+      "Bash(tasklist)",
+      "Bash(python -c ' *)",
+      "Bash(rm -f data/studenci.json)",
+      "Bash(python seed.py)"
+    ]
+  }
+}

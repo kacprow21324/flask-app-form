@@ -13,7 +13,7 @@ PRAGMA encoding = 'UTF-8';
 -- ═══════════════════════════════════════════════════════════════
 
 -- Konta wszystkich użytkowników (student, UOPZ, ZOPZ, dziekanat, admin)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     email           TEXT NOT NULL UNIQUE,                   -- login
     password_hash   TEXT NOT NULL,                          -- bcrypt
@@ -31,13 +31,13 @@ CREATE TABLE users (
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_album ON users(album_number);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_album ON users(album_number);
 
 
 -- Rozszerzony profil użytkownika (dane specyficzne dla roli)
-CREATE TABLE user_profiles (
+CREATE TABLE IF NOT EXISTS user_profiles (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id         INTEGER NOT NULL UNIQUE,
     phone           TEXT,
@@ -56,7 +56,7 @@ CREATE TABLE user_profiles (
 
 
 -- Aktywne sesje użytkowników
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id         INTEGER NOT NULL,
     token           TEXT NOT NULL UNIQUE,                   -- JWT lub session token
@@ -68,13 +68,13 @@ CREATE TABLE sessions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_sessions_user ON sessions(user_id);
-CREATE INDEX idx_sessions_token ON sessions(token);
-CREATE INDEX idx_sessions_expires ON sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
 
 
 -- Historia prób logowania (NF-04)
-CREATE TABLE login_attempts (
+CREATE TABLE IF NOT EXISTS login_attempts (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     email           TEXT NOT NULL,                          -- nie FK, bo może być nieistniejące konto
     ip_address      TEXT,
@@ -83,8 +83,8 @@ CREATE TABLE login_attempts (
     attempted_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_login_email ON login_attempts(email);
-CREATE INDEX idx_login_time ON login_attempts(attempted_at);
+CREATE INDEX IF NOT EXISTS idx_login_email ON login_attempts(email);
+CREATE INDEX IF NOT EXISTS idx_login_time ON login_attempts(attempted_at);
 
 
 -- ═══════════════════════════════════════════════════════════════
@@ -92,7 +92,7 @@ CREATE INDEX idx_login_time ON login_attempts(attempted_at);
 -- ═══════════════════════════════════════════════════════════════
 
 -- Rejestr zakładów pracy
-CREATE TABLE companies (
+CREATE TABLE IF NOT EXISTS companies (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     name                  TEXT NOT NULL,
     nip                   TEXT UNIQUE,
@@ -109,12 +109,12 @@ CREATE TABLE companies (
     updated_at            DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_companies_nip ON companies(nip);
-CREATE INDEX idx_companies_name ON companies(name);
+CREATE INDEX IF NOT EXISTS idx_companies_nip ON companies(nip);
+CREATE INDEX IF NOT EXISTS idx_companies_name ON companies(name);
 
 
 -- Lata akademickie
-CREATE TABLE academic_years (
+CREATE TABLE IF NOT EXISTS academic_years (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     year_code             TEXT NOT NULL UNIQUE,             -- "2024/2025"
     start_date            DATE NOT NULL,
@@ -125,11 +125,11 @@ CREATE TABLE academic_years (
     is_archived           INTEGER NOT NULL DEFAULT 0 CHECK (is_archived IN (0,1))
 );
 
-CREATE UNIQUE INDEX idx_academic_current ON academic_years(is_current) WHERE is_current = 1;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_academic_current ON academic_years(is_current) WHERE is_current = 1;
 
 
 -- Słownik 13 efektów uczenia się
-CREATE TABLE learning_outcomes (
+CREATE TABLE IF NOT EXISTS learning_outcomes (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     code            TEXT NOT NULL UNIQUE,                   -- '01'..'13'
     name            TEXT NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE learning_outcomes (
 -- ═══════════════════════════════════════════════════════════════
 
 -- Główna encja - praktyka zawodowa studenta
-CREATE TABLE internships (
+CREATE TABLE IF NOT EXISTS internships (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id            INTEGER NOT NULL,
     uopz_id               INTEGER NOT NULL,                 -- opiekun uczelniany
@@ -187,16 +187,16 @@ CREATE TABLE internships (
     CHECK (end_date >= start_date)
 );
 
-CREATE INDEX idx_internships_student ON internships(student_id);
-CREATE INDEX idx_internships_uopz ON internships(uopz_id);
-CREATE INDEX idx_internships_zopz ON internships(zopz_id);
-CREATE INDEX idx_internships_company ON internships(company_id);
-CREATE INDEX idx_internships_year ON internships(academic_year_id);
-CREATE INDEX idx_internships_status ON internships(status);
+CREATE INDEX IF NOT EXISTS idx_internships_student ON internships(student_id);
+CREATE INDEX IF NOT EXISTS idx_internships_uopz ON internships(uopz_id);
+CREATE INDEX IF NOT EXISTS idx_internships_zopz ON internships(zopz_id);
+CREATE INDEX IF NOT EXISTS idx_internships_company ON internships(company_id);
+CREATE INDEX IF NOT EXISTS idx_internships_year ON internships(academic_year_id);
+CREATE INDEX IF NOT EXISTS idx_internships_status ON internships(status);
 
 
 -- Wpisy dziennika praktyk (Zał.6)
-CREATE TABLE diary_entries (
+CREATE TABLE IF NOT EXISTS diary_entries (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     internship_id   INTEGER NOT NULL,
     day_number      INTEGER NOT NULL,                       -- 1..120
@@ -225,13 +225,13 @@ CREATE TABLE diary_entries (
     UNIQUE(internship_id, day_number)
 );
 
-CREATE INDEX idx_diary_internship ON diary_entries(internship_id);
-CREATE INDEX idx_diary_status ON diary_entries(status);
-CREATE INDEX idx_diary_date ON diary_entries(entry_date);
+CREATE INDEX IF NOT EXISTS idx_diary_internship ON diary_entries(internship_id);
+CREATE INDEX IF NOT EXISTS idx_diary_status ON diary_entries(status);
+CREATE INDEX IF NOT EXISTS idx_diary_date ON diary_entries(entry_date);
 
 
 -- Tabela łącząca wpisy z efektami uczenia się (many-to-many)
-CREATE TABLE diary_entry_outcomes (
+CREATE TABLE IF NOT EXISTS diary_entry_outcomes (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     diary_entry_id        INTEGER NOT NULL,
     learning_outcome_id   INTEGER NOT NULL,
@@ -243,12 +243,12 @@ CREATE TABLE diary_entry_outcomes (
     UNIQUE(diary_entry_id, learning_outcome_id)
 );
 
-CREATE INDEX idx_entry_outcomes_entry ON diary_entry_outcomes(diary_entry_id);
-CREATE INDEX idx_entry_outcomes_outcome ON diary_entry_outcomes(learning_outcome_id);
+CREATE INDEX IF NOT EXISTS idx_entry_outcomes_entry ON diary_entry_outcomes(diary_entry_id);
+CREATE INDEX IF NOT EXISTS idx_entry_outcomes_outcome ON diary_entry_outcomes(learning_outcome_id);
 
 
 -- Potwierdzenia efektów uczenia się (Zał.4)
-CREATE TABLE outcome_confirmations (
+CREATE TABLE IF NOT EXISTS outcome_confirmations (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     internship_id         INTEGER NOT NULL,
     learning_outcome_id   INTEGER NOT NULL,
@@ -265,7 +265,7 @@ CREATE TABLE outcome_confirmations (
     UNIQUE(internship_id, learning_outcome_id)
 );
 
-CREATE INDEX idx_confirmations_internship ON outcome_confirmations(internship_id);
+CREATE INDEX IF NOT EXISTS idx_confirmations_internship ON outcome_confirmations(internship_id);
 
 
 -- ═══════════════════════════════════════════════════════════════
@@ -273,7 +273,7 @@ CREATE INDEX idx_confirmations_internship ON outcome_confirmations(internship_id
 -- ═══════════════════════════════════════════════════════════════
 
 -- Sprawozdanie z praktyki (Zał.7)
-CREATE TABLE reports (
+CREATE TABLE IF NOT EXISTS reports (
     id                        INTEGER PRIMARY KEY AUTOINCREMENT,
     internship_id             INTEGER NOT NULL UNIQUE,
     section_characteristics   TEXT,                         -- Sekcja I
@@ -295,7 +295,7 @@ CREATE TABLE reports (
 
 
 -- Ankieta oceniająca praktykę (Zał.5) - 14 pytań Likerta
-CREATE TABLE surveys (
+CREATE TABLE IF NOT EXISTS surveys (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     internship_id         INTEGER NOT NULL UNIQUE,
     answers               TEXT NOT NULL,                    -- JSON: [{q_id:1, value:5}, ...]
@@ -314,7 +314,7 @@ CREATE TABLE surveys (
 -- ═══════════════════════════════════════════════════════════════
 
 -- Uwagi opiekunów do sekcji dokumentów (FR-11, FR-12)
-CREATE TABLE document_comments (
+CREATE TABLE IF NOT EXISTS document_comments (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
     document_type       TEXT NOT NULL
                         CHECK (document_type IN ('diary_entry','report','outcomes','survey')),
@@ -331,13 +331,13 @@ CREATE TABLE document_comments (
     FOREIGN KEY (parent_comment_id) REFERENCES document_comments(id)  ON DELETE CASCADE
 );
 
-CREATE INDEX idx_comments_document ON document_comments(document_type, document_id);
-CREATE INDEX idx_comments_author ON document_comments(author_id);
-CREATE INDEX idx_comments_parent ON document_comments(parent_comment_id);
+CREATE INDEX IF NOT EXISTS idx_comments_document ON document_comments(document_type, document_id);
+CREATE INDEX IF NOT EXISTS idx_comments_author ON document_comments(author_id);
+CREATE INDEX IF NOT EXISTS idx_comments_parent ON document_comments(parent_comment_id);
 
 
 -- Historia przejść statusów (audyt workflow)
-CREATE TABLE status_transitions (
+CREATE TABLE IF NOT EXISTS status_transitions (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     entity_type     TEXT NOT NULL
                     CHECK (entity_type IN ('internship','diary_entry','report')),
@@ -351,8 +351,8 @@ CREATE TABLE status_transitions (
     FOREIGN KEY (triggered_by) REFERENCES users(id) ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_transitions_entity ON status_transitions(entity_type, entity_id);
-CREATE INDEX idx_transitions_user ON status_transitions(triggered_by);
+CREATE INDEX IF NOT EXISTS idx_transitions_entity ON status_transitions(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_transitions_user ON status_transitions(triggered_by);
 
 
 -- ═══════════════════════════════════════════════════════════════
@@ -360,7 +360,7 @@ CREATE INDEX idx_transitions_user ON status_transitions(triggered_by);
 -- ═══════════════════════════════════════════════════════════════
 
 -- Wygenerowane dokumenty PDF
-CREATE TABLE generated_documents (
+CREATE TABLE IF NOT EXISTS generated_documents (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
     internship_id     INTEGER NOT NULL,
     document_type     TEXT NOT NULL
@@ -380,12 +380,12 @@ CREATE TABLE generated_documents (
     FOREIGN KEY (generated_by)  REFERENCES users(id)       ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_docs_internship ON generated_documents(internship_id);
-CREATE INDEX idx_docs_type ON generated_documents(document_type);
+CREATE INDEX IF NOT EXISTS idx_docs_internship ON generated_documents(internship_id);
+CREATE INDEX IF NOT EXISTS idx_docs_type ON generated_documents(document_type);
 
 
 -- Historia pobrań PDF (FR-25)
-CREATE TABLE document_downloads (
+CREATE TABLE IF NOT EXISTS document_downloads (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     generated_document_id INTEGER NOT NULL,
     downloaded_by         INTEGER NOT NULL,
@@ -396,12 +396,12 @@ CREATE TABLE document_downloads (
     FOREIGN KEY (downloaded_by)         REFERENCES users(id)               ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_downloads_doc ON document_downloads(generated_document_id);
-CREATE INDEX idx_downloads_user ON document_downloads(downloaded_by);
+CREATE INDEX IF NOT EXISTS idx_downloads_doc ON document_downloads(generated_document_id);
+CREATE INDEX IF NOT EXISTS idx_downloads_user ON document_downloads(downloaded_by);
 
 
 -- Załączniki do wpisów dziennika lub sprawozdania
-CREATE TABLE attachments (
+CREATE TABLE IF NOT EXISTS attachments (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
     entity_type       TEXT NOT NULL
                       CHECK (entity_type IN ('diary_entry','report')),
@@ -416,7 +416,7 @@ CREATE TABLE attachments (
     FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_attachments_entity ON attachments(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_attachments_entity ON attachments(entity_type, entity_id);
 
 
 -- ═══════════════════════════════════════════════════════════════
@@ -424,7 +424,7 @@ CREATE INDEX idx_attachments_entity ON attachments(entity_type, entity_id);
 -- ═══════════════════════════════════════════════════════════════
 
 -- Powiadomienia w aplikacji (FR-21)
-CREATE TABLE notifications (
+CREATE TABLE IF NOT EXISTS notifications (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
     recipient_id          INTEGER NOT NULL,
     type                  TEXT NOT NULL
@@ -442,12 +442,12 @@ CREATE TABLE notifications (
     FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_notif_recipient ON notifications(recipient_id);
-CREATE INDEX idx_notif_unread ON notifications(recipient_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_notif_recipient ON notifications(recipient_id);
+CREATE INDEX IF NOT EXISTS idx_notif_unread ON notifications(recipient_id, is_read);
 
 
 -- Preferencje powiadomień użytkownika
-CREATE TABLE notification_preferences (
+CREATE TABLE IF NOT EXISTS notification_preferences (
     id                            INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id                       INTEGER NOT NULL UNIQUE,
     email_on_entry_rejected       INTEGER NOT NULL DEFAULT 1 CHECK (email_on_entry_rejected IN (0,1)),
@@ -466,7 +466,7 @@ CREATE TABLE notification_preferences (
 -- ═══════════════════════════════════════════════════════════════
 
 -- Pełen ślad audytowy (FR-25, NF-06)
-CREATE TABLE audit_logs (
+CREATE TABLE IF NOT EXISTS audit_logs (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id           INTEGER,                              -- może być NULL dla akcji systemowych
     user_role         TEXT,                                 -- zapisane dla historycznej poprawności
@@ -484,13 +484,13 @@ CREATE TABLE audit_logs (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_audit_user ON audit_logs(user_id);
-CREATE INDEX idx_audit_entity ON audit_logs(entity_type, entity_id);
-CREATE INDEX idx_audit_time ON audit_logs(performed_at);
+CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_logs(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_time ON audit_logs(performed_at);
 
 
 -- Zdarzenia systemowe (NF-34)
-CREATE TABLE system_events (
+CREATE TABLE IF NOT EXISTS system_events (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     event_type      TEXT NOT NULL,                          -- 'pdf_generated' / 'backup_completed' / 'error'
     severity        TEXT NOT NULL
@@ -500,12 +500,12 @@ CREATE TABLE system_events (
     occurred_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_events_severity ON system_events(severity);
-CREATE INDEX idx_events_time ON system_events(occurred_at);
+CREATE INDEX IF NOT EXISTS idx_events_severity ON system_events(severity);
+CREATE INDEX IF NOT EXISTS idx_events_time ON system_events(occurred_at);
 
 
 -- Konfiguracja runtime (np. max_hours_per_day)
-CREATE TABLE system_settings (
+CREATE TABLE IF NOT EXISTS system_settings (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     key             TEXT NOT NULL UNIQUE,
     value           TEXT NOT NULL,
@@ -519,7 +519,7 @@ CREATE TABLE system_settings (
 
 
 -- Szablony wiadomości e-mail
-CREATE TABLE email_templates (
+CREATE TABLE IF NOT EXISTS email_templates (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     code            TEXT NOT NULL UNIQUE,                   -- np. 'entry_rejected'
     subject         TEXT NOT NULL,
@@ -535,28 +535,28 @@ CREATE TABLE email_templates (
 --  TRIGGERY - automatyczne aktualizacje updated_at
 -- ═══════════════════════════════════════════════════════════════
 
-CREATE TRIGGER trg_users_updated
+CREATE TRIGGER IF NOT EXISTS trg_users_updated
     AFTER UPDATE ON users
     FOR EACH ROW
     BEGIN
         UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
     END;
 
-CREATE TRIGGER trg_internships_updated
+CREATE TRIGGER IF NOT EXISTS trg_internships_updated
     AFTER UPDATE ON internships
     FOR EACH ROW
     BEGIN
         UPDATE internships SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
     END;
 
-CREATE TRIGGER trg_diary_updated
+CREATE TRIGGER IF NOT EXISTS trg_diary_updated
     AFTER UPDATE ON diary_entries
     FOR EACH ROW
     BEGIN
         UPDATE diary_entries SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
     END;
 
-CREATE TRIGGER trg_reports_updated
+CREATE TRIGGER IF NOT EXISTS trg_reports_updated
     AFTER UPDATE ON reports
     FOR EACH ROW
     BEGIN
@@ -565,7 +565,7 @@ CREATE TRIGGER trg_reports_updated
 
 
 -- Automatyczna aktualizacja liczników w internships po zmianie wpisu dziennika
-CREATE TRIGGER trg_diary_update_counters_insert
+CREATE TRIGGER IF NOT EXISTS trg_diary_update_counters_insert
     AFTER INSERT ON diary_entries
     FOR EACH ROW
     BEGIN
@@ -583,7 +583,7 @@ CREATE TRIGGER trg_diary_update_counters_insert
 
 
 -- Aktualizacja liczników po zmianie statusu wpisu (submit/approve/reject)
-CREATE TRIGGER trg_diary_update_counters_status
+CREATE TRIGGER IF NOT EXISTS trg_diary_update_counters_status
     AFTER UPDATE OF status ON diary_entries
     FOR EACH ROW
     BEGIN
@@ -601,19 +601,20 @@ CREATE TRIGGER trg_diary_update_counters_status
 
 
 -- Walidacja: nie można przekroczyć 960 godzin łącznie
-CREATE TRIGGER trg_diary_hours_limit
+CREATE TRIGGER IF NOT EXISTS trg_diary_hours_limit
     BEFORE INSERT ON diary_entries
     FOR EACH ROW
     WHEN (SELECT COALESCE(SUM(hours_worked), 0)
           FROM diary_entries
-          WHERE internship_id = NEW.internship_id) + NEW.hours_worked > 960
+          WHERE internship_id = NEW.internship_id
+            AND status IN ('submitted', 'approved')) + NEW.hours_worked > 960
     BEGIN
         SELECT RAISE(ABORT, 'Łączna liczba godzin nie może przekroczyć 960');
     END;
 
 
 -- Automatyczna blokada edycji po wysłaniu wpisu
-CREATE TRIGGER trg_diary_lock_on_submit
+CREATE TRIGGER IF NOT EXISTS trg_diary_lock_on_submit
     AFTER UPDATE OF status ON diary_entries
     FOR EACH ROW
     WHEN NEW.status = 'submitted' AND OLD.status = 'draft'
@@ -625,7 +626,7 @@ CREATE TRIGGER trg_diary_lock_on_submit
 
 
 -- Odblokowanie edycji po odrzuceniu
-CREATE TRIGGER trg_diary_unlock_on_reject
+CREATE TRIGGER IF NOT EXISTS trg_diary_unlock_on_reject
     AFTER UPDATE OF status ON diary_entries
     FOR EACH ROW
     WHEN NEW.status = 'rejected'
@@ -641,7 +642,7 @@ CREATE TRIGGER trg_diary_unlock_on_reject
 -- ═══════════════════════════════════════════════════════════════
 
 -- Podsumowanie postępu praktyki studenta
-CREATE VIEW v_internship_progress AS
+CREATE VIEW IF NOT EXISTS v_internship_progress AS
 SELECT
     i.id AS internship_id,
     u.first_name || ' ' || u.last_name AS student_name,
@@ -664,7 +665,7 @@ JOIN academic_years ay ON ay.id = i.academic_year_id;
 
 
 -- Widok dla dziekanatu - przegląd wszystkich praktyk
-CREATE VIEW v_dziekanat_overview AS
+CREATE VIEW IF NOT EXISTS v_dziekanat_overview AS
 SELECT
     i.id,
     u.album_number,
@@ -691,7 +692,7 @@ JOIN companies c ON c.id = i.company_id;
 
 
 -- Wpisy oczekujące na weryfikację (dla panelu ZOPZ)
-CREATE VIEW v_entries_awaiting_review AS
+CREATE VIEW IF NOT EXISTS v_entries_awaiting_review AS
 SELECT
     de.id AS entry_id,
     de.internship_id,
@@ -714,7 +715,7 @@ ORDER BY de.submitted_at ASC;
 -- ═══════════════════════════════════════════════════════════════
 
 -- 13 efektów uczenia się zgodnych z regulaminem praktyk
-INSERT INTO learning_outcomes (code, name, description, category, display_order) VALUES
+INSERT OR IGNORE INTO learning_outcomes (code, name, description, category, display_order) VALUES
 ('01', 'Realizacja zadań inżynierskich', 'Ma wiedzę na temat sposobu realizacji zadań inżynierskich dotyczących informatyki z zachowaniem standardów i norm technicznych', 'wiedza', 1),
 ('02', 'Technologie i narzędzia', 'Zna technologie, narzędzia, metody, techniki oraz sprzęt stosowane w informatyce', 'wiedza', 2),
 ('03', 'Skutki ekonomiczne i prawne', 'Zna ekonomiczne, prawne skutki własnych działań oraz ograniczenia prawa autorskiego', 'wiedza', 3),
@@ -731,7 +732,7 @@ INSERT INTO learning_outcomes (code, name, description, category, display_order)
 
 
 -- Domyślne ustawienia systemowe
-INSERT INTO system_settings (key, value, type, description) VALUES
+INSERT OR IGNORE INTO system_settings (key, value, type, description) VALUES
 ('max_hours_per_day', '8', 'int', 'Maksymalna liczba godzin pracy dziennie'),
 ('max_total_hours', '960', 'int', 'Maksymalna łączna liczba godzin praktyki'),
 ('max_total_days', '120', 'int', 'Maksymalna liczba dni praktyki'),
@@ -745,7 +746,7 @@ INSERT INTO system_settings (key, value, type, description) VALUES
 
 
 -- Domyślne szablony email
-INSERT INTO email_templates (code, subject, body_html, body_text, variables) VALUES
+INSERT OR IGNORE INTO email_templates (code, subject, body_html, body_text, variables) VALUES
 ('entry_rejected',
  'Wpis dziennika został odrzucony',
  '<p>Witaj {{student_name}},</p><p>Twój wpis z dnia {{entry_date}} został odrzucony przez opiekuna.</p><p>Powód: {{rejection_reason}}</p>',

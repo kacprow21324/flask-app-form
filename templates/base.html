@@ -143,6 +143,45 @@
 
 </div>
 
+{% if readonly %}
+<style>
+.readonly-banner {
+    background: var(--accent);
+    color: #fff;
+    text-align: center;
+    padding: 7px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    position: sticky;
+    top: var(--nav-h);
+    z-index: 300;
+}
+.form-readonly input,
+.form-readonly select,
+.form-readonly textarea {
+    background: #f4f6fb !important;
+    color: var(--text) !important;
+    cursor: default !important;
+    pointer-events: none;
+}
+.form-readonly .form-actions,
+.form-readonly button[type=submit] { display: none !important; }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var main = document.querySelector('.site-main');
+    if (main) {
+        var banner = document.createElement('div');
+        banner.className = 'readonly-banner';
+        banner.textContent = 'Tryb podglądu — formularz tylko do odczytu';
+        main.prepend(banner);
+    }
+    document.querySelectorAll('form').forEach(function (f) { f.classList.add('form-readonly'); });
+    document.querySelectorAll('input, select, textarea').forEach(function (el) { el.disabled = true; });
+});
+</script>
+{% endif %}
 <script>
 (function () {
     var toggle  = document.getElementById('sidebarToggle');

@@ -534,7 +534,8 @@ label {
     color: var(--text);
 }
 
-.attachment-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.attachment-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.attachment-actions form { display: contents; }
 
 .detail-grid {
     display: grid;
@@ -1167,9 +1168,87 @@ label {
     box-sizing: border-box;
 }
 
+.reject-label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.field-comments-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 12px 0 6px;
+    gap: 10px;
+}
+
+.field-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.field-comment-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr auto;
+    gap: 6px;
+    align-items: center;
+}
+
+.field-comment-input {
+    padding: 6px 8px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border);
+    font-family: inherit;
+    background: #fff;
+    color: var(--text);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.field-comment-remove {
+    padding: 5px 8px;
+    line-height: 1;
+}
+
+.field-comments-display {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(127, 29, 29, 0.2);
+}
+
+.field-comments-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #7f1d1d;
+    margin-bottom: 6px;
+}
+
+.field-comments-ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.88rem;
+    color: #7f1d1d;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.field-comment-name {
+    font-weight: 600;
+}
+
+.rejection-main {
+    margin-bottom: 4px;
+}
+
 .reject-actions {
     display: flex;
     gap: 8px;
+    margin-top: 10px;
 }
 
 /* ═══════════════════════════════════════ PRZYCISKI DODATKOWE */
@@ -1184,6 +1263,11 @@ label {
     color: #ffffff;
 }
 .btn-send:hover { filter: brightness(1.1); color: #ffffff; }
+
+.btn-review-action {
+    min-width: 90px;
+    justify-content: center;
+}
 
 /* ═══════════════════════════════════════ LISTA OCZEKUJĄCYCH */
 .pending-card {

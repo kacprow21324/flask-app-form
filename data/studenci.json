@@ -1,1 +1,885 @@
-{}
+{
+  "21001": {
+    "zal1": {
+      "_status": "approved",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "nr_porozumienia": "01/INF/2026",
+      "miejscowosc": "Elbląg",
+      "data": "2026-03-15",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "rodzaj_studiow": "stacjonarne",
+      "nazwa_zakladu": "Techno Systems Sp. z o.o.",
+      "adres_zakladu": "ul. Portowa 12, 80-001 Gdańsk",
+      "nip_zakladu": "589-212-34-56",
+      "reprezentant_nazwisko": "Piotr Zieliński",
+      "reprezentant_stanowisko": "Prezes Zarządu",
+      "uczelniany_opiekun": "dr Irena Malinowska",
+      "data_start": "2026-04-01",
+      "data_end": "2026-05-31",
+      "liczba_godzin": "240",
+      "podpis_zakladowy": "Piotr Zieliński, Gdańsk, 2026-03-15",
+      "podpis_uczelniany": "dr Irena Malinowska, Elbląg, 2026-03-15"
+    },
+    "zal2": {
+      "_status": "approved",
+      "nr_albumu": "21001",
+      "zaklad_pracy": "Techno Systems Sp. z o.o., ul. Portowa 12, 80-001 Gdańsk",
+      "data_start": "2026-04-01",
+      "data_end": "2026-05-31",
+      "data_uzgodnienia": "2026-03-15",
+      "podpis_zakladowy": "Piotr Zieliński, 2026-03-15",
+      "podpis_uczelniany": "dr Irena Malinowska, 2026-03-15"
+    },
+    "zal2a": {
+      "_status": "approved",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "miejsce_praktyki": "Techno Systems Sp. z o.o.",
+      "data_start": "2026-04-01",
+      "data_end": "2026-05-31",
+      "efekty_plan": [
+        {
+          "nr": 1,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 2,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 3,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 4,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 5,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 6,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 7,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 8,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 9,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 10,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 11,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 12,
+          "dzial_prace": "Dział Infrastruktury IT"
+        },
+        {
+          "nr": 13,
+          "dzial_prace": "Dział Infrastruktury IT"
+        }
+      ],
+      "harmonogram": [
+        {
+          "lp": 1,
+          "dzial": "Infrastruktura IT – konfiguracja sieci LAN/WAN",
+          "dni": "10"
+        },
+        {
+          "lp": 2,
+          "dzial": "Administracja serwerami Linux/Windows Server",
+          "dni": "12"
+        },
+        {
+          "lp": 3,
+          "dzial": "Helpdesk – wsparcie techniczne użytkowników",
+          "dni": "8"
+        },
+        {
+          "lp": 4,
+          "dzial": "Bezpieczeństwo IT – monitoring i audyt",
+          "dni": "10"
+        }
+      ],
+      "data_uzgodnienia": "2026-03-15",
+      "podpis_uczelniany": "dr Irena Malinowska",
+      "podpis_zakladowy": "Zbigniew Ostrowski",
+      "podpis_studenta": "Aleksandra Kowalska"
+    },
+    "zal3": {
+      "_status": "pending",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "nr_porozumienia": "01/INF/2026",
+      "data_porozumienia": "2026-03-15",
+      "zaklad_pracy": "Techno Systems Sp. z o.o.",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "rodzaj_studiow": "stacjonarne",
+      "uczelniany_opiekun": "dr Irena Malinowska",
+      "data_start": "2026-04-01",
+      "data_end": "2026-05-31",
+      "zakladowy_opiekun_nazwisko": "Zbigniew Ostrowski",
+      "zakladowy_opiekun_funkcja": "Kierownik Działu IT",
+      "potwierdzenie_zgloszenia": "2026-04-01",
+      "potwierdzenie_bhp": "2026-04-01",
+      "zaswiadczenie_zaklad": "Techno Systems Sp. z o.o., ul. Portowa 12, 80-001 Gdańsk",
+      "zaswiadczenie_okres_od": "2026-04-01",
+      "zaswiadczenie_okres_do": "2026-05-31",
+      "zaswiadczenie_uwagi": "Studentka zrealizowała wszystkie zaplanowane zadania.",
+      "zaswiadczenie_podpis": "Zbigniew Ostrowski, Gdańsk, 2026-06-01",
+      "ocena_zakladowa_param": "5",
+      "ocena_zakladowa_opis": "Studentka wykazała dużą inicjatywę i kompetencje techniczne. Sprawnie realizowała zadania z zakresu administracji sieciowej.",
+      "podpis_zakladowy": "Zbigniew Ostrowski, 2026-06-01",
+      "ocena_uczelniana_param": "5",
+      "ocena_uczelniana_opis": "Studentka aktywnie uczestniczyła w praktyce. Dokumentacja kompletna i zgodna z wymaganiami.",
+      "podpis_uczelniany": "dr Irena Malinowska, 2026-06-05",
+      "ocena_sprawozdania": "5",
+      "podpis_sprawozdanie": "dr Irena Malinowska, 2026-06-10"
+    },
+    "zal4": {
+      "_status": "approved",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "wymiar_godzin": "240",
+      "potwierdzenie_opiekuna": "Zbigniew Ostrowski",
+      "opinia_opiekuna": "Studentka wykazała wysokie zaangażowanie i kompetencje. Polecam zaliczenie wszystkich efektów.",
+      "efekty": [
+        {
+          "nr": 1,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 2,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 3,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 4,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 5,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 6,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 7,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 8,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 9,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 10,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 11,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 12,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 13,
+          "status": "uzyskał/a"
+        }
+      ]
+    },
+    "zal4a": {
+      "_status": "approved",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "data_zlozenia": "2026-03-10",
+      "ocena_efektow": [
+        {
+          "nr": 1,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 1 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 2,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 2 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 3,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 3 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 4,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 4 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 5,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 5 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 6,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 6 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 7,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 7 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 8,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 8 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 9,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 9 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 10,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 10 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 11,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 11 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 12,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 12 zrealizowany w pełni w trakcie praktyki."
+        },
+        {
+          "nr": 13,
+          "zasadny": "tak",
+          "uzasadnienie": "Efekt nr 13 zrealizowany w pełni w trakcie praktyki."
+        }
+      ],
+      "rekomendacja": "Zaliczam efekty uczenia się wskazane we wniosku studenta.",
+      "uwagi": "Studentka przedłożyła kompletną dokumentację potwierdzającą realizację efektów.",
+      "data_oceny": "2026-03-12",
+      "podpis_uopz": "dr Irena Malinowska"
+    },
+    "zal4b": {
+      "_status": "approved",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "pracodawca": "Techno Systems Sp. z o.o.",
+      "adres_pracodawcy": "ul. Portowa 12, 80-001 Gdańsk",
+      "stanowisko": "Asystent administratora sieci",
+      "okres_od": "2025-10-01",
+      "okres_do": "2026-03-31",
+      "efekty_wniosek": [
+        {
+          "nr": 1,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 2,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 3,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 4,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 5,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 6,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 7,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 8,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 9,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 10,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 11,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 12,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        },
+        {
+          "nr": 13,
+          "uzasadnienie": "Realizowany w ramach pracy jako asystent administratora sieci.",
+          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"
+        }
+      ],
+      "wykaz_dokumentow": "Zaświadczenie od pracodawcy, umowa o pracę",
+      "data": "2026-03-10",
+      "podpis_studenta": "Aleksandra Kowalska"
+    },
+    "zal5": {
+      "_status": "draft",
+      "nr_albumu": "21001",
+      "rok_akademicki": "2025/2026",
+      "kierunek": "Informatyka",
+      "forma_studiow": "stacjonarne",
+      "semestr": "6",
+      "liczba_godzin": "240",
+      "pytania": [
+        {
+          "nr": 1,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 2,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 3,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 4,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 5,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 6,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 7,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 8,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 9,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 10,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 11,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 12,
+          "odpowiedz": "raczej tak"
+        },
+        {
+          "nr": 13,
+          "odpowiedz": "raczej tak"
+        },
+        {
+          "nr": 14,
+          "odpowiedz": "raczej tak"
+        }
+      ],
+      "uwagi": "Praktyka w pełni odpowiadała moim oczekiwaniom zawodowym."
+    },
+    "zal6": {
+      "_status": "pending",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "rodzaj_studiow": "stacjonarne",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Techno Systems Sp. z o.o.",
+      "data_start": "2026-04-01",
+      "data_end": "2026-05-31",
+      "wykaz_zalacznikow": "Zaświadczenie od pracodawcy",
+      "dziennik": [
+        {
+          "dzien": "1",
+          "data": "2026-04-01",
+          "opis": "Zapoznanie z infrastrukturą sieciową firmy. Przegląd dokumentacji topologii LAN/WAN oraz schemat adresacji IP.",
+          "efekty": "1,2,4",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "2",
+          "data": "2026-04-02",
+          "opis": "Konfiguracja przełączników Cisco Catalyst 2960: tworzenie VLAN-ów dla działów, konfiguracja trunk portów.",
+          "efekty": "1,2,5",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "3",
+          "data": "2026-04-03",
+          "opis": "Konfiguracja routera brzegowego, ustawienie NAT i ACL. Dokumentacja zmian w rejestrze konfiguracji.",
+          "efekty": "1,2,7",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "4",
+          "data": "2026-04-04",
+          "opis": "Administracja Active Directory: zakładanie kont użytkowników, przypisywanie do grup, resetowanie haseł.",
+          "efekty": "2,6,10",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "5",
+          "data": "2026-04-05",
+          "opis": "Wdrożenie polityk GPO: blokada USB, wymuszenie hasła, mapowanie dysków sieciowych dla działów.",
+          "efekty": "2,3,6",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "6",
+          "data": "2026-04-06",
+          "opis": "Instalacja i konfiguracja serwera WSUS. Zaplanowanie harmonogramu aktualizacji dla stacji roboczych.",
+          "efekty": "2,5,9",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "7",
+          "data": "2026-04-07",
+          "opis": "Konfiguracja systemu monitoringu Zabbix: dodawanie hostów, ustawienie progów alertów, testy powiadomień.",
+          "efekty": "2,5,8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "8",
+          "data": "2026-04-08",
+          "opis": "Helpdesk: diagnoza awarii stacji roboczej (uszkodzony dysk), wymiana, reinstalacja systemu i migracja danych.",
+          "efekty": "6,8,11",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "9",
+          "data": "2026-04-09",
+          "opis": "Analiza logów systemowych serwera plików. Identyfikacja i usunięcie konta z podejrzaną aktywnością.",
+          "efekty": "3,7,8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "10",
+          "data": "2026-04-10",
+          "opis": "Tworzenie dokumentacji technicznej: schematy sieci, procedury odtwarzania backupu, opis konfiguracji VPN.",
+          "efekty": "5,7,12",
+          "podpis": "Zbigniew Ostrowski"
+        }
+      ]
+    },
+    "zal7": {
+      "_status": "rejected",
+      "_rejection_comment": "Sprawozdanie wymaga rozbudowania sekcji opisu wykonanych prac. Proszę o uzupełnienie informacji dotyczących stosowanych technologii sieciowych i konkretnych zadań realizowanych w każdym tygodniu praktyki.",
+      "_rejection_by": "dr Irena Malinowska",
+      "_field_comments": [
+        {
+          "field": "Opis wykonanych prac",
+          "note": "Zbyt ogólny – proszę opisać konkretne zadania z każdego tygodnia."
+        },
+        {
+          "field": "Charakterystyka zakładu",
+          "note": "Proszę rozbudować o informacje o stosowanych technologiach."
+        }
+      ],
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "rodzaj_studiow": "stacjonarne",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Techno Systems Sp. z o.o.",
+      "charakterystyka": "Techno Systems Sp. z o.o. jest firmą informatyczną z Gdańska specjalizującą się w rozwiązaniach sieciowych i systemowych dla sektora MŚP. Zatrudnia 45 pracowników.",
+      "opis_prac": "Konfiguracja sieci LAN/WAN, administracja serwerami Linux/Windows Server, tworzenie dokumentacji technicznej, monitoring infrastruktury i helpdesk.",
+      "wiedza_umiejetnosci": "Zastosowałam wiedzę z administracji sieciowej i bezpieczeństwa IT. Nauczyłam się konfigurowania sprzętu Cisco i zarządzania serwerami produkcyjnymi.",
+      "data": "2026-06-01",
+      "podpis_studenta": "Aleksandra Kowalska",
+      "podpis_przelozonego": ""
+    },
+    "zal7a": {
+      "_status": "draft",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
+      "rodzaj_studiow": "niestacjonarne",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Techno Systems Sp. z o.o.",
+      "charakterystyka": "Techno Systems Sp. z o.o. jest firmą informatyczną z Gdańska.",
+      "opis_prac": "Konfiguracja sieci, administracja serwerami, dokumentacja techniczna.",
+      "wiedza_umiejetnosci": "Praktyczne zastosowanie wiedzy z administracji sieciowej.",
+      "data": "2026-06-01",
+      "podpis_studenta": "Aleksandra Kowalska",
+      "podpis_przelozonego": "Zbigniew Ostrowski"
+    },
+    "zal8": {
+      "_status": "draft",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "miejsca_praktyki": [
+        {
+          "nazwa": "Techno Systems Sp. z o.o., ul. Portowa 12, 80-001 Gdańsk",
+          "okres": "2026-04-01 – 2026-05-31",
+          "dni": "40"
+        }
+      ],
+      "ocena_s": "5",
+      "data_s": "2026-06-05",
+      "podpis_s": "dr Irena Malinowska",
+      "ocena_u": "5",
+      "ocena_z": "5",
+      "sklad_komisji": "dr Irena Malinowska (przewodnicząca), mgr Tomasz Witek, mgr Anna Kowalczyk",
+      "data_zaliczenia": "2026-06-10",
+      "przewodniczacy": "dr Irena Malinowska",
+      "czlonek_2": "mgr Tomasz Witek",
+      "czlonek_3": "mgr Anna Kowalczyk",
+      "czlonek_4": "",
+      "mini_zadania": [
+        {
+          "tresc": "Opisz zastosowane technologie sieciowe podczas praktyki.",
+          "ocena": "5"
+        },
+        {
+          "tresc": "Omów zarządzanie serwerami Linux i Windows Server.",
+          "ocena": "5"
+        },
+        {
+          "tresc": "Przedstaw wyniki monitoringu infrastruktury IT.",
+          "ocena": "5"
+        }
+      ],
+      "ocena_e": "5",
+      "ocena_k": "5"
+    },
+    "zal9": {
+      "_status": "approved",
+      "imie_nazwisko": "Aleksandra Kowalska",
+      "nr_albumu": "21001",
+      "miejscowosc": "Gdańsk",
+      "data": "2026-03-15",
+      "nazwa_instytucji": "Techno Systems Sp. z o.o.",
+      "termin_od": "2026-04-01",
+      "termin_do": "2026-05-31",
+      "opiekun_imie_nazwisko": "Zbigniew Ostrowski",
+      "opiekun_stanowisko": "Kierownik Działu IT",
+      "opiekun_telefon": "+48 58 123 45 67",
+      "opiekun_email": "z.ostrowski@technosystems.pl",
+      "upowazniont_imie_nazwisko": "Piotr Zieliński",
+      "upowazniont_stanowisko": "Prezes Zarządu",
+      "podpis": "Piotr Zieliński, Gdańsk, 2026-03-15"
+    }
+  },
+  "21002": {
+    "zal1": {
+      "_status": "approved",
+      "imie_nazwisko": "Marek Nowak",
+      "nr_albumu": "21002",
+      "nr_porozumienia": "02/INF/2026",
+      "miejscowosc": "Elbląg",
+      "data": "2026-02-20",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "rodzaj_studiow": "stacjonarne",
+      "nazwa_zakladu": "DataSoft Sp. z o.o.",
+      "adres_zakladu": "ul. Technologiczna 5, 10-062 Olsztyn",
+      "nip_zakladu": "",
+      "reprezentant_nazwisko": "Anna Kowalczyk",
+      "reprezentant_stanowisko": "Dyrektor Techniczny",
+      "uczelniany_opiekun": "Irena Malinowska",
+      "data_start": "2026-03-01",
+      "data_end": "2026-04-30",
+      "liczba_godzin": "240",
+      "podpis_zakladowy": "Anna Kowalczyk",
+      "podpis_uczelniany": "Irena Malinowska"
+    },
+    "zal2a": {
+      "_status": "pending",
+      "imie_nazwisko": "Marek Nowak",
+      "nr_albumu": "21002",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "miejsce_praktyki": "DataSoft Sp. z o.o.",
+      "data_start": "2026-03-01",
+      "data_end": "2026-04-30",
+      "efekty_plan": [
+        {
+          "nr": 1,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 2,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 3,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 4,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 5,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 6,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 7,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 8,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 9,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 10,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 11,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 12,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 13,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        }
+      ],
+      "harmonogram": [
+        {
+          "lp": 1,
+          "dzial": "Zapoznanie z systemem i dokumentacją",
+          "dni": "5"
+        },
+        {
+          "lp": 2,
+          "dzial": "Realizacja zadań programistycznych",
+          "dni": "15"
+        },
+        {
+          "lp": 3,
+          "dzial": "Testowanie i wdrożenie",
+          "dni": "10"
+        }
+      ],
+      "data_uzgodnienia": "2026-02-25",
+      "podpis_uczelniany": "Irena Malinowska",
+      "podpis_zakladowy": "Zbigniew Ostrowski",
+      "podpis_studenta": "Marek Nowak"
+    },
+    "zal9": {
+      "_status": "draft",
+      "imie_nazwisko": "Marek Nowak",
+      "nr_albumu": "21002",
+      "miejscowosc": "Olsztyn",
+      "data": "2026-02-20",
+      "nazwa_instytucji": "DataSoft Sp. z o.o.",
+      "termin_od": "2026-03-01",
+      "termin_do": "2026-04-30",
+      "opiekun_imie_nazwisko": "Zbigniew Ostrowski",
+      "opiekun_stanowisko": "Kierownik Działu IT",
+      "opiekun_telefon": "+48 89 456 78 90",
+      "opiekun_email": "z.ostrowski@datasoft.pl",
+      "upowazniont_imie_nazwisko": "Anna Kowalczyk",
+      "upowazniont_stanowisko": "Dyrektor Techniczny",
+      "podpis": "Anna Kowalczyk, 2026-02-20"
+    }
+  },
+  "21003": {
+    "zal1": {
+      "_status": "draft",
+      "imie_nazwisko": "Katarzyna Wróbel",
+      "nr_albumu": "21003",
+      "nr_porozumienia": "03/INF/2026",
+      "miejscowosc": "Elbląg",
+      "data": "2026-02-20",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)",
+      "rodzaj_studiow": "stacjonarne",
+      "nazwa_zakladu": "MediScan Sp. z o.o.",
+      "adres_zakladu": "ul. Medyczna 22, 10-900 Olsztyn",
+      "nip_zakladu": "",
+      "reprezentant_nazwisko": "Tomasz Jabłoński",
+      "reprezentant_stanowisko": "Kierownik Projektu",
+      "uczelniany_opiekun": "Irena Malinowska",
+      "data_start": "2026-05-01",
+      "data_end": "2026-06-30",
+      "liczba_godzin": "240",
+      "podpis_zakladowy": "Tomasz Jabłoński",
+      "podpis_uczelniany": "Irena Malinowska"
+    },
+    "zal2a": {
+      "_status": "draft",
+      "imie_nazwisko": "Katarzyna Wróbel",
+      "nr_albumu": "21003",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)",
+      "miejsce_praktyki": "MediScan Sp. z o.o.",
+      "data_start": "2026-05-01",
+      "data_end": "2026-06-30",
+      "efekty_plan": [
+        {
+          "nr": 1,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 2,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 3,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 4,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 5,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 6,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 7,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 8,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 9,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 10,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 11,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 12,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 13,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        }
+      ],
+      "harmonogram": [
+        {
+          "lp": 1,
+          "dzial": "Zapoznanie z systemem i dokumentacją",
+          "dni": "5"
+        },
+        {
+          "lp": 2,
+          "dzial": "Realizacja zadań programistycznych",
+          "dni": "15"
+        },
+        {
+          "lp": 3,
+          "dzial": "Testowanie i wdrożenie",
+          "dni": "10"
+        }
+      ],
+      "data_uzgodnienia": "2026-02-25",
+      "podpis_uczelniany": "Irena Malinowska",
+      "podpis_zakladowy": "Zbigniew Ostrowski",
+      "podpis_studenta": "Katarzyna Wróbel"
+    },
+    "zal9": {
+      "_status": "draft",
+      "imie_nazwisko": "Katarzyna Wróbel",
+      "nr_albumu": "21003",
+      "miejscowosc": "Olsztyn",
+      "data": "2026-02-20",
+      "nazwa_instytucji": "MediScan Sp. z o.o.",
+      "termin_od": "2026-05-01",
+      "termin_do": "2026-06-30",
+      "opiekun_imie_nazwisko": "Zbigniew Ostrowski",
+      "opiekun_stanowisko": "Kierownik Działu IT",
+      "opiekun_telefon": "+48 89 321 00 11",
+      "opiekun_email": "z.ostrowski@mediscan.pl",
+      "upowazniont_imie_nazwisko": "Tomasz Jabłoński",
+      "upowazniont_stanowisko": "Kierownik Projektu",
+      "podpis": "Tomasz Jabłoński, 2026-02-20"
+    }
+  }
+}

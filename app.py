@@ -128,6 +128,57 @@ STATUS_LABELS = {
     'rejected': ('Odrzucono',        'status-rejected'),
 }
 
+# Pola formularzy do wyboru w komentarzach recenzenta
+FORM_FIELDS = {
+    'zal1':  ["Imię i nazwisko", "Nr albumu", "Nr porozumienia", "Miejscowość", "Data",
+              "Specjalność", "Rodzaj studiów", "Nazwa zakładu pracy", "Adres zakładu", "NIP zakładu",
+              "Reprezentant – nazwisko", "Reprezentant – stanowisko", "Uczelniany opiekun",
+              "Data rozpoczęcia", "Data zakończenia", "Liczba godzin",
+              "Podpis zakładowy", "Podpis uczelniany"],
+    'zal2':  ["Nr albumu", "Zakład pracy", "Data rozpoczęcia", "Data zakończenia",
+              "Data uzgodnienia", "Podpis zakładowy", "Podpis uczelniany"],
+    'zal2a': ["Imię i nazwisko", "Nr albumu", "Specjalność", "Miejsce praktyki",
+              "Data rozpoczęcia", "Data zakończenia", "Efekty – działy prac",
+              "Harmonogram – działy", "Harmonogram – liczba dni", "Data uzgodnienia",
+              "Podpis uczelniany", "Podpis zakładowy", "Podpis studenta"],
+    'zal3':  ["Imię i nazwisko", "Nr albumu", "Nr porozumienia", "Data porozumienia",
+              "Zakład pracy", "Specjalność", "Rodzaj studiów", "Uczelniany opiekun",
+              "Data rozpoczęcia", "Data zakończenia", "Opiekun zakładowy – nazwisko",
+              "Opiekun zakładowy – funkcja", "Data zgłoszenia", "Data szkolenia BHP",
+              "Zaświadczenie – uwagi", "Ocena zakładowa", "Opis oceny zakładowej",
+              "Ocena uczelniana", "Opis oceny uczelnianej", "Ocena sprawozdania"],
+    'zal4':  ["Imię i nazwisko", "Nr albumu", "Specjalność", "Wymiar godzin",
+              "Potwierdzenie opiekuna", "Opinia opiekuna", "Status efektów uczenia się"],
+    'zal4a': ["Imię i nazwisko", "Nr albumu", "Data złożenia", "Ocena zasadności efektów",
+              "Uzasadnienia efektów", "Rekomendacja", "Uwagi", "Data oceny", "Podpis UOPZ"],
+    'zal4b': ["Imię i nazwisko", "Nr albumu", "Specjalność", "Pracodawca", "Adres pracodawcy",
+              "Stanowisko", "Okres zatrudnienia – od", "Okres zatrudnienia – do",
+              "Uzasadnienia efektów", "Dowody na efekty", "Wykaz dokumentów",
+              "Data", "Podpis studenta"],
+    'zal5':  ["Nr albumu", "Rok akademicki", "Forma studiów", "Semestr", "Liczba godzin",
+              "Odpowiedzi na pytania ankiety", "Uwagi dodatkowe"],
+    'zal6':  ["Imię i nazwisko", "Nr albumu", "Specjalność", "Rodzaj studiów",
+              "Rok akademicki", "Miejsce praktyki", "Data rozpoczęcia", "Data zakończenia",
+              "Wykaz załączników", "Wpisy dziennika – opis", "Wpisy dziennika – efekty",
+              "Wpisy dziennika – podpis"],
+    'zal7':  ["Imię i nazwisko", "Nr albumu", "Specjalność", "Rodzaj studiów",
+              "Rok akademicki", "Miejsce praktyki", "Charakterystyka zakładu",
+              "Opis wykonanych prac", "Wiedza i umiejętności", "Data", "Podpis studenta"],
+    'zal7a': ["Imię i nazwisko", "Nr albumu", "Specjalność", "Rok akademicki",
+              "Miejsce praktyki", "Charakterystyka zakładu", "Opis wykonanych prac",
+              "Wiedza i umiejętności", "Data", "Podpis studenta", "Podpis przełożonego"],
+    'zal8':  ["Imię i nazwisko", "Nr albumu", "Miejsca praktyki", "Ocena S (sprawozdanie)",
+              "Data oceny S", "Podpis S", "Ocena U (uczelniana)", "Ocena Z (zakładowa)",
+              "Skład komisji", "Data zaliczenia", "Przewodniczący",
+              "Członek komisji 2", "Członek komisji 3",
+              "Mini-zadania – treść", "Mini-zadania – ocena",
+              "Ocena E (egzamin)", "Ocena K (końcowa)"],
+    'zal9':  ["Imię i nazwisko", "Nr albumu", "Miejscowość", "Data", "Nazwa instytucji",
+              "Termin – od", "Termin – do", "Opiekun – imię i nazwisko",
+              "Opiekun – stanowisko", "Opiekun – telefon", "Opiekun – e-mail",
+              "Upoważniony – imię i nazwisko", "Upoważniony – stanowisko", "Podpis"],
+}
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -177,27 +228,24 @@ def guard_form(form_key):
     return None
 
 
+def guard_edit(nr_albumu, zal_key):
+    """Blokuje edycję gdy dokument oczekuje lub jest zatwierdzony (admin może zawsze)."""
+    if current_user.role == 'admin':
+        return None
+    status = load_data().get(nr_albumu, {}).get(zal_key, {}).get('_status', 'draft')
+    if status in ('pending', 'approved'):
+        label = STATUS_LABELS.get(status, (status,))[0]
+        flash(f"Dokument jest zablokowany do edycji (status: {label}).", "error")
+        return redirect(url_for('student_detail', nr_albumu=nr_albumu))
+    return None
+
+
 def student_nr(form_value):
     """Dla studentów zawsze używa ich własnego numeru albumu."""
     if current_user.role == 'student':
         return current_user.album_number or ''
     return form_value
 
-
-def get_doc_status(nr_albumu, zal_key):
-    """Zwraca aktualny status dokumentu."""
-    data = load_data()
-    return data.get(nr_albumu, {}).get(zal_key, {}).get('_status', 'draft')
-
-
-def can_edit_now(nr_albumu, zal_key):
-    """Czy dokument może być teraz edytowany przez aktualnego użytkownika?"""
-    if current_user.role == 'admin':
-        return True
-    status = get_doc_status(nr_albumu, zal_key)
-    if status in ('pending', 'approved'):
-        return False
-    return True
 
 
 def _delete_attachment(nr_albumu, key):
@@ -236,18 +284,21 @@ def build_prefill(nr=''):
 def _persist(nr_albumu, key, record, label):
     data = load_data()
     data.setdefault(nr_albumu, {})
-    # Zachowaj status: rejected → draft przy edycji, approved/pending zostaje
     existing = data[nr_albumu].get(key, {})
     existing_status = existing.get('_status', 'draft')
+    if existing_status in ('pending', 'approved') and current_user.role != 'admin':
+        status_label = STATUS_LABELS.get(existing_status, (existing_status,))[0]
+        flash(f'Nie mozna zapisac - dokument ma status "{status_label}".', "error")
+        return redirect(url_for('student_detail', nr_albumu=nr_albumu))
     if existing_status in ('draft', 'rejected'):
         record['_status'] = 'draft'
-        record.pop('_rejection_comment', None)
-        record.pop('_rejection_by', None)
+        for mk in ('_rejection_comment', '_rejection_by', '_field_comments'):
+            record.pop(mk, None)
     else:
         record['_status'] = existing_status
-        for meta_key in ('_rejection_comment', '_rejection_by'):
-            if meta_key in existing:
-                record[meta_key] = existing[meta_key]
+        for mk in ('_rejection_comment', '_rejection_by', '_field_comments'):
+            if mk in existing:
+                record[mk] = existing[mk]
     data[nr_albumu][key] = record
     save_data(data)
     flash(f"{label} został/a zapisany/a.", "success")
@@ -315,6 +366,31 @@ def drukuj(nr_albumu, zal_key):
         effects=effects, effect_map=effect_map,
         questions=SURVEY_QUESTIONS, options=SURVEY_OPTIONS,
         specialties=SPECIALTIES, sn=sn)
+
+
+@app.route("/student/<nr_albumu>/<zal_key>/formularz")
+@login_required
+def formularz_podglad(nr_albumu, zal_key):
+    """Podgląd wypełnionego formularza w trybie tylko do odczytu."""
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
+    valid_keys = {a["key"] for a in ATTACHMENTS}
+    if zal_key not in valid_keys:
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    store = load_data()
+    existing = store.get(nr_albumu, {}).get(zal_key)
+    if not existing:
+        flash("Formularz nie został jeszcze wypełniony.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    effects = get_effects() if zal_key in ('zal2a', 'zal4', 'zal4a', 'zal4b', 'zal6') else []
+    tpl = 'zal7.html' if zal_key == 'zal7a' else f'{zal_key}.html'
+    return render_template(tpl,
+        data=existing, edit_nr=nr_albumu,
+        specialties=SPECIALTIES, effects=effects,
+        questions=SURVEY_QUESTIONS, options=SURVEY_OPTIONS,
+        nr_locked=True, sn=(zal_key == 'zal7a'),
+        readonly=True)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -436,6 +512,7 @@ def student_detail(nr_albumu):
         user_role=current_user.role,
         document_workflow=DOCUMENT_WORKFLOW,
         status_labels=STATUS_LABELS,
+        form_fields=FORM_FIELDS,
     )
 
 
@@ -520,9 +597,20 @@ def odrzuc_dokument(nr_albumu, zal_key):
     if not comment:
         flash("Podaj powód odrzucenia.", "error")
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    field_names  = request.form.getlist("field_name[]")
+    field_notes  = request.form.getlist("field_note[]")
+    field_comments = [
+        {"field": fn.strip(), "note": fnt.strip()}
+        for fn, fnt in zip(field_names, field_notes)
+        if fn.strip() or fnt.strip()
+    ]
     rec['_status'] = 'rejected'
     rec['_rejection_comment'] = comment
     rec['_rejection_by'] = current_user.full_name
+    if field_comments:
+        rec['_field_comments'] = field_comments
+    else:
+        rec.pop('_field_comments', None)
     save_data(data)
     flash("Dokument został odrzucony – student może go poprawić i przesłać ponownie.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
@@ -553,6 +641,8 @@ def zal1_edit(nr_albumu):
     if current_user.role == 'student' and current_user.album_number != nr_albumu:
         flash("Brak dostępu.", "error")
         return redirect(url_for("index"))
+    ge = guard_edit(nr_albumu, 'zal1')
+    if ge: return ge
     if request.method == "POST":
         return _save_zal1(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal1")
@@ -628,6 +718,8 @@ def zal2():
 def zal2_edit(nr_albumu):
     g = guard_form('zal2')
     if g: return g
+    ge = guard_edit(nr_albumu, 'zal2')
+    if ge: return ge
     if request.method == "POST":
         return _save_zal2(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal2")
@@ -688,6 +780,8 @@ def zal2a_edit(nr_albumu):
     if current_user.role == 'student' and current_user.album_number != nr_albumu:
         flash("Brak dostępu.", "error")
         return redirect(url_for("index"))
+    ge = guard_edit(nr_albumu, 'zal2a')
+    if ge: return ge
     effects = get_effects()
     if request.method == "POST":
         return _save_zal2a(nr_albumu, effects)
@@ -769,6 +863,8 @@ def zal3():
 def zal3_edit(nr_albumu):
     g = guard_form('zal3')
     if g: return g
+    ge = guard_edit(nr_albumu, 'zal3')
+    if ge: return ge
     if request.method == "POST":
         return _save_zal3(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal3")
@@ -850,6 +946,8 @@ def zal4():
 def zal4_edit(nr_albumu):
     g = guard_form('zal4')
     if g: return g
+    ge = guard_edit(nr_albumu, 'zal4')
+    if ge: return ge
     effects = get_effects()
     if request.method == "POST":
         return _save_zal4(nr_albumu, effects)
@@ -913,6 +1011,8 @@ def zal4a():
 def zal4a_edit(nr_albumu):
     g = guard_form('zal4a')
     if g: return g
+    ge = guard_edit(nr_albumu, 'zal4a')
+    if ge: return ge
     effects = get_effects()
     if request.method == "POST":
         return _save_zal4a(nr_albumu, effects)
@@ -983,6 +1083,8 @@ def zal4b_edit(nr_albumu):
     if current_user.role == 'student' and current_user.album_number != nr_albumu:
         flash("Brak dostępu.", "error")
         return redirect(url_for("index"))
+    ge = guard_edit(nr_albumu, 'zal4b')
+    if ge: return ge
     effects = get_effects()
     if request.method == "POST":
         return _save_zal4b(nr_albumu, effects)
@@ -1086,6 +1188,8 @@ def zal5_edit(nr_albumu):
     if current_user.role == 'student' and current_user.album_number != nr_albumu:
         flash("Brak dostępu.", "error")
         return redirect(url_for("index"))
+    ge = guard_edit(nr_albumu, 'zal5')
+    if ge: return ge
     if request.method == "POST":
         return _save_zal5(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal5")
@@ -1155,6 +1259,8 @@ def zal6_edit(nr_albumu):
     if current_user.role == 'student' and current_user.album_number != nr_albumu:
         flash("Brak dostępu.", "error")
         return redirect(url_for("index"))
+    ge = guard_edit(nr_albumu, 'zal6')
+    if ge: return ge
     effects = get_effects()
     if request.method == "POST":
         return _save_zal6(nr_albumu, effects)
@@ -1240,6 +1346,8 @@ def zal7_edit(nr_albumu):
     if current_user.role == 'student' and current_user.album_number != nr_albumu:
         flash("Brak dostępu.", "error")
         return redirect(url_for("index"))
+    ge = guard_edit(nr_albumu, 'zal7')
+    if ge: return ge
     if request.method == "POST":
         return _save_zal7(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal7")
@@ -1315,6 +1423,8 @@ def zal7a_edit(nr_albumu):
     if current_user.role == 'student' and current_user.album_number != nr_albumu:
         flash("Brak dostępu.", "error")
         return redirect(url_for("index"))
+    ge = guard_edit(nr_albumu, 'zal7a')
+    if ge: return ge
     if request.method == "POST":
         return _save_zal7(nr_albumu, sn=True)
     existing = load_data().get(nr_albumu, {}).get("zal7a")
@@ -1363,6 +1473,8 @@ def zal8():
 def zal8_edit(nr_albumu):
     g = guard_form('zal8')
     if g: return g
+    ge = guard_edit(nr_albumu, 'zal8')
+    if ge: return ge
     if request.method == "POST":
         return _save_zal8(nr_albumu)
     store = load_data().get(nr_albumu, {})
@@ -1449,6 +1561,8 @@ def zal9():
 def zal9_edit(nr_albumu):
     g = guard_form('zal9')
     if g: return g
+    ge = guard_edit(nr_albumu, 'zal9')
+    if ge: return ge
     if request.method == "POST":
         return _save_zal9(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal9")

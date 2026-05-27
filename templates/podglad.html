@@ -58,8 +58,7 @@
                             <a href="{{ url_for(att.key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Edytuj</a>
                         {% endif %}
 
-                        <a href="{{ url_for('pobierz_pdf', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-primary">⬇ PDF</a>
-                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary" target="_blank">Drukuj</a>
+                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary" target="_blank">Drukuj / PDF</a>
 
                         {% if can_edit %}
                         <form method="post" action="{{ url_for(att.key ~ '_delete', nr_albumu=nr_albumu) }}"
@@ -75,10 +74,11 @@
                         {% endif %}
 
                         {% if is_reviewer and status == 'pending' %}
-                        <form method="post" action="{{ url_for('zatwierdz_dokument', nr_albumu=nr_albumu, zal_key=att.key) }}">
-                            <button type="submit" class="btn btn-sm btn-success">Zatwierdź</button>
-                        </form>
-                        <button type="button" class="btn btn-sm btn-danger"
+                        <form id="approve-{{ att.key }}" method="post" action="{{ url_for('zatwierdz_dokument', nr_albumu=nr_albumu, zal_key=att.key) }}" style="display:none"></form>
+                        <a href="{{ url_for('formularz_podglad', nr_albumu=nr_albumu, zal_key=att.key) }}"
+                           class="btn btn-sm btn-secondary" target="_blank">Przejrzyj</a>
+                        <button type="submit" form="approve-{{ att.key }}" class="btn btn-sm btn-success btn-review-action">Zatwierdź</button>
+                        <button type="button" class="btn btn-sm btn-danger btn-review-action"
                                 onclick="toggleReject('{{ att.key }}')">Odrzuć…</button>
                         {% endif %}
 
@@ -95,8 +95,16 @@
             {% if r and is_reviewer and status == 'pending' %}
             <div id="reject-form-{{ att.key }}" class="reject-form" style="display:none">
                 <form method="post" action="{{ url_for('odrzuc_dokument', nr_albumu=nr_albumu, zal_key=att.key) }}">
-                    <label style="font-size:0.82rem; color:var(--muted); display:block; margin-bottom:6px">Powód odrzucenia (wymagany):</label>
-                    <textarea name="comment" placeholder="Opisz co należy poprawić…" required class="reject-textarea"></textarea>
+                    <label class="reject-label">Ogólny powód odrzucenia <span style="color:var(--danger)">*</span></label>
+                    <textarea name="comment" placeholder="Opisz główny powód odrzucenia…" required class="reject-textarea"></textarea>
+
+                    <div class="field-comments-header">
+                        <span class="reject-label" style="margin:0">Uwagi do konkretnych pól <span style="color:var(--muted);font-weight:400">(opcjonalnie)</span></span>
+                        <button type="button" class="btn btn-sm btn-secondary"
+                                onclick="addFieldComment('{{ att.key }}')">+ Dodaj uwagę</button>
+                    </div>
+                    <div id="field-comments-{{ att.key }}" class="field-comments-list"></div>
+
                     <div class="reject-actions">
                         <button type="submit" class="btn btn-sm btn-danger">Potwierdź odrzucenie</button>
                         <button type="button" class="btn btn-sm btn-secondary"
@@ -108,8 +116,23 @@
 
             {% if r and status == 'rejected' and r.get('_rejection_comment') %}
             <div class="rejection-notice">
-                <strong>Powód odrzucenia:</strong> {{ r._rejection_comment }}
-                {% if r.get('_rejection_by') %}<span class="rejection-by"> — {{ r._rejection_by }}</span>{% endif %}
+                <div class="rejection-main">
+                    <strong>Powód odrzucenia:</strong> {{ r._rejection_comment }}
+                    {% if r.get('_rejection_by') %}<span class="rejection-by"> — {{ r._rejection_by }}</span>{% endif %}
+                </div>
+                {% if r.get('_field_comments') %}
+                <div class="field-comments-display">
+                    <div class="field-comments-title">Uwagi do pól:</div>
+                    <ul class="field-comments-ul">
+                    {% for fc in r._field_comments %}
+                        <li>
+                            {% if fc.field %}<span class="field-comment-name">{{ fc.field }}</span> — {% endif %}
+                            {{ fc.note }}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -291,9 +314,29 @@
     </div>
 </div>
 <script>
+var FORM_FIELDS_DATA = {{ form_fields | tojson }};
+
 function toggleReject(key) {
-    const form = document.getElementById('reject-form-' + key);
+    var form = document.getElementById('reject-form-' + key);
     if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function addFieldComment(key) {
+    var container = document.getElementById('field-comments-' + key);
+    var fields = FORM_FIELDS_DATA[key] || [];
+    var options = fields.map(function(f) {
+        return '<option value="' + f.replace(/"/g, '&quot;') + '">' + f + '</option>';
+    }).join('');
+    var row = document.createElement('div');
+    row.className = 'field-comment-row';
+    row.innerHTML =
+        '<select name="field_name[]" class="field-comment-input">' +
+            '<option value="">— wybierz pole —</option>' + options +
+        '</select>' +
+        '<input type="text" name="field_note[]" placeholder="Co należy poprawić…" class="field-comment-input">' +
+        '<button type="button" class="btn btn-sm btn-danger field-comment-remove" ' +
+                'onclick="this.parentElement.remove()">&#x2715;</button>';
+    container.appendChild(row);
 }
 </script>
 {% endblock %}

@@ -59,6 +59,24 @@ USERS = [
         "album_number": None,
         "is_active": 1,
     },
+    {
+        "email": "student2@student.ans-elblag.pl",
+        "password": "Student123!",
+        "first_name": "Marek",
+        "last_name": "Nowak",
+        "role": "student",
+        "album_number": "21002",
+        "is_active": 1,
+    },
+    {
+        "email": "student3@student.ans-elblag.pl",
+        "password": "Student123!",
+        "first_name": "Katarzyna",
+        "last_name": "Wróbel",
+        "role": "student",
+        "album_number": "21003",
+        "is_active": 1,
+    },
 ]
 
 EFFECTS = [
@@ -162,14 +180,23 @@ def seed_forms():
          "dowody": "Zaświadczenie od pracodawcy, opis stanowiska"}
         for e in effects
     ]
+    _wpisy = [
+        ("Zapoznanie z infrastrukturą sieciową firmy. Przegląd dokumentacji topologii LAN/WAN oraz schemat adresacji IP.", "1,2,4"),
+        ("Konfiguracja przełączników Cisco Catalyst 2960: tworzenie VLAN-ów dla działów, konfiguracja trunk portów.", "1,2,5"),
+        ("Konfiguracja routera brzegowego, ustawienie NAT i ACL. Dokumentacja zmian w rejestrze konfiguracji.", "1,2,7"),
+        ("Administracja Active Directory: zakładanie kont użytkowników, przypisywanie do grup, resetowanie haseł.", "2,6,10"),
+        ("Wdrożenie polityk GPO: blokada USB, wymuszenie hasła, mapowanie dysków sieciowych dla działów.", "2,3,6"),
+        ("Instalacja i konfiguracja serwera WSUS. Zaplanowanie harmonogramu aktualizacji dla stacji roboczych.", "2,5,9"),
+        ("Konfiguracja systemu monitoringu Zabbix: dodawanie hostów, ustawienie progów alertów, testy powiadomień.", "2,5,8"),
+        ("Helpdesk: diagnoza awarii stacji roboczej (uszkodzony dysk), wymiana, reinstalacja systemu i migracja danych.", "6,8,11"),
+        ("Analiza logów systemowych serwera plików. Identyfikacja i usunięcie konta z podejrzaną aktywnością.", "3,7,8"),
+        ("Tworzenie dokumentacji technicznej: schematy sieci, procedury odtwarzania backupu, opis konfiguracji VPN.", "5,7,12"),
+    ]
     dziennik = [
         {"dzien": str(i+1),
          "data": f"{year}-04-{str(i+1).zfill(2)}",
-         "opis": ("Konfiguracja przełączników sieciowych i dokumentacja topologii LAN" if i < 3
-                  else "Administracja serwerami – zarządzanie użytkownikami i uprawnieniami" if i < 6
-                  else "Monitoring infrastruktury IT (Zabbix/Nagios)" if i < 8
-                  else "Helpdesk – wsparcie techniczne użytkowników końcowych"),
-         "efekty": "1,2,5" if i < 4 else "3,6,10" if i < 7 else "7,8,11",
+         "opis": _wpisy[i][0],
+         "efekty": _wpisy[i][1],
          "podpis": zopz_name}
         for i in range(10)
     ]
@@ -186,7 +213,7 @@ def seed_forms():
 
     forms = {
         "zal1": {
-            "_status": "draft",
+            "_status": "approved",   # podpisane przed praktyką przez UOPZ
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "nr_porozumienia": f"01/INF/{year}", "miejscowosc": "Elbląg",
             "data": f"{year}-03-15", "kierunek": "Informatyka",
@@ -201,7 +228,7 @@ def seed_forms():
             "podpis_uczelniany": f"{uopz_name}, Elbląg, {year}-03-15",
         },
         "zal2": {
-            "_status": "draft",
+            "_status": "approved",   # program uzgodniony przez UOPZ przed praktyką
             "nr_albumu": nr, "zaklad_pracy": company_full,
             "data_start": start, "data_end": end,
             "data_uzgodnienia": f"{year}-03-15",
@@ -209,7 +236,7 @@ def seed_forms():
             "podpis_uczelniany": f"{uopz_name}, {year}-03-15",
         },
         "zal2a": {
-            "_status": "draft",
+            "_status": "approved",   # harmonogram zatwierdzony przez ZOPZ przed praktyką
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
             "miejsce_praktyki": company, "data_start": start, "data_end": end,
@@ -220,7 +247,7 @@ def seed_forms():
             "podpis_studenta": student_name,
         },
         "zal3": {
-            "_status": "draft",
+            "_status": "pending",    # karta wypełniona przez ZOPZ, czeka na UOPZ
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "nr_porozumienia": f"01/INF/{year}",
             "data_porozumienia": f"{year}-03-15",
@@ -247,7 +274,7 @@ def seed_forms():
             "podpis_sprawozdanie": f"{uopz_name}, {year}-06-10",
         },
         "zal4": {
-            "_status": "draft",
+            "_status": "approved",   # potwierdzenie efektów przez ZOPZ — zatwierdzone
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
             "wymiar_godzin": "240",
@@ -256,7 +283,7 @@ def seed_forms():
             "efekty": efekty_all,
         },
         "zal4a": {
-            "_status": "draft",
+            "_status": "approved",   # UOPZ ocenił wniosek studenta — zatwierdzone
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "data_zlozenia": f"{year}-03-10",
             "ocena_efektow": ocena_efektow,
@@ -266,7 +293,7 @@ def seed_forms():
             "podpis_uopz": uopz_name,
         },
         "zal4b": {
-            "_status": "draft",
+            "_status": "approved",   # wniosek studenta zatwierdzony przez UOPZ
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
             "pracodawca": company,
@@ -279,7 +306,7 @@ def seed_forms():
             "podpis_studenta": student_name,
         },
         "zal5": {
-            "_status": "draft",
+            "_status": "draft",      # ankieta — student jeszcze nie wysłał
             "nr_albumu": nr, "rok_akademicki": rok_ak,
             "kierunek": "Informatyka", "forma_studiow": "stacjonarne",
             "semestr": "6", "liczba_godzin": "240",
@@ -287,7 +314,7 @@ def seed_forms():
             "uwagi": "Praktyka w pełni odpowiadała moim oczekiwaniom zawodowym.",
         },
         "zal6": {
-            "_status": "draft",
+            "_status": "pending",    # dziennik wysłany do ZOPZ, czeka na zatwierdzenie
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
             "rodzaj_studiow": "stacjonarne", "rok_akademicki": rok_ak,
@@ -297,7 +324,13 @@ def seed_forms():
             "dziennik": dziennik,
         },
         "zal7": {
-            "_status": "draft",
+            "_status": "rejected",   # sprawozdanie odrzucone przez UOPZ do poprawy
+            "_rejection_comment": "Sprawozdanie wymaga rozbudowania sekcji opisu wykonanych prac. Proszę o uzupełnienie informacji dotyczących stosowanych technologii sieciowych i konkretnych zadań realizowanych w każdym tygodniu praktyki.",
+            "_rejection_by": uopz_name,
+            "_field_comments": [
+                {"field": "Opis wykonanych prac", "note": "Zbyt ogólny – proszę opisać konkretne zadania z każdego tygodnia."},
+                {"field": "Charakterystyka zakładu", "note": "Proszę rozbudować o informacje o stosowanych technologiach."},
+            ],
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
             "rodzaj_studiow": "stacjonarne", "rok_akademicki": rok_ak,
@@ -338,7 +371,7 @@ def seed_forms():
             "ocena_e": "5", "ocena_k": "5",
         },
         "zal9": {
-            "_status": "draft",
+            "_status": "approved",   # oświadczenie instytucji podpisane przed praktyką
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "miejscowosc": "Gdańsk", "data": f"{year}-03-15",
             "nazwa_instytucji": company,
@@ -374,9 +407,138 @@ def seed_forms():
     print(f"Formularze: wypełniono {filled} dla studenta nr albumu {nr}.")
 
 
+def seed_extra_forms():
+    """Wypełnia studenci.json danymi testowymi dla studentów 21002 i 21003."""
+    from datetime import date as _d
+    from models import LearningEffect as LE
+
+    effects = LE.query.order_by(LE.nr).all()
+    uopz = User.query.filter_by(role='uopz').first()
+    zopz = User.query.filter_by(role='zopz').first()
+
+    un = uopz.full_name if uopz else "dr Irena Malinowska"
+    zn = zopz.full_name if zopz else "Zbigniew Ostrowski"
+
+    today = _d.today()
+    year = today.year
+    rok_ak = f"{year-1}/{year}" if today.month < 10 else f"{year}/{year+1}"
+
+    students_extra = [
+        {
+            "nr": "21002",
+            "name": "Marek Nowak",
+            "spec": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+            "company": "DataSoft Sp. z o.o.",
+            "company_full": "DataSoft Sp. z o.o., ul. Technologiczna 5, 10-062 Olsztyn",
+            "repr": "Anna Kowalczyk",
+            "repr_pos": "Dyrektor Techniczny",
+            "zopz_phone": "+48 89 456 78 90",
+            "zopz_email": "z.ostrowski@datasoft.pl",
+            "start": f"{year}-03-01",
+            "end": f"{year}-04-30",
+            "nr_por": f"02/INF/{year}",
+            "status_zal1": "approved",
+            "status_zal2a": "pending",
+        },
+        {
+            "nr": "21003",
+            "name": "Katarzyna Wróbel",
+            "spec": "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)",
+            "company": "MediScan Sp. z o.o.",
+            "company_full": "MediScan Sp. z o.o., ul. Medyczna 22, 10-900 Olsztyn",
+            "repr": "Tomasz Jabłoński",
+            "repr_pos": "Kierownik Projektu",
+            "zopz_phone": "+48 89 321 00 11",
+            "zopz_email": "z.ostrowski@mediscan.pl",
+            "start": f"{year}-05-01",
+            "end": f"{year}-06-30",
+            "nr_por": f"03/INF/{year}",
+            "status_zal1": "draft",
+            "status_zal2a": "draft",
+        },
+    ]
+
+    os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+    try:
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            all_data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        all_data = {}
+
+    total_filled = 0
+    for s in students_extra:
+        nr = s["nr"]
+        all_data.setdefault(nr, {})
+        forms = {
+            "zal1": {
+                "_status": s["status_zal1"],
+                "imie_nazwisko": s["name"], "nr_albumu": nr,
+                "nr_porozumienia": s["nr_por"], "miejscowosc": "Elbląg",
+                "data": f"{year}-02-20", "kierunek": "Informatyka",
+                "specjalnosc": s["spec"], "rodzaj_studiow": "stacjonarne",
+                "nazwa_zakladu": s["company"],
+                "adres_zakladu": s["company_full"].split(", ", 1)[1] if ", " in s["company_full"] else "",
+                "nip_zakladu": "",
+                "reprezentant_nazwisko": s["repr"],
+                "reprezentant_stanowisko": s["repr_pos"],
+                "uczelniany_opiekun": un,
+                "data_start": s["start"], "data_end": s["end"], "liczba_godzin": "240",
+                "podpis_zakladowy": s["repr"],
+                "podpis_uczelniany": un,
+            },
+            "zal2a": {
+                "_status": s["status_zal2a"],
+                "imie_nazwisko": s["name"], "nr_albumu": nr,
+                "kierunek": "Informatyka", "specjalnosc": s["spec"],
+                "miejsce_praktyki": s["company"],
+                "data_start": s["start"], "data_end": s["end"],
+                "efekty_plan": [{"nr": e.nr, "dzial_prace": "Dział Rozwoju Oprogramowania"} for e in effects],
+                "harmonogram": [
+                    {"lp": 1, "dzial": "Zapoznanie z systemem i dokumentacją", "dni": "5"},
+                    {"lp": 2, "dzial": "Realizacja zadań programistycznych", "dni": "15"},
+                    {"lp": 3, "dzial": "Testowanie i wdrożenie", "dni": "10"},
+                ],
+                "data_uzgodnienia": f"{year}-02-25",
+                "podpis_uczelniany": un,
+                "podpis_zakladowy": zn,
+                "podpis_studenta": s["name"],
+            },
+            "zal9": {
+                "_status": "draft",
+                "imie_nazwisko": s["name"], "nr_albumu": nr,
+                "miejscowosc": s["company_full"].split(",")[-1].strip().split()[-1] if "," in s["company_full"] else "Olsztyn",
+                "data": f"{year}-02-20",
+                "nazwa_instytucji": s["company"],
+                "termin_od": s["start"], "termin_do": s["end"],
+                "opiekun_imie_nazwisko": zn,
+                "opiekun_stanowisko": "Kierownik Działu IT",
+                "opiekun_telefon": s["zopz_phone"],
+                "opiekun_email": s["zopz_email"],
+                "upowazniont_imie_nazwisko": s["repr"],
+                "upowazniont_stanowisko": s["repr_pos"],
+                "podpis": f"{s['repr']}, {year}-02-20",
+            },
+        }
+        filled = 0
+        for key, record in forms.items():
+            if key not in all_data[nr]:
+                all_data[nr][key] = record
+                filled += 1
+        total_filled += filled
+        if filled:
+            print(f"  Formularze: wypełniono {filled} dla studenta nr albumu {nr} ({s['name']}).")
+
+    with open(DB_FILE, 'w', encoding='utf-8') as f:
+        json.dump(all_data, f, indent=2, ensure_ascii=False)
+
+    if total_filled:
+        print(f"Dodatkowi studenci: łącznie wypełniono {total_filled} formularzy.")
+
+
 with app.app_context():
     db.create_all()
     seed_users()
     seed_effects()
     seed_forms()
+    seed_extra_forms()
     print("\nGotowe.")
