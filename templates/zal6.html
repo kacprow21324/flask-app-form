@@ -221,20 +221,19 @@
             String(d.getDate()).padStart(2, "0");
     }
 
-    function normalizeRows() {
+    function suggestNext() {
         const rows = Array.from(document.getElementById("dziennik-body").querySelectorAll("tr"));
-        if (!rows.length) return;
-        const firstDay = parseInt(rows[0].querySelector("[name='dzien[]']").value, 10);
-        const firstDate = parseDate(rows[0].querySelector("[name='data[]']").value);
-        rows.forEach(function (row, i) {
-            const di = row.querySelector("[name='dzien[]']");
-            const dt = row.querySelector("[name='data[]']");
-            if (i === 0) { di.readOnly = false; dt.readOnly = false; return; }
-            di.readOnly = true; dt.readOnly = true;
-            if (!Number.isInteger(firstDay) || !firstDate) { di.value = ""; dt.value = ""; return; }
-            const next = new Date(firstDate); next.setDate(firstDate.getDate() + i);
-            di.value = firstDay + i; dt.value = formatDate(next);
-        });
+        if (!rows.length) return { day: "", date: "" };
+        const last = rows[rows.length - 1];
+        const lastDay  = parseInt(last.querySelector("[name='dzien[]']").value, 10);
+        const lastDate = parseDate(last.querySelector("[name='data[]']").value);
+        let nextDay = "", nextDate = "";
+        if (!isNaN(lastDay)) nextDay = String(lastDay + 1);
+        if (lastDate) {
+            const d = new Date(lastDate); d.setDate(d.getDate() + 1);
+            nextDate = formatDate(d);
+        }
+        return { day: nextDay, date: nextDate };
     }
 
     let activePicker = null;
@@ -303,14 +302,17 @@
         const tbody = document.getElementById("dziennik-body");
         const rows = tbody.querySelectorAll("tr");
         if (rows.length && !isRowComplete(rows[rows.length - 1])) return;
+        const next = suggestNext();
         const row = document.createElement("tr");
         const tdDay = document.createElement("td");
         const inDay = document.createElement("input");
-        inDay.type = "number"; inDay.name = "dzien[]"; inDay.min = "1"; inDay.required = true; inDay.className = "day-input";
+        inDay.type = "number"; inDay.name = "dzien[]"; inDay.min = "1"; inDay.required = true;
+        inDay.className = "day-input"; inDay.value = next.day;
         tdDay.appendChild(inDay);
         const tdDate = document.createElement("td");
         const inDate = document.createElement("input");
         inDate.type = "date"; inDate.name = "data[]"; inDate.required = true;
+        inDate.value = next.date;
         tdDate.appendChild(inDate);
         const tdDesc = document.createElement("td");
         const ta = document.createElement("textarea");
@@ -329,14 +331,13 @@
         tdAct.appendChild(btnDel);
         [tdDay, tdDate, tdDesc, tdEff, tdAct].forEach(function (td) { row.appendChild(td); });
         tbody.appendChild(row);
-        normalizeRows(); autoGrow(ta);
+        autoGrow(ta);
     }
 
     function deleteRow(btn) {
         const tbody = document.getElementById("dziennik-body");
         if (tbody.rows.length <= 1) return;
         btn.closest("tr").remove();
-        normalizeRows();
     }
 
     // Init existing pickers
@@ -355,7 +356,6 @@
     window.addEventListener("scroll", function () { if (activePicker) positionPanel(activePicker); });
     window.addEventListener("resize", function () { if (activePicker) positionPanel(activePicker); });
     document.addEventListener("input", function (e) {
-        if (e.target.name === "dzien[]" || e.target.name === "data[]") normalizeRows();
         if (e.target.classList.contains("opis-textarea")) autoGrow(e.target);
     });
     document.querySelectorAll(".opis-textarea").forEach(autoGrow);
@@ -378,6 +378,5 @@
         icon.addEventListener("mouseleave", function () { tooltip.classList.remove("visible"); });
     });
 
-    normalizeRows();
 </script>
 {% endblock %}

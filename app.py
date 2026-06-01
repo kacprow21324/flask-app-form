@@ -127,6 +127,75 @@ def get_effects():
     return LearningEffect.query.order_by(LearningEffect.nr).all()
 
 
+def _build_notifications():
+    """Zwraca listę aktywnych powiadomień dla zalogowanego użytkownika."""
+    data = load_data()
+    att_map = {a['key']: a for a in get_attachments()}
+    doc_wf = get_document_workflow()
+    notifs = []
+
+    if current_user.role == 'student':
+        nr = current_user.album_number
+        if nr:
+            for key, rec in data.get(nr, {}).items():
+                if not isinstance(rec, dict):
+                    continue
+                status = rec.get('_status')
+                if status not in ('rejected', 'pending'):
+                    continue
+                lbl = f"Zał. {att_map.get(key, {}).get('nr', key)}"
+                if status == 'rejected':
+                    notifs.append({
+                        'type': 'rejected',
+                        'text': f"{lbl} – zwrócony do poprawy",
+                        'detail': f"przez: {rec.get('_rejection_by', 'recenzenta')}",
+                        'url': url_for('student_detail', nr_albumu=nr),
+                    })
+                else:
+                    notifs.append({
+                        'type': 'pending',
+                        'text': f"{lbl} – oczekuje na ocenę",
+                        'detail': doc_wf.get(key, {}).get('reviewer_label', ''),
+                        'url': url_for('student_detail', nr_albumu=nr),
+                    })
+
+    elif current_user.role in ('uopz', 'zopz', 'admin'):
+        for nr, student_data in data.items():
+            sname = ''
+            for nk in ('zal1', 'zal2a', 'zal6', 'zal3', 'zal9'):
+                rec_s = student_data.get(nk)
+                if isinstance(rec_s, dict):
+                    sname = rec_s.get('imie_nazwisko', '')
+                    if sname:
+                        break
+            for key, rec in student_data.items():
+                if not isinstance(rec, dict) or rec.get('_status') != 'pending':
+                    continue
+                wf = doc_wf.get(key, {})
+                rev = wf.get('reviewer')
+                if not rev:
+                    continue
+                if current_user.role == 'admin' or current_user.role == rev:
+                    att = att_map.get(key, {})
+                    notifs.append({
+                        'type': 'pending',
+                        'text': f"Zał. {att.get('nr', key)} – do zatwierdzenia",
+                        'detail': sname or nr,
+                        'url': url_for('student_detail', nr_albumu=nr),
+                    })
+    return notifs
+
+
+@app.context_processor
+def inject_notifications():
+    if not current_user.is_authenticated:
+        return {'notifications': []}
+    try:
+        return {'notifications': _build_notifications()}
+    except Exception:
+        return {'notifications': []}
+
+
 def is_valid_full_name(v):
     return len(v.split()) >= 2
 
