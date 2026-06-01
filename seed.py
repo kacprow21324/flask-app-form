@@ -10,7 +10,7 @@ from app import app
 from models import (
     db, User, LearningEffect,
     Specialty, Attachment, RoleFormAccess, StudentWorkflowStep,
-    SurveyQuestion, SurveyOption, FormField,
+    SurveyQuestion, SurveyOption, FormField, AppConfig,
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,6 +26,7 @@ USERS = [
         "role": "student",
         "album_number": "21001",
         "is_active": 1,
+        "speciality": "Administracja systemów i sieci komputerowych (ASiSK)",
     },
     {
         "email": "opiekun@ans-elblag.pl",
@@ -71,6 +72,7 @@ USERS = [
         "role": "student",
         "album_number": "21002",
         "is_active": 1,
+        "speciality": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
     },
     {
         "email": "student3@student.ans-elblag.pl",
@@ -80,6 +82,7 @@ USERS = [
         "role": "student",
         "album_number": "21003",
         "is_active": 1,
+        "speciality": "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)",
     },
 ]
 
@@ -231,6 +234,39 @@ FORM_FIELDS_DATA = {
 }
 
 
+def migrate_db():
+    """Dodaje nowe kolumny do istniejących tabel (bezpieczne przy ponownym uruchomieniu)."""
+    from sqlalchemy import text
+    with db.engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE users ADD COLUMN speciality VARCHAR(400)"))
+            conn.commit()
+            print("Migracja: dodano kolumnę users.speciality")
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE users ADD COLUMN study_mode VARCHAR(20) DEFAULT 'stacjonarne'"))
+            conn.commit()
+            print("Migracja: dodano kolumnę users.study_mode")
+        except Exception:
+            pass
+
+
+def seed_app_config():
+    defaults = [
+        ('semester_summer_start_month', '3',  'Miesiąc początku semestru letniego'),
+        ('semester_winter_start_month', '10', 'Miesiąc początku semestru zimowego'),
+    ]
+    added = 0
+    for key, value, label in defaults:
+        if not AppConfig.query.filter_by(key=key).first():
+            db.session.add(AppConfig(key=key, value=value, label=label))
+            added += 1
+    db.session.commit()
+    if added:
+        print(f"AppConfig: dodano {added} wpisów.")
+
+
 def seed_users():
     added = updated = 0
     for data in USERS:
@@ -238,6 +274,8 @@ def seed_users():
         if existing:
             existing.first_name = data["first_name"]
             existing.last_name  = data["last_name"]
+            if data.get("speciality"):
+                existing.speciality = data["speciality"]
             db.session.add(existing)
             updated += 1
             print(f"  zaktualizowano: {data['email']}  ({data['first_name']} {data['last_name']})")
@@ -249,6 +287,7 @@ def seed_users():
                 last_name=data["last_name"],
                 role=data["role"],
                 album_number=data.get("album_number"),
+                speciality=data.get("speciality"),
                 is_active=data["is_active"],
                 email_verified=1,
             )
@@ -751,8 +790,10 @@ def seed_extra_forms():
 
 with app.app_context():
     db.create_all()
+    migrate_db()
     seed_users()
     seed_effects()
+    seed_app_config()
     seed_specialties()
     seed_attachments()
     seed_role_access()

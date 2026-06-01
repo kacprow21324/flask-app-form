@@ -41,9 +41,9 @@
         {% set reviewer_role = wf.get('reviewer') %}
         {% set is_creator = att.key in editable_forms %}
         {% set is_reviewer = reviewer_role and (user_role == reviewer_role or user_role == 'admin') %}
-        {% set can_edit = is_creator and (status in ('draft', 'rejected') or user_role == 'admin') %}
+        {% set can_edit = (is_creator and status in ('draft', 'rejected')) or (user_role == 'admin' and status == 'draft') %}
 
-        <div id="doc-{{ att.key }}" class="attachment-card {% if r %}card-filled{% else %}card-empty{% endif %}">
+        <div id="doc-{{ att.key }}" class="attachment-card {% if r %}card-filled{% else %}card-empty{% endif %}{% if status == 'rejected' %} card-rejected{% endif %}">
             <div class="attachment-head">
                 <div>
                     <div class="attachment-label">Załącznik nr {{ att.nr }}</div>
@@ -75,11 +75,9 @@
 
                         {% if is_reviewer and status == 'pending' %}
                         <form id="approve-{{ att.key }}" method="post" action="{{ url_for('zatwierdz_dokument', nr_albumu=nr_albumu, zal_key=att.key) }}" style="display:none"></form>
-                        <a href="{{ url_for('formularz_podglad', nr_albumu=nr_albumu, zal_key=att.key) }}"
-                           class="btn btn-sm btn-secondary" target="_blank">Przejrzyj</a>
+                        <a href="{{ url_for('formularz_recenzuj', nr_albumu=nr_albumu, zal_key=att.key) }}"
+                           class="btn btn-sm btn-secondary">Przejrzyj i odrzuć…</a>
                         <button type="submit" form="approve-{{ att.key }}" class="btn btn-sm btn-success btn-review-action">Zatwierdź</button>
-                        <button type="button" class="btn btn-sm btn-danger btn-review-action"
-                                onclick="toggleReject('{{ att.key }}')">Odrzuć…</button>
                         {% endif %}
 
                     {% else %}
@@ -92,42 +90,24 @@
                 </div>
             </div>
 
-            {% if r and is_reviewer and status == 'pending' %}
-            <div id="reject-form-{{ att.key }}" class="reject-form" style="display:none">
-                <form method="post" action="{{ url_for('odrzuc_dokument', nr_albumu=nr_albumu, zal_key=att.key) }}">
-                    <label class="reject-label">Ogólny powód odrzucenia <span style="color:var(--danger)">*</span></label>
-                    <textarea name="comment" placeholder="Opisz główny powód odrzucenia…" required class="reject-textarea"></textarea>
 
-                    <div class="field-comments-header">
-                        <span class="reject-label" style="margin:0">Uwagi do konkretnych pól <span style="color:var(--muted);font-weight:400">(opcjonalnie)</span></span>
-                        <button type="button" class="btn btn-sm btn-secondary"
-                                onclick="addFieldComment('{{ att.key }}')">+ Dodaj uwagę</button>
-                    </div>
-                    <div id="field-comments-{{ att.key }}" class="field-comments-list"></div>
-
-                    <div class="reject-actions">
-                        <button type="submit" class="btn btn-sm btn-danger">Potwierdź odrzucenie</button>
-                        <button type="button" class="btn btn-sm btn-secondary"
-                                onclick="toggleReject('{{ att.key }}')">Anuluj</button>
-                    </div>
-                </form>
-            </div>
-            {% endif %}
-
-            {% if r and status == 'rejected' and r.get('_rejection_comment') %}
+            {% set rej_comment = r.get('_rejection_comment', '') if r else '' %}
+            {% set rej_by      = r.get('_rejection_by', '') if r else '' %}
+            {% set rej_fields  = r.get('_field_comments', []) if r else [] %}
+            {% if r and status == 'rejected' and rej_comment %}
             <div class="rejection-notice">
                 <div class="rejection-main">
-                    <strong>Powód odrzucenia:</strong> {{ r._rejection_comment }}
-                    {% if r.get('_rejection_by') %}<span class="rejection-by"> — {{ r._rejection_by }}</span>{% endif %}
+                    <strong>Powód odrzucenia:</strong> {{ rej_comment }}
+                    {% if rej_by %}<span class="rejection-by"> — {{ rej_by }}</span>{% endif %}
                 </div>
-                {% if r.get('_field_comments') %}
+                {% if rej_fields %}
                 <div class="field-comments-display">
                     <div class="field-comments-title">Uwagi do pól:</div>
                     <ul class="field-comments-ul">
-                    {% for fc in r._field_comments %}
+                    {% for fc in rej_fields %}
                         <li>
-                            {% if fc.field %}<span class="field-comment-name">{{ fc.field }}</span> — {% endif %}
-                            {{ fc.note }}
+                            {% if fc.get('field') %}<span class="field-comment-name">{{ fc.get('field') }}</span> — {% endif %}
+                            {{ fc.get('note', '') }}
                         </li>
                     {% endfor %}
                     </ul>
@@ -251,17 +231,29 @@
                 <div class="detail-item"><span class="detail-label">Rok akademicki</span><span class="detail-value">{{ r.get('rok_akademicki') or '—' }}</span></div>
                 <div class="detail-item"><span class="detail-label">Termin</span><span class="detail-value">{{ r.get('data_start') or '—' }} – {{ r.get('data_end') or '—' }}</span></div>
                 <div class="detail-item"><span class="detail-label">Liczba wpisów</span><span class="detail-value">{{ r.get('dziennik', []) | length }} dni</span></div>
+                <div class="detail-item"><span class="detail-label">Pliki</span><span class="detail-value">{{ r.get('pliki', []) | length }} plik(ów)</span></div>
             </div>
+            {% if r.get('pliki') %}
+            <div style="padding:0 20px 8px">
+                {% for plik in r.pliki %}
+                <a href="{{ url_for('pobierz_plik_zal6', nr_albumu=nr_albumu, file_id=plik.id) }}"
+                   class="file-link" target="_blank">📎 {{ plik.name }} <span class="file-link-size">({{ (plik.size/1024)|round(1) }} KB)</span></a>
+                {% endfor %}
+            </div>
+            {% endif %}
             {% if r.get('dziennik') %}
+            {% set dc_map = {} %}
+            {% for dc in r.get('_diary_comments', []) %}{% set _ = dc_map.update({dc.entry_day|string: dc.note}) %}{% endfor %}
             <div class="table-wrap" style="margin:12px 20px 16px">
                 <table class="summary-table">
                     <thead><tr><th style="width:60px">Dzień</th><th style="width:110px">Data</th><th>Opis wykonanych prac</th><th style="width:90px">Efekty</th></tr></thead>
                     <tbody>
                         {% for wpis in r.dziennik %}
-                        <tr>
+                        {% set err = dc_map.get(wpis.dzien|string, '') %}
+                        <tr{% if err %} class="diary-row--error"{% endif %}>
                             <td class="nr-cell">{{ wpis.dzien }}</td>
                             <td>{{ wpis.data }}</td>
-                            <td>{{ wpis.opis }}</td>
+                            <td>{{ wpis.opis }}{% if err %}<div class="diary-error-note">⚠ {{ err }}</div>{% endif %}</td>
                             <td>{{ wpis.efekty }}</td>
                         </tr>
                         {% endfor %}
@@ -320,6 +312,32 @@ function toggleReject(key) {
     var form = document.getElementById('reject-form-' + key);
     if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
+
+function toggleDiaryNote(checkbox) {
+    var entry = checkbox.closest('.diary-reject-entry');
+    var noteWrap  = entry.querySelector('.diary-note-wrap');
+    var dayInput  = entry.querySelector('.diary-day-hidden');
+    var noteInput = entry.querySelector('.diary-note-input');
+    var checked = checkbox.checked;
+    noteWrap.style.display  = checked ? 'block' : 'none';
+    dayInput.disabled       = !checked;
+    noteInput.disabled      = !checked;
+    if (checked) noteInput.focus();
+}
+
+// Auto-scroll do wskazanego dokumentu po kliknięciu powiadomienia
+document.addEventListener('DOMContentLoaded', function () {
+    var hash = window.location.hash;
+    if (hash) {
+        var el = document.querySelector(hash);
+        if (el) {
+            setTimeout(function () {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                el.classList.add('card--highlighted');
+            }, 250);
+        }
+    }
+});
 
 function addFieldComment(key) {
     var container = document.getElementById('field-comments-' + key);

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Konfiguracja semestru{% endblock %}
+{% block content %}
+<div class="page" style="max-width:600px">
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+    <h1>Konfiguracja semestru</h1>
+    <p>Ustaw miesiące graniczne między semestrami. Zmiana wpływa na automatyczne wypełnianie pola <strong>Rok akademicki</strong> w formularzach studenta.</p>
+
+    <div class="doc-card" style="margin-top:20px;padding:24px 28px">
+        <div class="config-current">
+            <span class="config-current-label">Aktualnie wykryty semestr:</span>
+            <span class="config-current-value">{{ current_semester }}</span>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+            <div style="margin-bottom:16px">
+                {% for cat, msg in messages %}
+                <div class="flash flash-{{ cat }}">{{ msg }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" action="{{ url_for('konfiguracja') }}" style="margin-top:20px">
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label for="summer_month">Semestr letni zaczyna się od</label>
+                    <select id="summer_month" name="semester_summer_start_month" required>
+                        {% for num, name in months.items() %}
+                        <option value="{{ num }}" {% if num == summer_month %}selected{% endif %}>{{ name }} ({{ num }})</option>
+                        {% endfor %}
+                    </select>
+                    <span class="field-hint">Domyślnie: Marzec</span>
+                </div>
+                <div class="field-group">
+                    <label for="winter_month">Semestr zimowy zaczyna się od</label>
+                    <select id="winter_month" name="semester_winter_start_month" required>
+                        {% for num, name in months.items() %}
+                        <option value="{{ num }}" {% if num == winter_month %}selected{% endif %}>{{ name }} ({{ num }})</option>
+                        {% endfor %}
+                    </select>
+                    <span class="field-hint">Domyślnie: Październik</span>
+                </div>
+            </div>
+
+            <div class="config-preview" id="semesterPreview"></div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">Zapisz zmiany</button>
+                <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+var MONTHS = {{ months | tojson }};
+function updatePreview() {
+    var s = parseInt(document.getElementById('summer_month').value, 10);
+    var w = parseInt(document.getElementById('winter_month').value, 10);
+    var preview = document.getElementById('semesterPreview');
+    if (s >= w) {
+        preview.innerHTML = '<span style="color:var(--danger)">⚠ Miesiąc startu semestru letniego musi być wcześniejszy niż zimowego.</span>';
+        return;
+    }
+    preview.innerHTML =
+        '<strong>Podgląd:</strong> ' +
+        'letni: ' + MONTHS[s] + '–' + MONTHS[w - 1] + ' &nbsp;|&nbsp; ' +
+        'zimowy: ' + MONTHS[w] + '–' + MONTHS[s - 1 > 0 ? s - 1 : 12];
+}
+document.getElementById('summer_month').addEventListener('change', updatePreview);
+document.getElementById('winter_month').addEventListener('change', updatePreview);
+updatePreview();
+</script>
+{% endblock %}

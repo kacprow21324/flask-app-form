@@ -21,7 +21,7 @@
 
         <h1 class="doc-title">Dziennik praktyki zawodowej</h1>
 
-        <form method="post"
+        <form method="post" enctype="multipart/form-data"
               action="{{ url_for('zal6_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal6') }}">
 
             <div class="form-section">
@@ -74,13 +74,9 @@
                 <div class="form-row-3">
                     <div class="field-group">
                         <label for="rok_akademicki">Rok akademicki</label>
-                        <select id="rok_akademicki" name="rok_akademicki" required>
-                            {% for yr in ['2023/2024', '2024/2025', '2025/2026', '2026/2027'] %}
-                                <option value="{{ yr }}"
-                                    {% if data and data.get('rok_akademicki') == yr %}selected
-                                    {% elif not data and yr == '2025/2026' %}selected{% endif %}>{{ yr }}</option>
-                            {% endfor %}
-                        </select>
+                        <input id="rok_akademicki" type="text" name="rok_akademicki"
+                               value="{{ val('rok_akademicki') or current_semester }}"
+                               placeholder="np. 2025/2026 letni" required>
                     </div>
                     <div class="field-group" style="grid-column: span 2">
                         <label for="miejsce_praktyki">Miejsce odbywania praktyki</label>
@@ -103,8 +99,29 @@
             <div class="form-section">
                 <div class="form-section-label">Wykaz załączników</div>
                 <div class="field-group">
-                    <textarea id="wykaz_zalacznikow" name="wykaz_zalacznikow" rows="3">{{ val('wykaz_zalacznikow') }}</textarea>
+                    <label>Dodaj pliki <span class="field-hint" style="display:inline">(PDF, DOCX, PY, JS, SQL, TXT, ZIP; maks. 10 MB każdy)</span></label>
+                    <input type="file" name="zalaczniki[]" multiple
+                           accept=".pdf,.doc,.docx,.py,.js,.sql,.txt,.zip,.png,.jpg,.jpeg,.xlsx,.csv"
+                           class="file-input">
                 </div>
+                <input type="hidden" name="wykaz_zalacznikow" value="{{ val('wykaz_zalacznikow') }}">
+                {% if data and data.get('pliki') %}
+                <div class="uploaded-files">
+                    <div class="uploaded-files-label">Przesłane pliki:</div>
+                    {% for plik in data.pliki %}
+                    <div class="uploaded-file-row">
+                        <span class="uploaded-file-icon">📎</span>
+                        <a href="{{ url_for('pobierz_plik_zal6', nr_albumu=edit_nr or '', file_id=plik.id) }}"
+                           class="uploaded-file-name" target="_blank">{{ plik.name }}</a>
+                        <span class="uploaded-file-size">({{ (plik.size / 1024) | round(1) }} KB)</span>
+                        <label class="uploaded-file-delete">
+                            <input type="checkbox" name="delete_file[]" value="{{ plik.id }}">
+                            Usuń
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
 
             <div class="form-section">
@@ -135,12 +152,18 @@
                         </thead>
                         <tbody id="dziennik-body">
                             {% if data and data.dziennik %}
+                                {% set dc_map = {} %}
+                                {% for dc in diary_comments|default([]) %}{% set _ = dc_map.update({dc.entry_day|string: dc.note}) %}{% endfor %}
                                 {% for wpis in data.dziennik %}
-                                <tr>
+                                {% set err = dc_map.get(wpis.dzien|string, '') %}
+                                <tr{% if err %} class="diary-row--error"{% endif %}>
                                     <td><input class="day-input" type="number" name="dzien[]"
                                                value="{{ wpis.dzien }}" min="1" required></td>
                                     <td><input type="date" name="data[]" value="{{ wpis.data }}" required></td>
-                                    <td><textarea class="opis-textarea" name="opis[]" rows="2" required>{{ wpis.opis }}</textarea></td>
+                                    <td>
+                                        {% if err %}<div class="diary-error-note">⚠ {{ err }}</div>{% endif %}
+                                        <textarea class="opis-textarea" name="opis[]" rows="2" required>{{ wpis.opis }}</textarea>
+                                    </td>
                                     <td>
                                         <div class="effects-picker">
                                             <button type="button" class="effects-display">Wybierz</button>
@@ -149,8 +172,8 @@
                                                     <label class="effects-option">
                                                         <input type="checkbox" class="effect-check"
                                                                value="{{ effect.nr }}"
-                                                               {% set nums = wpis.efekty.split(', ') if wpis.efekty else [] %}
-                                                               {% if effect.nr|string in nums or (effect.nr|string).zfill(2) in nums %}checked{% endif %}>
+                                                               {% set nums = [] %}{% for n in (wpis.efekty or '').split(',') %}{% set _ = nums.append(n.strip()) %}{% endfor %}
+                                                               {% if effect.nr|string in nums %}checked{% endif %}>
                                                         <span class="effect-nr">{{ "%02d" | format(effect.nr) }}</span>
                                                         <span class="effect-desc">{{ effect.opis }}</span>
                                                     </label>

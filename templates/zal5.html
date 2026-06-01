@@ -42,7 +42,8 @@
                     <div class="field-group">
                         <label for="rok_akademicki">Rok akademicki</label>
                         <input id="rok_akademicki" type="text" name="rok_akademicki"
-                               value="{{ val('rok_akademicki') }}" placeholder="np. 2024/2025">
+                               value="{{ val('rok_akademicki') or current_semester }}"
+                               placeholder="np. 2025/2026 letni">
                     </div>
                 </div>
                 <div class="form-row-3">

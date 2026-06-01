@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Mój profil{% endblock %}
+{% block content %}
+<div class="page" style="max-width:600px">
+    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
+    <h1>Mój profil</h1>
+
+    <div class="doc-card" style="padding:24px 28px">
+
+        <div class="profile-section">
+            <div class="profile-section-title">Dane konta <span class="profile-readonly-note">(tylko do odczytu)</span></div>
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label>Imię i nazwisko</label>
+                    <input type="text" value="{{ current_user.full_name }}" readonly>
+                </div>
+                <div class="field-group">
+                    <label>E-mail</label>
+                    <input type="text" value="{{ current_user.email }}" readonly>
+                </div>
+            </div>
+            {% if current_user.album_number %}
+            <div class="field-group">
+                <label>Numer albumu</label>
+                <input type="text" value="{{ current_user.album_number }}" readonly>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="profile-section" style="margin-top:20px">
+            <div class="profile-section-title">Dane akademickie</div>
+            <p style="margin-bottom:14px">Uzupełnij dane, które będą automatycznie wstawiane do formularzy.</p>
+            <form method="post" action="{{ url_for('profil') }}">
+                <div class="field-group">
+                    <label for="speciality">Specjalność</label>
+                    <select id="speciality" name="speciality">
+                        <option value="" {% if not current_user.speciality %}selected{% endif %}>— wybierz specjalność —</option>
+                        {% for sp in specialties %}
+                        <option value="{{ sp }}" {% if current_user.speciality == sp %}selected{% endif %}>{{ sp }}</option>
+                        {% endfor %}
+                    </select>
+                    <span class="field-hint">Będzie automatycznie wpisywana w formularzach Zał. 1, 2a, 3, 4, 4b, 6, 7.</span>
+                </div>
+                <div class="field-group" style="margin-top:14px">
+                    <label>Rodzaj studiów</label>
+                    <div class="radio-group">
+                        <label class="radio">
+                            <input type="radio" name="study_mode" value="stacjonarne"
+                                   {% if not current_user.study_mode or current_user.study_mode == 'stacjonarne' %}checked{% endif %}>
+                            Stacjonarne
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="study_mode" value="niestacjonarne"
+                                   {% if current_user.study_mode == 'niestacjonarne' %}checked{% endif %}>
+                            Niestacjonarne
+                        </label>
+                    </div>
+                    <span class="field-hint">Będzie automatycznie zaznaczany w formularzach.</span>
+                </div>
+                <div class="form-actions" style="margin-top:20px">
+                    <button class="btn" type="submit">Zapisz profil</button>
+                    <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -445,7 +445,6 @@
       "uwagi": "Praktyka w pełni odpowiadała moim oczekiwaniom zawodowym."
     },
     "zal6": {
-      "_status": "pending",
       "imie_nazwisko": "Aleksandra Kowalska",
       "nr_albumu": "21001",
       "kierunek": "Informatyka",
@@ -456,78 +455,9 @@
       "data_start": "2026-04-01",
       "data_end": "2026-05-31",
       "wykaz_zalacznikow": "Zaświadczenie od pracodawcy",
-      "dziennik": [
-        {
-          "dzien": "1",
-          "data": "2026-04-01",
-          "opis": "Zapoznanie z infrastrukturą sieciową firmy. Przegląd dokumentacji topologii LAN/WAN oraz schemat adresacji IP.",
-          "efekty": "1,2,4",
-          "podpis": "Zbigniew Ostrowski"
-        },
-        {
-          "dzien": "2",
-          "data": "2026-04-02",
-          "opis": "Konfiguracja przełączników Cisco Catalyst 2960: tworzenie VLAN-ów dla działów, konfiguracja trunk portów.",
-          "efekty": "1,2,5",
-          "podpis": "Zbigniew Ostrowski"
-        },
-        {
-          "dzien": "3",
-          "data": "2026-04-03",
-          "opis": "Konfiguracja routera brzegowego, ustawienie NAT i ACL. Dokumentacja zmian w rejestrze konfiguracji.",
-          "efekty": "1,2,7",
-          "podpis": "Zbigniew Ostrowski"
-        },
-        {
-          "dzien": "4",
-          "data": "2026-04-04",
-          "opis": "Administracja Active Directory: zakładanie kont użytkowników, przypisywanie do grup, resetowanie haseł.",
-          "efekty": "2,6,10",
-          "podpis": "Zbigniew Ostrowski"
-        },
-        {
-          "dzien": "5",
-          "data": "2026-04-05",
-          "opis": "Wdrożenie polityk GPO: blokada USB, wymuszenie hasła, mapowanie dysków sieciowych dla działów.",
-          "efekty": "2,3,6",
-          "podpis": "Zbigniew Ostrowski"
-        },
-        {
-          "dzien": "6",
-          "data": "2026-04-06",
-          "opis": "Instalacja i konfiguracja serwera WSUS. Zaplanowanie harmonogramu aktualizacji dla stacji roboczych.",
-          "efekty": "2,5,9",
-          "podpis": "Zbigniew Ostrowski"
-        },
-        {
-          "dzien": "7",
-          "data": "2026-04-07",
-          "opis": "Konfiguracja systemu monitoringu Zabbix: dodawanie hostów, ustawienie progów alertów, testy powiadomień.",
-          "efekty": "2,5,8",
-          "podpis": "Zbigniew Ostrowski"
-        },
-        {
-          "dzien": "8",
-          "data": "2026-04-08",
-          "opis": "Helpdesk: diagnoza awarii stacji roboczej (uszkodzony dysk), wymiana, reinstalacja systemu i migracja danych.",
-          "efekty": "6,8,11",
-          "podpis": "Zbigniew Ostrowski"
-        },
-        {
-          "dzien": "9",
-          "data": "2026-04-09",
-          "opis": "Analiza logów systemowych serwera plików. Identyfikacja i usunięcie konta z podejrzaną aktywnością.",
-          "efekty": "3,7,8",
-          "podpis": "Zbigniew Ostrowski"
-        },
-        {
-          "dzien": "10",
-          "data": "2026-04-10",
-          "opis": "Tworzenie dokumentacji technicznej: schematy sieci, procedury odtwarzania backupu, opis konfiguracji VPN.",
-          "efekty": "5,7,12",
-          "podpis": "Zbigniew Ostrowski"
-        }
-      ]
+      "dziennik": [],
+      "pliki": [],
+      "_status": "draft"
     },
     "zal7": {
       "_status": "rejected",
@@ -558,7 +488,7 @@
       "podpis_przelozonego": ""
     },
     "zal7a": {
-      "_status": "draft",
+      "_status": "pending",
       "imie_nazwisko": "Aleksandra Kowalska",
       "nr_albumu": "21001",
       "kierunek": "Informatyka",

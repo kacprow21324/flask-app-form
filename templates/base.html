@@ -90,6 +90,16 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 Regulamin praktyk
             </a>
+            <a href="{{ url_for('powiadomienia') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Powiadomienia{% if notifications %} <span class="sidebar-notif-badge">{{ notifications|length }}</span>{% endif %}
+            </a>
+            {% if current_user.role == 'student' %}
+            <a href="{{ url_for('profil') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v1h20v-1c0-3.3-6.7-5-10-5z"/></svg>
+                Mój profil
+            </a>
+            {% endif %}
 
             {# ── Formularze studenta ── #}
             {% if current_user.role in ('student', 'admin') %}
@@ -148,6 +158,10 @@
             <a href="{{ url_for('zal8') }}" class="sidebar-link">
                 <span class="sidebar-nr">8</span><span>Protokół zaliczenia</span>
             </a>
+            <a href="{{ url_for('konfiguracja') }}" class="sidebar-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+                <span>Konfiguracja semestru</span>
+            </a>
             {% endif %}
 
         </nav>
@@ -192,7 +206,9 @@
     pointer-events: none;
 }
 .form-readonly .form-actions,
-.form-readonly button[type=submit] { display: none !important; }
+.form-readonly button[type=submit],
+.form-readonly button[type=button],
+.form-readonly .btn-danger { display: none !important; }
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -274,5 +290,173 @@ document.addEventListener('DOMContentLoaded', function () {
 }());
 </script>
 
+{% if review_mode %}
+<style>
+.review-field-check-wrap { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.review-field-check-wrap input[type=checkbox] { width:15px; height:15px; cursor:pointer; accent-color:var(--danger); flex-shrink:0; }
+.review-field-check-wrap label { cursor:pointer; font-weight:600; font-size:0.85rem; }
+.review-field-note-input { margin-top:5px; width:100%; border:1px solid var(--danger); border-radius:4px; padding:5px 8px; font-size:0.83rem; background:rgba(176,0,32,.04); }
+.review-panel { position:fixed; bottom:0; left:0; right:0; background:var(--text); border-top:3px solid var(--danger); z-index:800; padding:12px 20px; box-shadow:0 -4px 20px rgba(0,0,0,.25); }
+.review-panel-inner { max-width:1300px; margin:0 auto; display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+.review-panel-comment { flex:1; min-width:260px; }
+.review-panel-comment input { width:100%; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25); color:#fff; padding:7px 10px; border-radius:5px; font-size:0.88rem; }
+.review-panel-comment input::placeholder { color:rgba(255,255,255,.45); }
+.review-panel-comment input.rp-error { border-color:var(--danger); background:rgba(229,62,62,.15); }
+.review-panel-label { font-size:0.73rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.55); margin-bottom:4px; }
+.review-panel-fields { flex:1; min-width:200px; max-width:400px; }
+.review-panel-tags { display:flex; flex-wrap:wrap; gap:5px; min-height:26px; }
+.review-panel-tag { background:rgba(229,62,62,.35); color:#ffc9c9; font-size:0.74rem; padding:2px 8px; border-radius:10px; white-space:nowrap; max-width:180px; overflow:hidden; text-overflow:ellipsis; }
+.review-panel-empty { font-size:0.78rem; color:rgba(255,255,255,.35); font-style:italic; }
+.review-panel-btns { display:flex; gap:8px; align-items:center; flex-shrink:0; align-self:center; }
+.site-main { padding-bottom:100px; }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('form').forEach(function (f) { f.classList.add('form-readonly'); });
+    document.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea')
+        .forEach(function (el) { el.disabled = true; });
+    // Ukryj przyciski akcji (Usuń, Dodaj dzień itp.) – nie są częścią panelu recenzji
+    document.querySelectorAll('button[type="button"]').forEach(function (b) { b.style.display = 'none'; });
+
+    var checkedFields = {};
+
+    // ── Checkboxy dla wierszy dziennika (zal6) ───────────────────────────────
+    var diaryBody = document.getElementById('dziennik-body');
+    if (diaryBody) {
+        var DIARY_COLS = [1, 2, 3]; // Data, Opis, Efekty (0-based index)
+        var DIARY_COL_NAMES = ['Data', 'Opis wykonanych prac', 'Nr efektów uczenia się'];
+        diaryBody.querySelectorAll('tr').forEach(function (row) {
+            var dayInp = row.querySelector('[name="dzien[]"]');
+            var dayNum = dayInp ? dayInp.value : '?';
+            DIARY_COLS.forEach(function (ci, i) {
+                var cell = row.cells[ci];
+                if (!cell) return;
+                var fieldName = 'Dzień ' + dayNum + ' – ' + DIARY_COL_NAMES[i];
+                var cb = document.createElement('input');
+                cb.type = 'checkbox'; cb.className = 'rvf-check'; cb.dataset.field = fieldName;
+                cb.style.cssText = 'width:13px;height:13px;cursor:pointer;accent-color:var(--danger);display:block;margin-bottom:4px;';
+                var noteDiv = document.createElement('div'); noteDiv.style.display = 'none';
+                var noteIn = document.createElement('input'); noteIn.type = 'text';
+                noteIn.className = 'review-field-note-input'; noteIn.placeholder = 'Co poprawić?';
+                noteDiv.appendChild(noteIn);
+                cb.addEventListener('change', function () {
+                    noteDiv.style.display = cb.checked ? 'block' : 'none';
+                    if (cb.checked) noteIn.focus();
+                    if (!cb.checked) delete checkedFields[fieldName];
+                    updatePanel();
+                });
+                noteIn.addEventListener('input', function () { checkedFields[fieldName] = noteIn.value.trim(); updatePanel(); });
+                cell.insertBefore(noteDiv, cell.firstChild);
+                cell.insertBefore(cb, cell.firstChild);
+            });
+        });
+    }
+
+    document.querySelectorAll('.field-group').forEach(function (fg, idx) {
+        var lbl = fg.querySelector('label');
+        if (!lbl) return;
+        var fieldName = lbl.textContent.trim().replace(/\s+/g,' ').replace(/\s*\?$/, '');
+        var uid = 'rvf' + idx;
+
+        var wrap = document.createElement('div');
+        wrap.className = 'review-field-check-wrap';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.id = uid; cb.className = 'rvf-check'; cb.dataset.field = fieldName;
+        var cblabel = document.createElement('label');
+        cblabel.htmlFor = uid; cblabel.textContent = lbl.textContent.trim();
+        wrap.appendChild(cb); wrap.appendChild(cblabel);
+        lbl.parentNode.insertBefore(wrap, lbl);
+        lbl.style.display = 'none';
+
+        var noteDiv = document.createElement('div'); noteDiv.style.display = 'none';
+        var noteIn = document.createElement('input');
+        noteIn.type = 'text'; noteIn.className = 'review-field-note-input';
+        noteIn.placeholder = 'Co należy poprawić…';
+        noteDiv.appendChild(noteIn);
+        fg.appendChild(noteDiv);
+
+        cb.addEventListener('change', function () {
+            noteDiv.style.display = cb.checked ? 'block' : 'none';
+            if (cb.checked) noteIn.focus();
+            if (!cb.checked) delete checkedFields[fieldName];
+            updatePanel();
+        });
+        noteIn.addEventListener('input', function () {
+            checkedFields[fieldName] = noteIn.value.trim();
+            updatePanel();
+        });
+    });
+
+    var panel = document.createElement('div'); panel.className = 'review-panel';
+    panel.innerHTML =
+        '<div class="review-panel-inner">' +
+            '<div class="review-panel-comment">' +
+                '<div class="review-panel-label">Ogólny powód odrzucenia <span style="color:#e53e3e">*</span></div>' +
+                '<input type="text" id="rpComment" placeholder="Opisz główny powód odrzucenia…">' +
+            '</div>' +
+            '<div class="review-panel-fields">' +
+                '<div class="review-panel-label">Zaznaczone pola</div>' +
+                '<div class="review-panel-tags" id="rpTags"><span class="review-panel-empty">Brak zaznaczonych</span></div>' +
+            '</div>' +
+            '<div class="review-panel-btns">' +
+                '<a href="{{ back_url }}" class="btn btn-sm btn-ghost">Anuluj</a>' +
+                '<button type="button" id="rpSubmit" class="btn btn-sm btn-danger">Odrzuć dokument</button>' +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(panel);
+
+    function updatePanel() {
+        var tags = document.getElementById('rpTags');
+        var keys = Object.keys(checkedFields).concat(
+            Array.from(document.querySelectorAll('.rvf-check:checked'))
+                .map(function(c){return c.dataset.field;})
+                .filter(function(f){return !(f in checkedFields);})
+        );
+        var unique = Array.from(new Set(keys));
+        if (unique.length === 0) {
+            tags.innerHTML = '<span class="review-panel-empty">Brak zaznaczonych</span>';
+        } else {
+            tags.innerHTML = unique.map(function(f) {
+                return '<span class="review-panel-tag" title="' + f + '">' + f + '</span>';
+            }).join('');
+        }
+    }
+
+    document.getElementById('rpSubmit').addEventListener('click', function () {
+        var comment = document.getElementById('rpComment').value.trim();
+        var commentInput = document.getElementById('rpComment');
+        if (!comment) {
+            commentInput.classList.add('rp-error');
+            commentInput.focus();
+            return;
+        }
+        commentInput.classList.remove('rp-error');
+
+        var form = document.createElement('form');
+        form.method = 'post';
+        form.action = '{{ reject_url }}';
+
+        function addHidden(name, value) {
+            var inp = document.createElement('input');
+            inp.type = 'hidden'; inp.name = name; inp.value = value;
+            form.appendChild(inp);
+        }
+
+        addHidden('comment', comment);
+        document.querySelectorAll('.rvf-check:checked').forEach(function (cb) {
+            // Szukaj inputu notatki w najbliższym field-group lub w rodzicu (wiersze tabeli)
+            var container = cb.closest('.field-group') || cb.parentElement;
+            var noteEl = container ? container.querySelector('.review-field-note-input') : null;
+            var note = noteEl ? noteEl.value.trim() : '';
+            addHidden('field_name[]', cb.dataset.field);
+            addHidden('field_note[]', note);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
+</script>
+{% endif %}
 </body>
 </html>

@@ -3,12 +3,13 @@ from flask_login import login_required, login_user, current_user
 from datetime import date as _date
 import json
 import os
+import uuid
 
 from config import Config
 from models import (
     db, User, LearningEffect,
     Specialty, Attachment, RoleFormAccess, StudentWorkflowStep,
-    SurveyQuestion, SurveyOption, FormField,
+    SurveyQuestion, SurveyOption, FormField, AppConfig,
 )
 from auth import auth_bp, login_manager, authenticate_user, AuthError
 
@@ -33,9 +34,24 @@ app.register_blueprint(auth_bp)
 with app.app_context():
     db.create_all()
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-DB_FILE  = os.path.join(DATA_DIR, "studenci.json")
+BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR    = os.path.join(BASE_DIR, "data")
+DB_FILE     = os.path.join(DATA_DIR, "studenci.json")
+UPLOADS_DIR = os.path.join(DATA_DIR, "uploads")
+
+ALLOWED_EXTENSIONS = {
+    'pdf', 'doc', 'docx',
+    'py', 'js', 'ts', 'sql', 'txt', 'csv', 'json', 'xml',
+    'zip', 'tar', 'gz',
+    'png', 'jpg', 'jpeg',
+    'xlsx', 'xls',
+}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+# ZOPZ widzi tylko formularze, w których bezpośrednio uczestniczy
+ROLE_VISIBLE_FORMS = {
+    'zopz': {'zal2a', 'zal3', 'zal4', 'zal6', 'zal7a', 'zal9'},
+}
 
 STATUS_LABELS = {
     'draft':    ('Szkic',            'status-draft'),
@@ -100,6 +116,37 @@ def get_form_fields():
     return result
 
 
+def get_config_value(key, default=None):
+    cfg = AppConfig.query.filter_by(key=key).first()
+    return cfg.value if cfg else (str(default) if default is not None else None)
+
+
+def _set_config_value(key, value, label=None):
+    cfg = AppConfig.query.filter_by(key=key).first()
+    if cfg:
+        cfg.value = str(value)
+        if label:
+            cfg.label = label
+    else:
+        db.session.add(AppConfig(key=key, value=str(value), label=label))
+    db.session.commit()
+
+
+def get_current_semester():
+    """Zwraca aktualny rok akademicki z semestrem, np. '2025/2026 letni'."""
+    from datetime import date
+    today = date.today()
+    m, y = today.month, today.year
+    summer_start = int(get_config_value('semester_summer_start_month', 3))
+    winter_start = int(get_config_value('semester_winter_start_month', 10))
+    if summer_start <= m < winter_start:
+        return f"{y - 1}/{y} letni"
+    elif m >= winter_start:
+        return f"{y}/{y + 1} zimowy"
+    else:
+        return f"{y - 1}/{y} zimowy"
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def load_data():
@@ -147,16 +194,9 @@ def _build_notifications():
                 if status == 'rejected':
                     notifs.append({
                         'type': 'rejected',
-                        'text': f"{lbl} – zwrócony do poprawy",
-                        'detail': f"przez: {rec.get('_rejection_by', 'recenzenta')}",
-                        'url': url_for('student_detail', nr_albumu=nr),
-                    })
-                else:
-                    notifs.append({
-                        'type': 'pending',
-                        'text': f"{lbl} – oczekuje na ocenę",
-                        'detail': doc_wf.get(key, {}).get('reviewer_label', ''),
-                        'url': url_for('student_detail', nr_albumu=nr),
+                        'text': f"{lbl} – wymaga poprawy",
+                        'detail': f"Zwrócony przez: {rec.get('_rejection_by', 'recenzenta')}",
+                        'url': url_for('student_detail', nr_albumu=nr) + f'#doc-{key}',
                     })
 
     elif current_user.role in ('uopz', 'zopz', 'admin'):
@@ -181,7 +221,7 @@ def _build_notifications():
                         'type': 'pending',
                         'text': f"Zał. {att.get('nr', key)} – do zatwierdzenia",
                         'detail': sname or nr,
-                        'url': url_for('student_detail', nr_albumu=nr),
+                        'url': url_for('student_detail', nr_albumu=nr) + f'#doc-{key}',
                     })
     return notifs
 
@@ -189,15 +229,43 @@ def _build_notifications():
 @app.context_processor
 def inject_notifications():
     if not current_user.is_authenticated:
-        return {'notifications': []}
+        return {'notifications': [], 'current_semester': ''}
     try:
-        return {'notifications': _build_notifications()}
+        return {
+            'notifications': _build_notifications(),
+            'current_semester': get_current_semester(),
+        }
     except Exception:
-        return {'notifications': []}
+        return {'notifications': [], 'current_semester': ''}
 
 
 def is_valid_full_name(v):
     return len(v.split()) >= 2
+
+
+def _allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def _save_upload(file, nr_albumu):
+    """Zapisuje plik na dysk, zwraca dict z metadanymi lub None przy błędzie."""
+    if not file or not file.filename:
+        return None
+    if not _allowed_file(file.filename):
+        return None
+    original = file.filename
+    ext = original.rsplit('.', 1)[1].lower()
+    file_id = uuid.uuid4().hex[:16]
+    student_dir = os.path.join(UPLOADS_DIR, nr_albumu)
+    os.makedirs(student_dir, exist_ok=True)
+    path = os.path.join(student_dir, f"{file_id}.{ext}")
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > MAX_FILE_SIZE:
+        return None
+    file.save(path)
+    return {'id': file_id, 'name': original, 'ext': ext, 'size': size}
 
 
 def is_digits_only(v):
@@ -253,7 +321,15 @@ def build_prefill(nr=''):
     if current_user.role == 'student':
         album = current_user.album_number or ''
         name  = current_user.full_name
-        return {'nr_albumu': album, 'imie_nazwisko': name} if (album or name) else None
+        result = {
+            'nr_albumu': album,
+            'imie_nazwisko': name,
+            'rok_akademicki': get_current_semester(),
+            'rodzaj_studiow': current_user.study_mode or 'stacjonarne',
+        }
+        if current_user.speciality:
+            result['specjalnosc'] = current_user.speciality
+        return result if (album or name) else None
     base = {'nr_albumu': nr} if nr else {}
     if current_user.role == 'uopz':
         base.update({
@@ -279,8 +355,14 @@ def _persist(nr_albumu, key, record, label):
         flash(f'Nie mozna zapisac - dokument ma status "{status_label}".', "error")
         return redirect(url_for('student_detail', nr_albumu=nr_albumu))
     if existing_status in ('draft', 'rejected'):
-        record['_status'] = 'draft'
-        for mk in ('_rejection_comment', '_rejection_by', '_field_comments'):
+        # Po poprawieniu odrzuconego dokumentu automatycznie wracamy do pending
+        was_rejected = (existing_status == 'rejected')
+        wf = get_document_workflow().get(key, {})
+        if was_rejected and wf.get('reviewer'):
+            record['_status'] = 'pending'
+        else:
+            record['_status'] = 'draft'
+        for mk in ('_rejection_comment', '_rejection_by', '_field_comments', '_diary_comments'):
             record.pop(mk, None)
     else:
         record['_status'] = existing_status
@@ -289,16 +371,93 @@ def _persist(nr_albumu, key, record, label):
                 record[mk] = existing[mk]
     data[nr_albumu][key] = record
     save_data(data)
-    flash(f"{label} został/a zapisany/a.", "success")
+    if record.get('_status') == 'pending':
+        reviewer_label = get_document_workflow().get(key, {}).get('reviewer_label', 'recenzenta')
+        flash(f"{label} poprawiony/a i wysłany/a ponownie do: {reviewer_label}.", "success")
+    else:
+        flash(f"{label} został/a zapisany/a.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
 
 # ── Strony ogólne ─────────────────────────────────────────────────────────────
 
+@app.route("/student/<nr_albumu>/zal6/plik/<file_id>")
+@login_required
+def pobierz_plik_zal6(nr_albumu, file_id):
+    if current_user.role == 'student' and current_user.album_number != nr_albumu:
+        flash("Brak dostępu.", "error")
+        return redirect(url_for("index"))
+    if not file_id.replace('-', '').isalnum() or len(file_id) > 40:
+        flash("Nieprawidłowy identyfikator pliku.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    rec = load_data().get(nr_albumu, {}).get('zal6', {})
+    meta = next((f for f in rec.get('pliki', []) if f['id'] == file_id), None)
+    if not meta:
+        flash("Plik nie istnieje.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    path = os.path.join(UPLOADS_DIR, nr_albumu, f"{file_id}.{meta['ext']}")
+    if not os.path.exists(path):
+        flash("Plik nie istnieje na dysku.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    return send_file(path, as_attachment=True, download_name=meta['name'])
+
+
 @app.route("/regulamin")
 @login_required
 def regulamin():
     return render_template("regulamin.html")
+
+
+@app.route("/powiadomienia")
+@login_required
+def powiadomienia():
+    try:
+        notifs = _build_notifications()
+    except Exception:
+        notifs = []
+    return render_template("powiadomienia.html", notifications=notifs)
+
+
+@app.route("/profil", methods=["GET", "POST"])
+@login_required
+def profil():
+    if request.method == "POST":
+        speciality = request.form.get("speciality", "").strip()
+        study_mode = request.form.get("study_mode", "stacjonarne").strip()
+        current_user.speciality = speciality or None
+        current_user.study_mode = study_mode
+        db.session.commit()
+        flash("Profil zaktualizowany.", "success")
+        return redirect(url_for("profil"))
+    return render_template("profil.html",
+                           specialties=get_specialties())
+
+
+@app.route("/student/<nr_albumu>/<zal_key>/recenzuj")
+@login_required
+def formularz_recenzuj(nr_albumu, zal_key):
+    """Formularz w trybie recenzji – recenzent zaznacza błędne pola checkboxami."""
+    wf = get_document_workflow().get(zal_key, {})
+    if current_user.role != wf.get('reviewer') and current_user.role != 'admin':
+        flash("Brak uprawnień do recenzji tego dokumentu.", "error")
+        return redirect(url_for('student_detail', nr_albumu=nr_albumu))
+    store = load_data()
+    rec = store.get(nr_albumu, {}).get(zal_key)
+    if not rec or rec.get('_status') != 'pending':
+        flash("Dokument nie oczekuje na zatwierdzenie.", "error")
+        return redirect(url_for('student_detail', nr_albumu=nr_albumu))
+    effects = get_effects() if zal_key in ('zal2a', 'zal4', 'zal4a', 'zal4b', 'zal6') else []
+    tpl = 'zal7.html' if zal_key == 'zal7a' else f'{zal_key}.html'
+    return render_template(tpl,
+        data=rec, edit_nr=nr_albumu,
+        specialties=get_specialties(), effects=effects,
+        questions=get_survey_questions(), options=get_survey_options(),
+        nr_locked=True, sn=(zal_key == 'zal7a'),
+        review_mode=True,
+        diary_comments=[],
+        reject_url=url_for('odrzuc_dokument', nr_albumu=nr_albumu, zal_key=zal_key),
+        back_url=url_for('student_detail', nr_albumu=nr_albumu),
+    )
 
 
 @app.route("/student/<nr_albumu>/<zal_key>/pobierz")
@@ -495,10 +654,13 @@ def student_detail(nr_albumu):
         flash("Brak danych dla tego numeru albumu.", "error")
         return redirect(url_for("index"))
     effect_map = {e.nr: e.opis for e in get_effects()}
+    all_atts = get_attachments()
+    visible_keys = ROLE_VISIBLE_FORMS.get(current_user.role)
+    filtered_atts = [a for a in all_atts if visible_keys is None or a['key'] in visible_keys]
     return render_template("podglad.html",
         nr_albumu=nr_albumu,
         student=student,
-        attachments=get_attachments(),
+        attachments=filtered_atts,
         effect_map=effect_map,
         editable_forms=get_role_form_access().get(current_user.role, set()),
         user_role=current_user.role,
@@ -545,6 +707,7 @@ def wyslij_do_oceny(nr_albumu, zal_key):
     rec['_status'] = 'pending'
     rec.pop('_rejection_comment', None)
     rec.pop('_rejection_by', None)
+    rec.pop('_diary_comments', None)
     save_data(data)
     flash(f"Dokument wysłany do zatwierdzenia przez {wf['reviewer_label']}.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
@@ -565,6 +728,7 @@ def zatwierdz_dokument(nr_albumu, zal_key):
     rec['_status'] = 'approved'
     rec.pop('_rejection_comment', None)
     rec.pop('_rejection_by', None)
+    rec.pop('_diary_comments', None)
     save_data(data)
     flash("Dokument został zatwierdzony.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
@@ -600,6 +764,18 @@ def odrzuc_dokument(nr_albumu, zal_key):
         rec['_field_comments'] = field_comments
     else:
         rec.pop('_field_comments', None)
+    if zal_key == 'zal6':
+        entry_days  = request.form.getlist('diary_entry_day[]')
+        entry_notes = request.form.getlist('diary_entry_note[]')
+        diary_comments = [
+            {'entry_day': int(d), 'note': n.strip()}
+            for d, n in zip(entry_days, entry_notes)
+            if d and n.strip()
+        ]
+        if diary_comments:
+            rec['_diary_comments'] = diary_comments
+        else:
+            rec.pop('_diary_comments', None)
     save_data(data)
     flash("Dokument został odrzucony – student może go poprawić i przesłać ponownie.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
@@ -1248,9 +1424,11 @@ def zal6_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal6(nr_albumu, effects)
     existing = load_data().get(nr_albumu, {}).get("zal6")
+    diary_comments = existing.get('_diary_comments', []) if existing else []
     return render_template("zal6.html", data=existing, edit_nr=nr_albumu,
                            effects=effects, specialties=get_specialties(),
-                           nr_locked=(current_user.role == 'student'))
+                           nr_locked=(current_user.role == 'student'),
+                           diary_comments=diary_comments)
 
 
 @app.route("/zal6/<nr_albumu>/usun", methods=["POST"])
@@ -1303,6 +1481,25 @@ def _save_zal6(edit_nr, effects):
         "wykaz_zalacznikow": f.get("wykaz_zalacznikow", "").strip(),
         "dziennik": dziennik,
     }
+    # ── Obsługa plików załączników ─────────────────────────────────────────
+    existing_data = load_data().get(nr_albumu, {}).get("zal6", {})
+    pliki = list(existing_data.get("pliki", []))
+    delete_ids = set(request.form.getlist("delete_file[]"))
+    if delete_ids:
+        for p in pliki:
+            if p['id'] in delete_ids:
+                try:
+                    os.remove(os.path.join(UPLOADS_DIR, nr_albumu, f"{p['id']}.{p['ext']}"))
+                except OSError:
+                    pass
+        pliki = [p for p in pliki if p['id'] not in delete_ids]
+    for uploaded in request.files.getlist("zalaczniki[]"):
+        meta = _save_upload(uploaded, nr_albumu)
+        if meta:
+            pliki.append(meta)
+        elif uploaded.filename:
+            flash(f"Plik '{uploaded.filename}' został odrzucony (nieobsługiwany format lub za duży).", "warning")
+    record["pliki"] = pliki
     return _persist(nr_albumu, "zal6", record, "Załącznik 6")
 
 
@@ -1782,6 +1979,47 @@ def admin_fill_test_data(nr_albumu):
     save_data(data)
     flash("Dane testowe wypełnione dla wszystkich formularzy.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# KONFIGURACJA – ustawienia semestru  [dziekanat, admin]
+# ═══════════════════════════════════════════════════════════════════════════════
+
+MONTHS_PL = {
+    1: 'Styczeń', 2: 'Luty', 3: 'Marzec', 4: 'Kwiecień',
+    5: 'Maj', 6: 'Czerwiec', 7: 'Lipiec', 8: 'Sierpień',
+    9: 'Wrzesień', 10: 'Październik', 11: 'Listopad', 12: 'Grudzień',
+}
+
+
+@app.route("/konfiguracja", methods=["GET", "POST"])
+@login_required
+def konfiguracja():
+    if current_user.role not in ('dziekanat', 'admin'):
+        flash("Brak uprawnień.", "error")
+        return redirect(url_for("index"))
+    if request.method == "POST":
+        try:
+            summer = max(1, min(12, int(request.form.get('semester_summer_start_month', 3))))
+            winter = max(1, min(12, int(request.form.get('semester_winter_start_month', 10))))
+        except ValueError:
+            summer, winter = 3, 10
+        if summer >= winter:
+            flash("Miesiąc startu semestru letniego musi być wcześniejszy niż zimowego.", "error")
+        else:
+            _set_config_value('semester_summer_start_month', summer,
+                              'Miesiąc początku semestru letniego')
+            _set_config_value('semester_winter_start_month', winter,
+                              'Miesiąc początku semestru zimowego')
+            flash("Konfiguracja zapisana.", "success")
+        return redirect(url_for("konfiguracja"))
+    summer = int(get_config_value('semester_summer_start_month', 3))
+    winter = int(get_config_value('semester_winter_start_month', 10))
+    return render_template("konfiguracja.html",
+                           summer_month=summer,
+                           winter_month=winter,
+                           months=MONTHS_PL,
+                           current_semester=get_current_semester())
 
 
 if __name__ == "__main__":

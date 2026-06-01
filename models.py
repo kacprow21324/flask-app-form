@@ -119,6 +119,20 @@ class FormField(db.Model):
         return f"<FormField {self.form_key}:{self.field_name}>"
 
 
+class AppConfig(db.Model):
+    """Ustawienia aplikacji edytowalne przez dziekanat/admin."""
+
+    __tablename__ = "app_config"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    key = db.Column(db.String(100), nullable=False, unique=True)
+    value = db.Column(db.String(500), nullable=False)
+    label = db.Column(db.String(200))
+
+    def __repr__(self):
+        return f"<AppConfig {self.key}={self.value}>"
+
+
 class User(UserMixin, db.Model):
     """
     Konto użytkownika – mapuje tabelę `users` ze schematu bazy danych.
@@ -137,6 +151,8 @@ class User(UserMixin, db.Model):
     last_name = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), nullable=False)
     album_number = db.Column(db.String(20), unique=True)
+    speciality = db.Column(db.String(400))
+    study_mode = db.Column(db.String(20), default='stacjonarne')
 
     is_active = db.Column(db.Integer, nullable=False, default=1)
 
