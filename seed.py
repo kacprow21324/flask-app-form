@@ -7,7 +7,11 @@ Istniejący użytkownicy mają zaktualizowane imiona i nazwiska.
 import json, os
 from werkzeug.security import generate_password_hash
 from app import app
-from models import db, User, LearningEffect
+from models import (
+    db, User, LearningEffect,
+    Specialty, Attachment, RoleFormAccess, StudentWorkflowStep,
+    SurveyQuestion, SurveyOption, FormField,
+)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE  = os.path.join(BASE_DIR, "data", "studenci.json")
@@ -95,6 +99,137 @@ EFFECTS = [
     (13, "Dostrzega w praktyce tempo deaktualizacji wiedzy informatycznej oraz skutki działalności informatyków w szczególności ekonomiczne i społeczne"),
 ]
 
+SPECIALTIES_DATA = [
+    (0, "Administracja systemów i sieci komputerowych (ASiSK)"),
+    (1, "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)"),
+    (2, "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)"),
+]
+
+# key, nr, title, reviewer_role, reviewer_label, sort_order
+ATTACHMENTS_DATA = [
+    ("zal1",  "1",  "Porozumienie z zakładem pracy",                     "uopz",  "Opiekun Uczelniany (UOPZ)", 0),
+    ("zal2",  "2",  "Program praktyki zawodowej",                         None,    None,                        1),
+    ("zal2a", "2a", "Program i harmonogram praktyki",                     "zopz",  "Opiekun Zakładowy (ZOPZ)", 2),
+    ("zal3",  "3",  "Karta praktyki zawodowej",                           "uopz",  "Opiekun Uczelniany (UOPZ)", 3),
+    ("zal4",  "4",  "Potwierdzenie efektów uczenia się",                  None,    None,                        4),
+    ("zal4a", "4a", "Merytoryczna ocena wniosku studenta",                None,    None,                        5),
+    ("zal4b", "4b", "Wniosek o zaliczenie efektów uczenia się",          "uopz",  "Opiekun Uczelniany (UOPZ)", 6),
+    ("zal5",  "5",  "Kwestionariusz ankiety",                             None,    None,                        7),
+    ("zal6",  "6",  "Dziennik praktyki zawodowej",                        "zopz",  "Opiekun Zakładowy (ZOPZ)", 8),
+    ("zal7",  "7",  "Sprawozdanie z praktyki zawodowej",                  None,    None,                        9),
+    ("zal7a", "7a", "Sprawozdanie z praktyki (niestacjonarne)",           "zopz",  "Opiekun Zakładowy (ZOPZ)", 10),
+    ("zal8",  "8",  "Protokół zaliczenia praktyki",                       None,    None,                        11),
+    ("zal9",  "9",  "Oświadczenie instytucji",                            None,    None,                        12),
+]
+
+# role -> [form_keys]
+ROLE_ACCESS_DATA = {
+    'student':   ['zal1', 'zal2a', 'zal4b', 'zal5', 'zal6', 'zal7', 'zal7a'],
+    'uopz':      ['zal2', 'zal4a'],
+    'zopz':      ['zal3', 'zal4', 'zal9'],
+    'dziekanat': ['zal8'],
+    'admin':     ['zal1', 'zal2', 'zal2a', 'zal3', 'zal4', 'zal4a', 'zal4b',
+                  'zal5', 'zal6', 'zal7', 'zal7a', 'zal8', 'zal9'],
+}
+
+# step, key, nr, title, when_label, hint
+STUDENT_WORKFLOW_DATA = [
+    (1, "zal1",  "1",  "Porozumienie z zakładem pracy",
+     "przed praktyką",
+     "Złóż jako pierwsze – uzgodnij warunki z zakładem pracy. Po złożeniu trafi do zatwierdzenia przez Opiekuna Uczelnianego."),
+    (2, "zal2a", "2a", "Program i harmonogram praktyki",
+     "przed praktyką",
+     "Ustal indywidualny plan zadań i harmonogram. Wymaga zatwierdzenia przez Opiekuna Zakładowego."),
+    (3, "zal4b", "4b", "Wniosek o zaliczenie efektów",
+     "opcjonalnie",
+     "Tylko jeśli ubiegasz się o zaliczenie efektów na podstawie pracy zawodowej lub stażu. Opiekun Uczelniany odpowie Zał. 4a."),
+    (4, "zal6",  "6",  "Dziennik praktyki zawodowej",
+     "w trakcie",
+     "Wypełniaj każdego dnia. Po zakończeniu wyślij do zatwierdzenia przez Opiekuna Zakładowego."),
+    (5, "zal7",  "7",  "Sprawozdanie z praktyki",
+     "po praktyce",
+     "Napisz po zakończeniu – opisz charakter zakładu, wykonane prace i nabyte umiejętności."),
+    (6, "zal5",  "5",  "Kwestionariusz ankiety",
+     "po praktyce",
+     "Anonimowa ankieta oceniająca przebieg praktyki. Wypełnij jako ostatni dokument."),
+]
+
+SURVEY_QUESTIONS_DATA = [
+    (1,  "Poznałam/poznałem zasady funkcjonowania instytucji, w której odbywałam/odbywałem praktyki zawodowe."),
+    (2,  "Poznałam/poznałem strukturę oraz regulamin organizacyjny instytucji, w której odbywałam/odbywałem praktyki zawodowe."),
+    (3,  "Praktyki zawodowe umożliwiły mi pełną realizację ramowego programu praktyk zawodowych przewidzianego w ramach mojego kierunku studiów."),
+    (4,  "Podczas praktyk zawodowych zwracano uwagę na przestrzeganie zasad etyki i tajemnicy zawodowej."),
+    (5,  "Podczas praktyk miałam/miałem możliwość praktycznego zastosowania wiedzy teoretycznej zdobytej na zajęciach."),
+    (6,  "Praktyki zawodowe przyczyniły się do pogłębienia mojej wiedzy i umiejętności zdobytych w trakcie studiów."),
+    (7,  "Mogłem liczyć na wsparcie merytoryczne Opiekuna zakładowego praktyk."),
+    (8,  "Mogłem liczyć na wsparcie merytoryczne Opiekuna uczelnianego praktyk."),
+    (9,  "Opiekun zakładowy odpowiedzialny za praktyki zawodowe w miejscu ich odbywania potrafił prawidłowo zorganizować ich przebieg."),
+    (10, "Podczas praktyk zawodowych miałam/miałem możliwość pozyskiwania materiałów niezbędnych do przygotowania mojej pracy dyplomowej."),
+    (11, "Praktyki zawodowe rozwinęły moje umiejętności skutecznego komunikowania się w sytuacjach zawodowych i pracy w zespole."),
+    (12, "Praktyki zawodowe nauczyły mnie samodzielności i odpowiedzialności podczas wykonywania pracy."),
+    (13, "Liczba godzin realizowana w ramach praktyk zawodowych jest wystarczająca."),
+    (14, "Czy po zakończeniu praktyki zawodowej chciałaby/chciałby Pani/Pan współpracować z instytucją, w której Pani/Pan zrealizowała/zrealizował praktykę?"),
+]
+
+SURVEY_OPTIONS_DATA = [
+    (0, "zdecydowanie tak"),
+    (1, "raczej tak"),
+    (2, "trudno powiedzieć"),
+    (3, "raczej nie"),
+    (4, "zdecydowanie nie"),
+]
+
+# form_key -> [field_names]
+FORM_FIELDS_DATA = {
+    'zal1':  ["Imię i nazwisko", "Nr albumu", "Nr porozumienia", "Miejscowość", "Data",
+              "Specjalność", "Rodzaj studiów", "Nazwa zakładu pracy", "Adres zakładu", "NIP zakładu",
+              "Reprezentant – nazwisko", "Reprezentant – stanowisko", "Uczelniany opiekun",
+              "Data rozpoczęcia", "Data zakończenia", "Liczba godzin",
+              "Podpis zakładowy", "Podpis uczelniany"],
+    'zal2':  ["Nr albumu", "Zakład pracy", "Data rozpoczęcia", "Data zakończenia",
+              "Data uzgodnienia", "Podpis zakładowy", "Podpis uczelniany"],
+    'zal2a': ["Imię i nazwisko", "Nr albumu", "Specjalność", "Miejsce praktyki",
+              "Data rozpoczęcia", "Data zakończenia", "Efekty – działy prac",
+              "Harmonogram – działy", "Harmonogram – liczba dni", "Data uzgodnienia",
+              "Podpis uczelniany", "Podpis zakładowy", "Podpis studenta"],
+    'zal3':  ["Imię i nazwisko", "Nr albumu", "Nr porozumienia", "Data porozumienia",
+              "Zakład pracy", "Specjalność", "Rodzaj studiów", "Uczelniany opiekun",
+              "Data rozpoczęcia", "Data zakończenia", "Opiekun zakładowy – nazwisko",
+              "Opiekun zakładowy – funkcja", "Data zgłoszenia", "Data szkolenia BHP",
+              "Zaświadczenie – uwagi", "Ocena zakładowa", "Opis oceny zakładowej",
+              "Ocena uczelniana", "Opis oceny uczelnianej", "Ocena sprawozdania"],
+    'zal4':  ["Imię i nazwisko", "Nr albumu", "Specjalność", "Wymiar godzin",
+              "Potwierdzenie opiekuna", "Opinia opiekuna", "Status efektów uczenia się"],
+    'zal4a': ["Imię i nazwisko", "Nr albumu", "Data złożenia", "Ocena zasadności efektów",
+              "Uzasadnienia efektów", "Rekomendacja", "Uwagi", "Data oceny", "Podpis UOPZ"],
+    'zal4b': ["Imię i nazwisko", "Nr albumu", "Specjalność", "Pracodawca", "Adres pracodawcy",
+              "Stanowisko", "Okres zatrudnienia – od", "Okres zatrudnienia – do",
+              "Uzasadnienia efektów", "Dowody na efekty", "Wykaz dokumentów",
+              "Data", "Podpis studenta"],
+    'zal5':  ["Nr albumu", "Rok akademicki", "Forma studiów", "Semestr", "Liczba godzin",
+              "Odpowiedzi na pytania ankiety", "Uwagi dodatkowe"],
+    'zal6':  ["Imię i nazwisko", "Nr albumu", "Specjalność", "Rodzaj studiów",
+              "Rok akademicki", "Miejsce praktyki", "Data rozpoczęcia", "Data zakończenia",
+              "Wykaz załączników", "Wpisy dziennika – opis", "Wpisy dziennika – efekty",
+              "Wpisy dziennika – podpis"],
+    'zal7':  ["Imię i nazwisko", "Nr albumu", "Specjalność", "Rodzaj studiów",
+              "Rok akademicki", "Miejsce praktyki", "Charakterystyka zakładu",
+              "Opis wykonanych prac", "Wiedza i umiejętności", "Data", "Podpis studenta"],
+    'zal7a': ["Imię i nazwisko", "Nr albumu", "Specjalność", "Rok akademicki",
+              "Miejsce praktyki", "Charakterystyka zakładu", "Opis wykonanych prac",
+              "Wiedza i umiejętności", "Data", "Podpis studenta", "Podpis przełożonego"],
+    'zal8':  ["Imię i nazwisko", "Nr albumu", "Miejsca praktyki", "Ocena S (sprawozdanie)",
+              "Data oceny S", "Podpis S", "Ocena U (uczelniana)", "Ocena Z (zakładowa)",
+              "Skład komisji", "Data zaliczenia", "Przewodniczący",
+              "Członek komisji 2", "Członek komisji 3",
+              "Mini-zadania – treść", "Mini-zadania – ocena",
+              "Ocena E (egzamin)", "Ocena K (końcowa)"],
+    'zal9':  ["Imię i nazwisko", "Nr albumu", "Miejscowość", "Data", "Nazwa instytucji",
+              "Termin – od", "Termin – do", "Opiekun – imię i nazwisko",
+              "Opiekun – stanowisko", "Opiekun – telefon", "Opiekun – e-mail",
+              "Upoważniony – imię i nazwisko", "Upoważniony – stanowisko", "Podpis"],
+}
+
 
 def seed_users():
     added = updated = 0
@@ -133,6 +268,86 @@ def seed_effects():
     db.session.commit()
     if added:
         print(f"Efekty: dodano {added}.")
+
+
+def seed_specialties():
+    added = 0
+    for sort_order, name in SPECIALTIES_DATA:
+        if not Specialty.query.filter_by(name=name).first():
+            db.session.add(Specialty(name=name, sort_order=sort_order))
+            added += 1
+    db.session.commit()
+    if added:
+        print(f"Specjalności: dodano {added}.")
+
+
+def seed_attachments():
+    added = 0
+    for key, nr, title, reviewer_role, reviewer_label, sort_order in ATTACHMENTS_DATA:
+        if not Attachment.query.filter_by(key=key).first():
+            db.session.add(Attachment(
+                key=key, nr=nr, title=title,
+                reviewer_role=reviewer_role,
+                reviewer_label=reviewer_label,
+                sort_order=sort_order,
+            ))
+            added += 1
+    db.session.commit()
+    if added:
+        print(f"Załączniki: dodano {added}.")
+
+
+def seed_role_access():
+    added = 0
+    for role, keys in ROLE_ACCESS_DATA.items():
+        for form_key in keys:
+            if not RoleFormAccess.query.filter_by(role=role, form_key=form_key).first():
+                db.session.add(RoleFormAccess(role=role, form_key=form_key))
+                added += 1
+    db.session.commit()
+    if added:
+        print(f"Dostęp ról: dodano {added} wpisów.")
+
+
+def seed_student_workflow():
+    added = 0
+    for step, key, nr, title, when_label, hint in STUDENT_WORKFLOW_DATA:
+        if not StudentWorkflowStep.query.filter_by(step=step).first():
+            db.session.add(StudentWorkflowStep(
+                step=step, key=key, nr=nr, title=title,
+                when_label=when_label, hint=hint,
+            ))
+            added += 1
+    db.session.commit()
+    if added:
+        print(f"Kroki workflow studenta: dodano {added}.")
+
+
+def seed_survey():
+    added_q = added_o = 0
+    for nr, text in SURVEY_QUESTIONS_DATA:
+        if not SurveyQuestion.query.filter_by(nr=nr).first():
+            db.session.add(SurveyQuestion(nr=nr, text=text))
+            added_q += 1
+    for sort_order, label in SURVEY_OPTIONS_DATA:
+        if not SurveyOption.query.filter_by(label=label).first():
+            db.session.add(SurveyOption(sort_order=sort_order, label=label))
+            added_o += 1
+    db.session.commit()
+    if added_q or added_o:
+        print(f"Ankieta: dodano {added_q} pytań, {added_o} opcji.")
+
+
+def seed_form_fields():
+    added = 0
+    for form_key, fields in FORM_FIELDS_DATA.items():
+        for idx, field_name in enumerate(fields):
+            if not FormField.query.filter_by(form_key=form_key, field_name=field_name).first():
+                db.session.add(FormField(form_key=form_key, sort_order=idx, field_name=field_name))
+                added += 1
+    db.session.commit()
+    if added:
+        print(f"Pola formularzy: dodano {added} wpisów.")
 
 
 def seed_forms():
@@ -213,7 +428,7 @@ def seed_forms():
 
     forms = {
         "zal1": {
-            "_status": "approved",   # podpisane przed praktyką przez UOPZ
+            "_status": "approved",
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "nr_porozumienia": f"01/INF/{year}", "miejscowosc": "Elbląg",
             "data": f"{year}-03-15", "kierunek": "Informatyka",
@@ -228,7 +443,7 @@ def seed_forms():
             "podpis_uczelniany": f"{uopz_name}, Elbląg, {year}-03-15",
         },
         "zal2": {
-            "_status": "approved",   # program uzgodniony przez UOPZ przed praktyką
+            "_status": "approved",
             "nr_albumu": nr, "zaklad_pracy": company_full,
             "data_start": start, "data_end": end,
             "data_uzgodnienia": f"{year}-03-15",
@@ -236,7 +451,7 @@ def seed_forms():
             "podpis_uczelniany": f"{uopz_name}, {year}-03-15",
         },
         "zal2a": {
-            "_status": "approved",   # harmonogram zatwierdzony przez ZOPZ przed praktyką
+            "_status": "approved",
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
             "miejsce_praktyki": company, "data_start": start, "data_end": end,
@@ -247,7 +462,7 @@ def seed_forms():
             "podpis_studenta": student_name,
         },
         "zal3": {
-            "_status": "pending",    # karta wypełniona przez ZOPZ, czeka na UOPZ
+            "_status": "pending",
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "nr_porozumienia": f"01/INF/{year}",
             "data_porozumienia": f"{year}-03-15",
@@ -265,35 +480,35 @@ def seed_forms():
             "zaswiadczenie_uwagi": "Studentka zrealizowała wszystkie zaplanowane zadania.",
             "zaswiadczenie_podpis": f"{zopz_name}, Gdańsk, {year}-06-01",
             "ocena_zakladowa_param": "5",
-            "ocena_zakladowa_opis": "Studentka wykazała dużą inicjatywę i kompetencje techniczne. Sprawnie realizowała zadania z zakresu administracji sieciowej.",
+            "ocena_zakladowa_opis": "Studentka wykazała dużą inicjatywę i kompetencje techniczne.",
             "podpis_zakladowy": f"{zopz_name}, {year}-06-01",
             "ocena_uczelniana_param": "5",
-            "ocena_uczelniana_opis": "Studentka aktywnie uczestniczyła w praktyce. Dokumentacja kompletna i zgodna z wymaganiami.",
+            "ocena_uczelniana_opis": "Studentka aktywnie uczestniczyła w praktyce.",
             "podpis_uczelniany": f"{uopz_name}, {year}-06-05",
             "ocena_sprawozdania": "5",
             "podpis_sprawozdanie": f"{uopz_name}, {year}-06-10",
         },
         "zal4": {
-            "_status": "approved",   # potwierdzenie efektów przez ZOPZ — zatwierdzone
+            "_status": "approved",
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
             "wymiar_godzin": "240",
             "potwierdzenie_opiekuna": zopz_name,
-            "opinia_opiekuna": "Studentka wykazała wysokie zaangażowanie i kompetencje. Polecam zaliczenie wszystkich efektów.",
+            "opinia_opiekuna": "Studentka wykazała wysokie zaangażowanie i kompetencje.",
             "efekty": efekty_all,
         },
         "zal4a": {
-            "_status": "approved",   # UOPZ ocenił wniosek studenta — zatwierdzone
+            "_status": "approved",
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "data_zlozenia": f"{year}-03-10",
             "ocena_efektow": ocena_efektow,
             "rekomendacja": "Zaliczam efekty uczenia się wskazane we wniosku studenta.",
-            "uwagi": "Studentka przedłożyła kompletną dokumentację potwierdzającą realizację efektów.",
+            "uwagi": "Studentka przedłożyła kompletną dokumentację.",
             "data_oceny": f"{year}-03-12",
             "podpis_uopz": uopz_name,
         },
         "zal4b": {
-            "_status": "approved",   # wniosek studenta zatwierdzony przez UOPZ
+            "_status": "approved",
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
             "pracodawca": company,
@@ -306,7 +521,7 @@ def seed_forms():
             "podpis_studenta": student_name,
         },
         "zal5": {
-            "_status": "draft",      # ankieta — student jeszcze nie wysłał
+            "_status": "draft",
             "nr_albumu": nr, "rok_akademicki": rok_ak,
             "kierunek": "Informatyka", "forma_studiow": "stacjonarne",
             "semestr": "6", "liczba_godzin": "240",
@@ -314,7 +529,7 @@ def seed_forms():
             "uwagi": "Praktyka w pełni odpowiadała moim oczekiwaniom zawodowym.",
         },
         "zal6": {
-            "_status": "pending",    # dziennik wysłany do ZOPZ, czeka na zatwierdzenie
+            "_status": "pending",
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
             "rodzaj_studiow": "stacjonarne", "rok_akademicki": rok_ak,
@@ -324,8 +539,8 @@ def seed_forms():
             "dziennik": dziennik,
         },
         "zal7": {
-            "_status": "rejected",   # sprawozdanie odrzucone przez UOPZ do poprawy
-            "_rejection_comment": "Sprawozdanie wymaga rozbudowania sekcji opisu wykonanych prac. Proszę o uzupełnienie informacji dotyczących stosowanych technologii sieciowych i konkretnych zadań realizowanych w każdym tygodniu praktyki.",
+            "_status": "rejected",
+            "_rejection_comment": "Sprawozdanie wymaga rozbudowania sekcji opisu wykonanych prac.",
             "_rejection_by": uopz_name,
             "_field_comments": [
                 {"field": "Opis wykonanych prac", "note": "Zbyt ogólny – proszę opisać konkretne zadania z każdego tygodnia."},
@@ -335,9 +550,9 @@ def seed_forms():
             "kierunek": "Informatyka", "specjalnosc": spec,
             "rodzaj_studiow": "stacjonarne", "rok_akademicki": rok_ak,
             "miejsce_praktyki": company,
-            "charakterystyka": f"{company} jest firmą informatyczną z Gdańska specjalizującą się w rozwiązaniach sieciowych i systemowych dla sektora MŚP. Zatrudnia 45 pracowników.",
-            "opis_prac": "Konfiguracja sieci LAN/WAN, administracja serwerami Linux/Windows Server, tworzenie dokumentacji technicznej, monitoring infrastruktury i helpdesk.",
-            "wiedza_umiejetnosci": "Zastosowałam wiedzę z administracji sieciowej i bezpieczeństwa IT. Nauczyłam się konfigurowania sprzętu Cisco i zarządzania serwerami produkcyjnymi.",
+            "charakterystyka": f"{company} jest firmą informatyczną z Gdańska.",
+            "opis_prac": "Konfiguracja sieci LAN/WAN, administracja serwerami.",
+            "wiedza_umiejetnosci": "Zastosowałam wiedzę z administracji sieciowej.",
             "data": f"{year}-06-01",
             "podpis_studenta": student_name,
             "podpis_przelozonego": "",
@@ -371,7 +586,7 @@ def seed_forms():
             "ocena_e": "5", "ocena_k": "5",
         },
         "zal9": {
-            "_status": "approved",   # oświadczenie instytucji podpisane przed praktyką
+            "_status": "approved",
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "miejscowosc": "Gdańsk", "data": f"{year}-03-15",
             "nazwa_instytucji": company,
@@ -386,7 +601,6 @@ def seed_forms():
         },
     }
 
-    # Load existing JSON and only fill missing keys for this student
     os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
     try:
         with open(DB_FILE, 'r', encoding='utf-8') as f:
@@ -539,6 +753,12 @@ with app.app_context():
     db.create_all()
     seed_users()
     seed_effects()
+    seed_specialties()
+    seed_attachments()
+    seed_role_access()
+    seed_student_workflow()
+    seed_survey()
+    seed_form_fields()
     seed_forms()
     seed_extra_forms()
     print("\nGotowe.")

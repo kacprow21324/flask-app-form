@@ -14,7 +14,8 @@
       "Bash(tasklist)",
       "Bash(python -c ' *)",
       "Bash(rm -f data/studenci.json)",
-      "Bash(python seed.py)"
+      "Bash(python seed.py)",
+      "PowerShell(Remove-Item *)"
     ]
   }
 }
