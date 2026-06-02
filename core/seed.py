@@ -1,19 +1,22 @@
 """
 Uruchom raz (lub po resecie), żeby wypełnić bazę użytkownikami testowymi i efektami:
-  python seed.py
+  python -m core.seed
 
 Istniejący użytkownicy mają zaktualizowane imiona i nazwiska.
 """
 import json, os
 from werkzeug.security import generate_password_hash
 from app import app
-from models import (
+from core.models import (
     db, User, LearningEffect,
     Specialty, Attachment, RoleFormAccess, StudentWorkflowStep,
     SurveyQuestion, SurveyOption, FormField, AppConfig,
+    DocumentWorkflow, DocumentLog,
 )
+from core import store
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Katalog główny projektu = poziom wyżej niż pakiet core/
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_FILE  = os.path.join(BASE_DIR, "data", "studenci.json")
 
 
@@ -136,24 +139,25 @@ ROLE_ACCESS_DATA = {
 }
 
 # step, key, nr, title, when_label, hint
+# Kolejność uzupełniania przez studenta wg faz praktyki (FAZA 0 → 2).
 STUDENT_WORKFLOW_DATA = [
     (1, "zal1",  "1",  "Porozumienie z zakładem pracy",
-     "przed praktyką",
+     "Faza 1 — przed praktyką",
      "Złóż jako pierwsze – uzgodnij warunki z zakładem pracy. Po złożeniu trafi do zatwierdzenia przez Opiekuna Uczelnianego."),
     (2, "zal2a", "2a", "Program i harmonogram praktyki",
-     "przed praktyką",
+     "Faza 1 — przed praktyką",
      "Ustal indywidualny plan zadań i harmonogram. Wymaga zatwierdzenia przez Opiekuna Zakładowego."),
     (3, "zal4b", "4b", "Wniosek o zaliczenie efektów",
-     "opcjonalnie",
+     "Faza 1 — opcjonalnie",
      "Tylko jeśli ubiegasz się o zaliczenie efektów na podstawie pracy zawodowej lub stażu. Opiekun Uczelniany odpowie Zał. 4a."),
     (4, "zal6",  "6",  "Dziennik praktyki zawodowej",
-     "w trakcie",
+     "Faza 2 — w trakcie",
      "Wypełniaj każdego dnia. Po zakończeniu wyślij do zatwierdzenia przez Opiekuna Zakładowego."),
     (5, "zal7",  "7",  "Sprawozdanie z praktyki",
-     "po praktyce",
+     "Faza 3 — po praktyce",
      "Napisz po zakończeniu – opisz charakter zakładu, wykonane prace i nabyte umiejętności."),
     (6, "zal5",  "5",  "Kwestionariusz ankiety",
-     "po praktyce",
+     "Faza 3 — na końcu",
      "Anonimowa ankieta oceniająca przebieg praktyki. Wypełnij jako ostatni dokument."),
 ]
 
@@ -250,6 +254,13 @@ def migrate_db():
             print("Migracja: dodano kolumnę users.study_mode")
         except Exception:
             pass
+        for col in ("semester VARCHAR(10)", "study_year VARCHAR(10)"):
+            try:
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN {col}"))
+                conn.commit()
+                print(f"Migracja: dodano kolumnę users.{col.split()[0]}")
+            except Exception:
+                pass
 
 
 def seed_app_config():
@@ -349,15 +360,23 @@ def seed_role_access():
 
 
 def seed_student_workflow():
-    added = 0
+    added = updated = 0
     for step, key, nr, title, when_label, hint in STUDENT_WORKFLOW_DATA:
-        if not StudentWorkflowStep.query.filter_by(step=step).first():
+        row = StudentWorkflowStep.query.filter_by(step=step).first()
+        if row:
+            # aktualizuj etykiety/kolejność przy ponownym seedzie
+            row.key, row.nr, row.title = key, nr, title
+            row.when_label, row.hint = when_label, hint
+            updated += 1
+        else:
             db.session.add(StudentWorkflowStep(
                 step=step, key=key, nr=nr, title=title,
                 when_label=when_label, hint=hint,
             ))
             added += 1
     db.session.commit()
+    if updated:
+        print(f"Kroki workflow studenta: zaktualizowano {updated}.")
     if added:
         print(f"Kroki workflow studenta: dodano {added}.")
 
@@ -392,7 +411,7 @@ def seed_form_fields():
 def seed_forms():
     """Wypełnia studenci.json danymi testowymi dla konta studenckiego (album 21001)."""
     from datetime import date as _d
-    from models import LearningEffect as LE
+    from core.models import LearningEffect as LE
 
     effects = LE.query.order_by(LE.nr).all()
     uopz = User.query.filter_by(role='uopz').first()
@@ -663,7 +682,7 @@ def seed_forms():
 def seed_extra_forms():
     """Wypełnia studenci.json danymi testowymi dla studentów 21002 i 21003."""
     from datetime import date as _d
-    from models import LearningEffect as LE
+    from core.models import LearningEffect as LE
 
     effects = LE.query.order_by(LE.nr).all()
     uopz = User.query.filter_by(role='uopz').first()
@@ -788,6 +807,43 @@ def seed_extra_forms():
         print(f"Dodatkowi studenci: łącznie wypełniono {total_filled} formularzy.")
 
 
+def seed_workflow_from_json():
+    """Backfill tabel obiegu (document_workflow/document_log) na podstawie studenci.json.
+
+    Wykonuje się tylko gdy tabela obiegu jest pusta – nie nadpisuje historii.
+    """
+    if DocumentWorkflow.query.first() is not None:
+        return
+    try:
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return
+
+    reviewers = {a.key: a.reviewer_role for a in Attachment.query.all()}
+    count = 0
+    for nr, forms in data.items():
+        for key, rec in forms.items():
+            if not isinstance(rec, dict):
+                continue
+            status = rec.get('_status', 'draft')
+            db.session.add(DocumentWorkflow(
+                album_number=nr, form_key=key, status=status,
+                reviewer_role=reviewers.get(key),
+                rejection_comment=rec.get('_rejection_comment'),
+                rejection_by=rec.get('_rejection_by'),
+            ))
+            db.session.add(DocumentLog(
+                album_number=nr, form_key=key, action=status,
+                actor_name='import', actor_role='system',
+                comment='stan zaimportowany z studenci.json',
+            ))
+            count += 1
+    db.session.commit()
+    if count:
+        print(f"Obieg dokumentów: zaimportowano {count} stanów z JSON.")
+
+
 with app.app_context():
     db.create_all()
     migrate_db()
@@ -802,4 +858,8 @@ with app.app_context():
     seed_form_fields()
     seed_forms()
     seed_extra_forms()
+    imported = store.import_from_json(DB_FILE)
+    if imported:
+        print(f"MongoDB: zaimportowano {imported} formularzy z studenci.json.")
+    seed_workflow_from_json()
     print("\nGotowe.")

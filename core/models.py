@@ -133,6 +133,57 @@ class AppConfig(db.Model):
         return f"<AppConfig {self.key}={self.value}>"
 
 
+class DocumentWorkflow(db.Model):
+    """
+    Stan obiegu pojedynczego dokumentu (album + formularz) w bazie danych.
+
+    Treść formularza nadal mieszka w `data/studenci.json`; tutaj trzymamy
+    *autorytatywny* status, przypisanego recenzenta i ostatnią decyzję, dzięki
+    czemu kolejki recenzentów i powiadomienia opierają się na bazie, a nie na
+    pliku JSON.
+    """
+
+    __tablename__ = "document_workflow"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    album_number = db.Column(db.String(20), nullable=False)
+    form_key = db.Column(db.String(10), nullable=False)
+    status = db.Column(db.String(20), nullable=False, default="draft")
+    reviewer_role = db.Column(db.String(20))
+    rejection_comment = db.Column(db.Text)
+    rejection_by = db.Column(db.String(200))
+    updated_at = db.Column(
+        db.DateTime, nullable=False,
+        default=datetime.utcnow, onupdate=datetime.utcnow,
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint("album_number", "form_key", name="uq_workflow_doc"),
+    )
+
+    def __repr__(self):
+        return f"<DocumentWorkflow {self.album_number}/{self.form_key}={self.status}>"
+
+
+class DocumentLog(db.Model):
+    """Dziennik zdarzeń obiegu dokumentu (append-only) – kto, co i kiedy."""
+
+    __tablename__ = "document_log"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    album_number = db.Column(db.String(20), nullable=False)
+    form_key = db.Column(db.String(10), nullable=False)
+    action = db.Column(db.String(20), nullable=False)  # created/updated/submitted/approved/rejected/deleted
+    actor_id = db.Column(db.Integer)
+    actor_name = db.Column(db.String(200))
+    actor_role = db.Column(db.String(20))
+    comment = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<DocumentLog {self.album_number}/{self.form_key} {self.action}>"
+
+
 class User(UserMixin, db.Model):
     """
     Konto użytkownika – mapuje tabelę `users` ze schematu bazy danych.
@@ -153,6 +204,8 @@ class User(UserMixin, db.Model):
     album_number = db.Column(db.String(20), unique=True)
     speciality = db.Column(db.String(400))
     study_mode = db.Column(db.String(20), default='stacjonarne')
+    semester = db.Column(db.String(10))       # semestr studenta (np. "6")
+    study_year = db.Column(db.String(10))     # rok studiów (np. "3")
 
     is_active = db.Column(db.Integer, nullable=False, default=1)
 

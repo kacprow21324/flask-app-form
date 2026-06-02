@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Mój profil{% endblock %}
 {% block content %}
-<div class="page" style="max-width:600px">
+<div class="page" style="max-width:760px">
     <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
     <h1>Mój profil</h1>
 
@@ -41,6 +41,29 @@
                     </select>
                     <span class="field-hint">Będzie automatycznie wpisywana w formularzach Zał. 1, 2a, 3, 4, 4b, 6, 7.</span>
                 </div>
+
+                <div class="form-row-2" style="margin-top:14px">
+                    <div class="field-group">
+                        <label for="study_year">Rok studiów</label>
+                        <select id="study_year" name="study_year">
+                            <option value="" {% if not current_user.study_year %}selected{% endif %}>—</option>
+                            {% for y in ['1','2','3','4'] %}
+                            <option value="{{ y }}" {% if current_user.study_year == y %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="semester">Semestr</label>
+                        <select id="semester" name="semester">
+                            <option value="" {% if not current_user.semester %}selected{% endif %}>—</option>
+                            {% for s in ['1','2','3','4','5','6','7'] %}
+                            <option value="{{ s }}" {% if current_user.semester == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="field-hint">Auto w Zał. 5 (ankieta).</span>
+                    </div>
+                </div>
+
                 <div class="field-group" style="margin-top:14px">
                     <label>Rodzaj studiów</label>
                     <div class="radio-group">

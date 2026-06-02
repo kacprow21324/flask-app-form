@@ -5,7 +5,7 @@ from flask import Blueprint, flash, redirect, url_for
 from flask_login import LoginManager, login_required, logout_user
 from werkzeug.security import check_password_hash
 
-from models import User, db
+from core.models import User, db
 
 
 class AuthError(Exception):

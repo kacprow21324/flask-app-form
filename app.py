@@ -1,17 +1,19 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, login_user, current_user
 from datetime import date as _date
-import json
 import os
 import uuid
 
-from config import Config
-from models import (
+from core.config import Config
+from core.models import (
     db, User, LearningEffect,
     Specialty, Attachment, RoleFormAccess, StudentWorkflowStep,
-    SurveyQuestion, SurveyOption, FormField, AppConfig,
+    SurveyQuestion, SurveyOption, AppConfig,
 )
-from auth import auth_bp, login_manager, authenticate_user, AuthError
+from core import workflow
+from core import validators
+from core.store import load_data, save_data
+from core.auth import auth_bp, login_manager, authenticate_user, AuthError
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -36,8 +38,7 @@ with app.app_context():
 
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR    = os.path.join(BASE_DIR, "data")
-DB_FILE     = os.path.join(DATA_DIR, "studenci.json")
-UPLOADS_DIR = os.path.join(DATA_DIR, "uploads")
+UPLOADS_DIR = os.path.join(DATA_DIR, "uploads")  # pliki załączników zostają na dysku; treść formularzy jest w MongoDB
 
 ALLOWED_EXTENSIONS = {
     'pdf', 'doc', 'docx',
@@ -109,13 +110,6 @@ def get_survey_options():
     return [o.label for o in SurveyOption.query.order_by(SurveyOption.sort_order).all()]
 
 
-def get_form_fields():
-    result = {}
-    for ff in FormField.query.order_by(FormField.form_key, FormField.sort_order).all():
-        result.setdefault(ff.form_key, []).append(ff.field_name)
-    return result
-
-
 def get_config_value(key, default=None):
     cfg = AppConfig.query.filter_by(key=key).first()
     return cfg.value if cfg else (str(default) if default is not None else None)
@@ -148,27 +142,7 @@ def get_current_semester():
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-
-def load_data():
-    if not os.path.exists(DB_FILE):
-        return {}
-    for enc in ('utf-8', 'utf-8-sig', 'cp1250', 'latin-1'):
-        try:
-            with open(DB_FILE, 'r', encoding=enc) as f:
-                data = json.load(f)
-            if enc != 'utf-8':
-                save_data(data)
-            return data
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            continue
-    return {}
-
-
-def save_data(data):
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
+# Uwaga: load_data() i save_data() są importowane z core.store (magazyn MongoDB).
 
 def get_effects():
     return LearningEffect.query.order_by(LearningEffect.nr).all()
@@ -240,7 +214,7 @@ def inject_notifications():
 
 
 def is_valid_full_name(v):
-    return len(v.split()) >= 2
+    return validators.is_valid_full_name(v)[0]
 
 
 def _allowed_file(filename):
@@ -269,7 +243,7 @@ def _save_upload(file, nr_albumu):
 
 
 def is_digits_only(v):
-    return v.isdigit()
+    return validators.is_valid_album(v)[0]
 
 
 def can_edit_form(form_key):
@@ -313,6 +287,7 @@ def _delete_attachment(nr_albumu, key):
         if not has_other:
             del data[nr_albumu]
         save_data(data)
+        workflow.delete_doc(nr_albumu, key)
     return has_other
 
 
@@ -329,6 +304,8 @@ def build_prefill(nr=''):
         }
         if current_user.speciality:
             result['specjalnosc'] = current_user.speciality
+        if current_user.semester:
+            result['semestr'] = current_user.semester
         return result if (album or name) else None
     base = {'nr_albumu': nr} if nr else {}
     if current_user.role == 'uopz':
@@ -371,6 +348,13 @@ def _persist(nr_albumu, key, record, label):
                 record[mk] = existing[mk]
     data[nr_albumu][key] = record
     save_data(data)
+    # ── Zapis stanu i zdarzenia w bazie danych ──────────────────────────────
+    reviewer_role = get_document_workflow().get(key, {}).get('reviewer')
+    workflow.set_status(
+        nr_albumu, key, record['_status'], reviewer_role=reviewer_role,
+        action='submitted' if record['_status'] == 'pending' else (
+            'created' if existing_status == 'draft' and not existing else 'updated'),
+    )
     if record.get('_status') == 'pending':
         reviewer_label = get_document_workflow().get(key, {}).get('reviewer_label', 'recenzenta')
         flash(f"{label} poprawiony/a i wysłany/a ponownie do: {reviewer_label}.", "success")
@@ -426,6 +410,8 @@ def profil():
         study_mode = request.form.get("study_mode", "stacjonarne").strip()
         current_user.speciality = speciality or None
         current_user.study_mode = study_mode
+        current_user.semester = (request.form.get("semester", "").strip() or None)
+        current_user.study_year = (request.form.get("study_year", "").strip() or None)
         db.session.commit()
         flash("Profil zaktualizowany.", "success")
         return redirect(url_for("profil"))
@@ -478,7 +464,7 @@ def pobierz_pdf(nr_albumu, zal_key):
     effects = get_effects()
     effect_map = {e.nr: e.opis for e in effects}
     att = next((a for a in attachments if a["key"] == zal_key), None)
-    from generate_pdf import generate_pdf
+    from core.generate_pdf import generate_pdf
     ctx = dict(
         data=record, nr_albumu=nr_albumu, att=att,
         effects=effects, effect_map=effect_map,
@@ -657,6 +643,8 @@ def student_detail(nr_albumu):
     all_atts = get_attachments()
     visible_keys = ROLE_VISIBLE_FORMS.get(current_user.role)
     filtered_atts = [a for a in all_atts if visible_keys is None or a['key'] in visible_keys]
+    att_nr = {a['key']: a['nr'] for a in all_atts}
+    logs = workflow.get_logs(nr_albumu)
     return render_template("podglad.html",
         nr_albumu=nr_albumu,
         student=student,
@@ -666,7 +654,8 @@ def student_detail(nr_albumu):
         user_role=current_user.role,
         document_workflow=get_document_workflow(),
         status_labels=STATUS_LABELS,
-        form_fields=get_form_fields(),
+        logs=logs,
+        att_nr=att_nr,
     )
 
 
@@ -678,8 +667,11 @@ def student_delete(nr_albumu):
         return redirect(url_for("index"))
     data = load_data()
     if nr_albumu in data:
+        keys = [k for k in data[nr_albumu] if isinstance(data[nr_albumu][k], dict)]
         del data[nr_albumu]
         save_data(data)
+        for k in keys:
+            workflow.delete_doc(nr_albumu, k)
         flash("Rekord studenta został usunięty.", "success")
     return redirect(url_for("index"))
 
@@ -709,6 +701,8 @@ def wyslij_do_oceny(nr_albumu, zal_key):
     rec.pop('_rejection_by', None)
     rec.pop('_diary_comments', None)
     save_data(data)
+    workflow.set_status(nr_albumu, zal_key, 'pending',
+                        reviewer_role=wf.get('reviewer'), action='submitted')
     flash(f"Dokument wysłany do zatwierdzenia przez {wf['reviewer_label']}.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
@@ -726,10 +720,15 @@ def zatwierdz_dokument(nr_albumu, zal_key):
         flash("Dokument nie oczekuje na zatwierdzenie.", "error")
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
     rec['_status'] = 'approved'
+    rec['_approved_by'] = current_user.full_name
+    rec['_approved_role'] = current_user.role
+    rec['_approved_at'] = _date.today().isoformat()
     rec.pop('_rejection_comment', None)
     rec.pop('_rejection_by', None)
     rec.pop('_diary_comments', None)
     save_data(data)
+    workflow.set_status(nr_albumu, zal_key, 'approved',
+                        reviewer_role=wf.get('reviewer'), action='approved')
     flash("Dokument został zatwierdzony.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
@@ -764,19 +763,10 @@ def odrzuc_dokument(nr_albumu, zal_key):
         rec['_field_comments'] = field_comments
     else:
         rec.pop('_field_comments', None)
-    if zal_key == 'zal6':
-        entry_days  = request.form.getlist('diary_entry_day[]')
-        entry_notes = request.form.getlist('diary_entry_note[]')
-        diary_comments = [
-            {'entry_day': int(d), 'note': n.strip()}
-            for d, n in zip(entry_days, entry_notes)
-            if d and n.strip()
-        ]
-        if diary_comments:
-            rec['_diary_comments'] = diary_comments
-        else:
-            rec.pop('_diary_comments', None)
     save_data(data)
+    workflow.set_status(nr_albumu, zal_key, 'rejected',
+                        reviewer_role=wf.get('reviewer'), action='rejected',
+                        rejection_comment=comment, rejection_by=current_user.full_name)
     flash("Dokument został odrzucony – student może go poprawić i przesłać ponownie.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
@@ -834,11 +824,19 @@ def _save_zal1(edit_nr):
     nr_albumu     = student_nr(f.get("nr_albumu", "").strip())
     nr_locked     = (current_user.role == 'student')
     specialties   = get_specialties()
-    if not is_valid_full_name(imie_nazwisko):
-        flash("Podaj imię i nazwisko (co najmniej dwa wyrazy).", "error")
-        return render_template("zal1.html", data=f, edit_nr=edit_nr, specialties=specialties, nr_locked=nr_locked)
-    if not nr_albumu or not is_digits_only(nr_albumu):
-        flash("Numer albumu może zawierać tylko cyfry.", "error")
+    errors = []
+    for ok, msg in (
+        validators.is_valid_full_name(imie_nazwisko),
+        validators.is_valid_album(nr_albumu),
+        validators.is_valid_date(f.get("data", ""), required=False),
+        validators.validate_nip(f.get("nip_zakladu", ""), required=False),
+        validators.validate_date_range(f.get("data_start", ""), f.get("data_end", "")),
+    ):
+        if not ok:
+            errors.append(msg)
+    if errors:
+        for m in errors:
+            flash(m, "error")
         return render_template("zal1.html", data=f, edit_nr=edit_nr, specialties=specialties, nr_locked=nr_locked)
     record = {
         "imie_nazwisko": imie_nazwisko,
@@ -1450,24 +1448,48 @@ def _save_zal6(edit_nr, effects):
     nr_albumu     = student_nr(f.get("nr_albumu", "").strip())
     nr_locked     = (current_user.role == 'student')
     specialties   = get_specialties()
-    if not is_valid_full_name(imie_nazwisko):
-        flash("Podaj imię i nazwisko.", "error")
-        return render_template("zal6.html", data=f, edit_nr=edit_nr, effects=effects,
-                               specialties=specialties, nr_locked=nr_locked)
-    if not nr_albumu or not is_digits_only(nr_albumu):
-        flash("Numer albumu może zawierać tylko cyfry.", "error")
-        return render_template("zal6.html", data=f, edit_nr=edit_nr, effects=effects,
-                               specialties=specialties, nr_locked=nr_locked)
-    dni_max = int(f.get("dni_count", "30") or "30")
+
+    # Wpisy dziennika przychodzą jako pola tablicowe (dzien[], data[], opis[]...)
+    dni     = request.form.getlist("dzien[]")
+    datas   = request.form.getlist("data[]")
+    opisy   = request.form.getlist("opis[]")
+    efekty_l = request.form.getlist("efekty[]")
+    podpisy = request.form.getlist("podpis[]")
     dziennik = []
-    for i in range(1, dni_max + 1):
-        dzien = f.get(f"dzien_{i}", "").strip()
-        data_d = f.get(f"data_{i}", "").strip()
-        opis = f.get(f"opis_{i}", "").strip()
-        efekty = f.get(f"efekty_{i}", "").strip()
-        podpis = f.get(f"podpis_{i}", "").strip()
-        if dzien or data_d or opis:
-            dziennik.append({"dzien": dzien, "data": data_d, "opis": opis, "efekty": efekty, "podpis": podpis})
+    diary_errors = []
+    for idx in range(len(opisy)):
+        dzien  = (dni[idx]     if idx < len(dni) else "").strip()
+        data_d = (datas[idx]   if idx < len(datas) else "").strip()
+        opis   = (opisy[idx]   if idx < len(opisy) else "").strip()
+        efekty = (efekty_l[idx] if idx < len(efekty_l) else "").strip()
+        podpis = (podpisy[idx] if idx < len(podpisy) else "").strip()
+        if not (dzien or data_d or opis):
+            continue
+        etykieta = f"Dzień {dzien or (idx + 1)}"
+        ok_o, msg_o = validators.validate_diary_opis(opis)
+        if not ok_o:
+            diary_errors.append(f"{etykieta}: {msg_o}")
+        ok_d, msg_d = validators.is_valid_date(data_d, required=True)
+        if not ok_d:
+            diary_errors.append(f"{etykieta} (data): {msg_d}")
+        dziennik.append({"dzien": dzien, "data": data_d, "opis": opis, "efekty": efekty, "podpis": podpis})
+
+    errors = []
+    for ok, msg in (
+        validators.is_valid_full_name(imie_nazwisko),
+        validators.is_valid_album(nr_albumu),
+        validators.validate_date_range(f.get("data_start", ""), f.get("data_end", "")),
+    ):
+        if not ok:
+            errors.append(msg)
+    errors.extend(diary_errors)
+    if errors:
+        for m in errors:
+            flash(m, "error")
+        redisplay = f.to_dict()
+        redisplay["dziennik"] = dziennik
+        return render_template("zal6.html", data=redisplay, edit_nr=edit_nr, effects=effects,
+                               specialties=specialties, nr_locked=nr_locked, diary_comments=[])
     record = {
         "imie_nazwisko": imie_nazwisko,
         "nr_albumu": nr_albumu,
@@ -1973,10 +1995,15 @@ def admin_fill_test_data(nr_albumu):
     test_data = _build_test_data(nr_albumu, effects)
     data = load_data()
     data.setdefault(nr_albumu, {})
+    doc_wf = get_document_workflow()
     for key, record in test_data.items():
         record.setdefault('_status', 'draft')
         data[nr_albumu][key] = record
     save_data(data)
+    for key, record in test_data.items():
+        workflow.set_status(nr_albumu, key, record['_status'],
+                            reviewer_role=doc_wf.get(key, {}).get('reviewer'),
+                            action='updated', log_comment='dane testowe (admin)')
     flash("Dane testowe wypełnione dla wszystkich formularzy.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 

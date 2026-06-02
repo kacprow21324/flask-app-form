@@ -1712,3 +1712,74 @@ label {
 .file-link:hover { background: var(--border); }
 
 .file-link-size { font-size: 0.73rem; color: var(--muted); }
+
+/* ── Historia obiegu dokumentów (dziennik zdarzeń z bazy) ── */
+.doc-history { margin: 24px 0 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.doc-history > summary { cursor: pointer; padding: 12px 16px; font-weight: 600; color: var(--text); list-style: none; }
+.doc-history > summary::-webkit-details-marker { display: none; }
+.doc-history > summary::before { content: '▸ '; color: var(--muted); }
+.doc-history[open] > summary::before { content: '▾ '; }
+.doc-history .summary-table { margin: 0 0 8px; }
+
+/* ════════════════════════════════════════════════════════════════
+   Czytelność formularzy wejściowych (.page-form) — odstępy, etykiety,
+   sekcje i stany focus. Zakres ograniczony do stron formularzy.
+   ════════════════════════════════════════════════════════════════ */
+.page-form .doc-card { padding: 30px 34px; }
+
+.page-form .form-section { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
+.page-form .form-section:last-of-type { border-bottom: none; }
+
+.page-form .form-section-label {
+    font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--accent); margin-bottom: 14px; padding-left: 10px; border-left: 3px solid var(--accent);
+}
+
+.page-form .field-group { margin-bottom: 4px; }
+.page-form .field-group label {
+    font-size: 0.82rem; font-weight: 600; color: var(--text); margin-bottom: 5px; display: block;
+}
+
+.page-form .field-group input:not([type=checkbox]):not([type=radio]),
+.page-form .field-group select,
+.page-form .field-group textarea {
+    padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 0.94rem; background: #fff; transition: border-color .14s, box-shadow .14s;
+}
+.page-form .field-group input:focus,
+.page-form .field-group select:focus,
+.page-form .field-group textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(31,58,147,0.12);
+}
+.page-form .field-group input[readonly] { background: #f4f6fb; color: var(--muted); }
+
+.page-form .form-row-2, .page-form .form-row-3 { gap: 18px; margin-bottom: 16px; }
+.page-form .field-hint { font-size: 0.78rem; color: var(--muted); margin-top: 5px; display: block; }
+
+.page-form .form-actions {
+    margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border);
+    display: flex; gap: 10px;
+}
+
+/* ── Walidacja „na bieżąco" (form-validate.js) ── */
+.vmsg { font-size: 0.78rem; margin-top: 4px; line-height: 1.3; }
+.vmsg-ok  { color: #1a7f4b; }
+.vmsg-err { color: var(--danger, #b00020); }
+.page-form .field-valid   { border-color: #1a7f4b !important; }
+.page-form .field-invalid { border-color: var(--danger, #b00020) !important; box-shadow: 0 0 0 3px rgba(176,0,32,0.10) !important; }
+
+/* ── Numery efektów (tryb recenzji/podglądu dziennika) ── */
+.effects-readonly { font-size: 0.82rem; color: var(--text); margin-top: 4px; }
+
+/* ── Pieczątka zatwierdzenia (auto przy akceptacji) ── */
+.approval-notice {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin: 10px 20px 4px; padding: 9px 14px;
+    background: rgba(26,127,75,0.07); border: 1px solid rgba(26,127,75,0.35);
+    border-left: 4px solid #1a7f4b; border-radius: 6px;
+}
+.approval-seal {
+    font-weight: 800; letter-spacing: .06em; color: #1a7f4b; font-size: 0.82rem;
+    border: 2px solid #1a7f4b; border-radius: 5px; padding: 2px 8px; transform: rotate(-1.5deg);
+}
+.approval-meta { font-size: 0.86rem; color: var(--text); }

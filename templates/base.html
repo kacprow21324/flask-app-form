@@ -458,5 +458,9 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 {% endif %}
+
+{% if not review_mode and not readonly %}
+<script src="{{ url_for('static', filename='js/form-validate.js') }}"></script>
+{% endif %}
 </body>
 </html>

@@ -116,6 +116,17 @@
             </div>
             {% endif %}
 
+            {% set app_by = r.get('_approved_by', '') if r else '' %}
+            {% if r and status == 'approved' and app_by %}
+            {% set role_labels = {'zopz': 'Opiekun Zakładowy', 'uopz': 'Opiekun Uczelniany', 'dziekanat': 'Dziekanat', 'admin': 'Administrator'} %}
+            <div class="approval-notice">
+                <span class="approval-seal">✔ ZATWIERDZONO</span>
+                <span class="approval-meta">
+                    {{ app_by }}{% if r.get('_approved_role') %} — {{ role_labels.get(r.get('_approved_role'), r.get('_approved_role')) }}{% endif %}{% if r.get('_approved_at') %} · {{ r.get('_approved_at') }}{% endif %}
+                </span>
+            </div>
+            {% endif %}
+
             {% if r %}
 
             {# ── Zał. 1 ── #}
@@ -304,27 +315,34 @@
         {% endfor %}
 
     </div>
+
+    {# ── Historia obiegu (dziennik zdarzeń z bazy danych) ── #}
+    {% if logs %}
+    {% set log_actions = {
+        'created': 'Utworzono', 'updated': 'Zaktualizowano', 'submitted': 'Wysłano do zatwierdzenia',
+        'approved': 'Zatwierdzono', 'rejected': 'Odrzucono', 'deleted': 'Usunięto'} %}
+    <details class="doc-history">
+        <summary>Historia obiegu dokumentów ({{ logs | length }})</summary>
+        <table class="summary-table">
+            <thead><tr><th style="width:150px">Data</th><th style="width:60px">Zał.</th><th>Zdarzenie</th><th>Osoba</th></tr></thead>
+            <tbody>
+                {% for ev in logs %}
+                <tr>
+                    <td>{{ ev.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="nr-cell">{{ att_nr.get(ev.form_key, ev.form_key) }}</td>
+                    <td>
+                        {{ log_actions.get(ev.action, ev.action) }}
+                        {% if ev.comment %}<div class="diary-error-note">{{ ev.comment }}</div>{% endif %}
+                    </td>
+                    <td>{{ ev.actor_name or '—' }}{% if ev.actor_role %} <span class="file-link-size">({{ ev.actor_role }})</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
 </div>
 <script>
-var FORM_FIELDS_DATA = {{ form_fields | tojson }};
-
-function toggleReject(key) {
-    var form = document.getElementById('reject-form-' + key);
-    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
-}
-
-function toggleDiaryNote(checkbox) {
-    var entry = checkbox.closest('.diary-reject-entry');
-    var noteWrap  = entry.querySelector('.diary-note-wrap');
-    var dayInput  = entry.querySelector('.diary-day-hidden');
-    var noteInput = entry.querySelector('.diary-note-input');
-    var checked = checkbox.checked;
-    noteWrap.style.display  = checked ? 'block' : 'none';
-    dayInput.disabled       = !checked;
-    noteInput.disabled      = !checked;
-    if (checked) noteInput.focus();
-}
-
 // Auto-scroll do wskazanego dokumentu po kliknięciu powiadomienia
 document.addEventListener('DOMContentLoaded', function () {
     var hash = window.location.hash;
@@ -338,23 +356,5 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 });
-
-function addFieldComment(key) {
-    var container = document.getElementById('field-comments-' + key);
-    var fields = FORM_FIELDS_DATA[key] || [];
-    var options = fields.map(function(f) {
-        return '<option value="' + f.replace(/"/g, '&quot;') + '">' + f + '</option>';
-    }).join('');
-    var row = document.createElement('div');
-    row.className = 'field-comment-row';
-    row.innerHTML =
-        '<select name="field_name[]" class="field-comment-input">' +
-            '<option value="">— wybierz pole —</option>' + options +
-        '</select>' +
-        '<input type="text" name="field_note[]" placeholder="Co należy poprawić…" class="field-comment-input">' +
-        '<button type="button" class="btn btn-sm btn-danger field-comment-remove" ' +
-                'onclick="this.parentElement.remove()">&#x2715;</button>';
-    container.appendChild(row);
-}
 </script>
 {% endblock %}

@@ -21,8 +21,8 @@ copy .env.example .env
 # 2. Zbuduj i uruchom
 docker compose up --build -d
 
-# 3. Poczekaj ~30 sek. na healthcheck MariaDB, następnie zaseeduj bazę
-docker compose exec flask python seed.py
+# 3. Poczekaj ~30 sek. na healthcheck MariaDB+MongoDB, następnie zaseeduj
+docker compose exec flask python -m core.seed
 ```
 
 Aplikacja dostępna pod: **http://localhost:5000**
@@ -30,19 +30,20 @@ Aplikacja dostępna pod: **http://localhost:5000**
 ### Uruchomienie lokalne (bez Dockera)
 
 ```bash
-# 1. Uruchom tylko MariaDB w Dockerze (Flask lokalnie)
-docker compose up db -d
+# 1. Uruchom MariaDB i MongoDB w Dockerze (Flask lokalnie)
+docker compose up db mongo -d
 
 # 2. Ustaw w .env:
 # DATABASE_URL=mysql+pymysql://ems_user:TWOJE_HASLO@localhost:3306/ems?charset=utf8mb4
+# MONGO_URL=mongodb://localhost:27017/ems
 
 # 3. Wirtualne środowisko i zależności
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
-# 4. Zaseeduj bazę
-venv\Scripts\python seed.py
+# 4. Zaseeduj bazę (uruchamiaj jako moduł z katalogu głównego)
+venv\Scripts\python -m core.seed
 
 # 5. Uruchom aplikację
 venv\Scripts\python app.py
@@ -51,14 +52,13 @@ venv\Scripts\python app.py
 ### Reset danych
 
 ```bash
-# Tylko formularze JSON (baza zostaje)
-docker compose exec flask sh -c "rm -f data/studenci.json && python seed.py"
-
-# Pełny reset (baza + formularze) – usuwa wolumen MariaDB
+# Pełny reset (MariaDB + MongoDB + formularze) – usuwa wolumeny
 docker compose down -v
 docker compose up -d
-docker compose exec flask python seed.py
+docker compose exec flask python -m core.seed
 ```
+
+> Treść formularzy żyje w MongoDB (kolekcja `practice_forms`). `data/studenci.json` jest już tylko źródłem jednorazowego importu (`core/store.import_from_json`) – nie jest zapisywany w czasie działania aplikacji.
 
 ---
 
@@ -80,13 +80,17 @@ docker compose exec flask python seed.py
 
 ```
 flask-app-form/
-├── app.py                  # Główna aplikacja – trasy, logika, workflow, powiadomienia
-├── auth.py                 # Logowanie/wylogowanie, Flask-Login
-├── models.py               # Modele SQLAlchemy (15 tabel)
-├── config.py               # Konfiguracja z .env (wymaga DATABASE_URL)
-├── seed.py                 # Seeduje bazę + migruje kolumny przy aktualizacjach
-├── generate_pdf.py         # Generowanie PDF przez WeasyPrint
-├── generate_pdf_latex.py   # Generowanie PDF przez xelatex (wymaga MiKTeX)
+├── app.py                  # Główna aplikacja (jedyny moduł w korzeniu) – trasy, logika, workflow
+├── core/                   # Pakiet z modułami pomocniczymi
+│   ├── __init__.py
+│   ├── models.py           # Modele SQLAlchemy (17 tabel MariaDB)
+│   ├── store.py            # Magazyn treści formularzy w MongoDB (load_data/save_data)
+│   ├── auth.py             # Logowanie/wylogowanie, Flask-Login
+│   ├── workflow.py         # Obieg dokumentów: status + dziennik zdarzeń w MariaDB
+│   ├── config.py           # Konfiguracja z .env (wymaga DATABASE_URL)
+│   ├── seed.py             # Seeduje MariaDB + import formularzy do MongoDB (python -m core.seed)
+│   ├── generate_pdf.py     # Generowanie PDF przez WeasyPrint
+│   └── generate_pdf_latex.py  # Generowanie PDF przez xelatex (wymaga MiKTeX)
 │
 ├── templates/
 │   ├── base.html           # Layout: header, sidebar, powiadomienia, tryb recenzji
@@ -103,25 +107,26 @@ flask-app-form/
 ├── static/css/base.css     # Arkusz stylów (~1650 linii)
 │
 ├── data/
-│   ├── studenci.json       # Dane formularzy (JSON, klucz = nr albumu)
+│   ├── studenci.json       # Źródło jednorazowego importu do MongoDB (nie zapisywane w runtime)
 │   └── uploads/            # Pliki załączone przez studentów (per nr albumu)
 │
 ├── instance/               # (legacy, nie używane przy MariaDB)
 │
 ├── Dockerfile              # Obraz Flask z zależnościami WeasyPrint
-├── docker-compose.yml      # Serwisy: mariadb:11 + flask
+├── docker-compose.yml      # Serwisy: mariadb:11 + mongo:7 + flask
 └── .env.example            # Szablon zmiennych środowiskowych
 ```
 
 ### Przepływ danych
 
 ```
-Formularz HTML → app.py route → walidacja → studenci.json
-Pliki PDF/kody → uploads/{nr_albumu}/
-Baza MariaDB   → użytkownicy, efekty, specjalności, załączniki, konfiguracja
+Formularz HTML → app.py route → walidacja → MongoDB (core.store, kolekcja practice_forms)
+Pliki PDF/kody → uploads/{nr_albumu}/   (bajty na dysku; metadane w treści formularza w Mongo)
+Baza MariaDB   → użytkownicy, efekty, specjalności, załączniki(metadane), konfiguracja, obieg+log
+MongoDB        → treść formularzy Zał. 1–9 (jeden dokument na nr_albumu+zal_key)
 ```
 
-### Status dokumentu (_status w JSON)
+### Status dokumentu (_status w treści formularza)
 
 ```
 draft    → Szkic (domyślny, edytowalny)
@@ -142,16 +147,20 @@ SECRET_KEY=min-32-losowe-znaki
 MYSQL_ROOT_PASSWORD=
 MYSQL_PASSWORD=
 
-# Baza
+# Baza relacyjna (MariaDB)
 MYSQL_DATABASE=ems
 MYSQL_USER=ems_user
 DATABASE_URL=mysql+pymysql://ems_user:HASLO@db:3306/ems?charset=utf8mb4
+
+# Baza dokumentowa (MongoDB – treść formularzy); nazwa bazy na końcu URL
+MONGO_URL=mongodb://mongo:27017/ems
 
 # Serwer
 FLASK_HOST=127.0.0.1    # 0.0.0.0 w docker-compose (hardkodowane)
 FLASK_PORT=5000
 FLASK_DEBUG=false
 DB_PORT=3306
+MONGO_PORT=27017
 ```
 
 ---
@@ -201,6 +210,10 @@ DB_PORT=3306
 | `app_config` | Konfiguracja: miesiące startu semestrów |
 
 ### Tabele użytkowników
+
+**`document_workflow`** – autorytatywny stan obiegu każdego dokumentu (album + formularz): `status`, `reviewer_role`, `rejection_comment`, `rejection_by`, `updated_at`. Treść formularza pozostaje w MongoDB; tu trzymany jest status i decyzja.
+
+**`document_log`** – dziennik zdarzeń (append-only): `action` (created/updated/submitted/approved/rejected/deleted), `actor_id/name/role`, `comment`, `created_at`. Każda zmiana statusu zapisuje wpis przez `workflow.py`.
 
 **`users`** – konta użytkowników:
 - `email`, `password_hash`, `first_name`, `last_name`, `role`
@@ -293,7 +306,7 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 - Typy: PDF, DOCX, PY, JS, TS, SQL, TXT, CSV, JSON, XML, ZIP, PNG, JPG, XLSX
 - Limit: 10 MB na plik
 - Storage: `data/uploads/{nr_albumu}/{uuid}.{ext}`
-- Metadane w JSON: `zal6["pliki"]`
+- Metadane w treści formularza (MongoDB): `zal6["pliki"]`
 - Pobieranie: `/student/<nr>/zal6/plik/<id>`
 
 ---
@@ -301,7 +314,8 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 ## Co jest zaimplementowane
 
 - **Logowanie** email/hasło przez Flask-Login; szybkie przyciski na stronie logowania
-- **Baza MariaDB** przez Docker Compose z healthcheckiem
+- **Baza MariaDB** przez Docker Compose z healthcheckiem (użytkownicy, słowniki, konfiguracja, obieg+log)
+- **MongoDB** (Docker, kolekcja `practice_forms`) – treść formularzy Zał. 1–9; dostęp przez `core/store.py` (`load_data`/`save_data`); jednorazowy import z `studenci.json`
 - **Wszystkie dane konfiguracyjne w DB** (specjalności, załączniki, dostępy ról, workflow, ankieta, pola formularzy)
 - **CRUD** dla wszystkich 13 formularzy (Zał. 1–9 + warianty 2a, 4a, 4b, 7a)
 - **RBAC** z filtrowaniem widoku (ZOPZ widzi tylko swoje formularze)
@@ -309,10 +323,13 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 - **Tryb recenzji** z JS checkboxami na każdym polu formularza + sticky panel
 - **Komentarze do wpisów dziennika** per kolumna (Data, Opis, Efekty)
 - **Powiadomienia** (bell + dropdown + strona `/powiadomienia`) z nawigacją do dokumentu
-- **Profil studenta** `/profil` – specjalność i tryb studiów
+- **Profil studenta** `/profil` – specjalność, tryb studiów, rok studiów i semestr (`users.semester`, `users.study_year`; semestr auto do Zał. 5)
 - **Auto-wypełnianie formularzy** – dane studenta z profilu: imię, nazwisko, nr albumu, specjalność, tryb studiów, rok akademicki
 - **Automatyczny rok akademicki** z konfigurowalną datą startu semestru (/konfiguracja)
-- **Upload plików** w Zał. 6 (kody, skrypty, PDF)
+- **Upload plików** w Zał. 6 (kody, skrypty, PDF) – widoczne na karcie, w formularzu, w trybie recenzji oraz w widoku druku/PDF
+- **Dziennik zdarzeń obiegu w bazie** (`document_workflow` + `document_log` via `workflow.py`) – każde utworzenie/wysłanie/zatwierdzenie/odrzucenie/usunięcie zapisuje kto/kiedy/co; historia widoczna na profilu studenta
+- **Walidacja serwerowa** (`core/validators.py`) – imię i nazwisko (litery/spacje, ≥2 wyrazy), nr albumu (4–6 cyfr), NIP (10 cyfr + suma kontrolna), daty (format + zakres), opis dziennika (min. 100 znaków). Podgląd „na bieżąco" (`static/js/form-validate.js`) – pokazuje TYLKO błędy (czerwone), bez potwierdzania poprawnych pól; blokuje wysyłkę przy błędach
+- **Auto-pieczątka zatwierdzenia** – po akceptacji (`zatwierdz_dokument`) na dokumencie zapisuje się `_approved_by/_approved_role/_approved_at`; karta w `podglad.html` pokazuje pieczątkę „ZATWIERDZONO — kto · data"
 - **Generowanie PDF** przez WeasyPrint
 - **Szablony LaTeX** (gotowe, wymagają MiKTeX)
 - **Dashboard** studenta z przewodnikiem kroków
@@ -326,11 +343,10 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 - **Blokowanie konta po błędach logowania** – pola `failed_login_attempts` i `locked_until` w modelu, brak logiki w auth.py
 - **Weryfikacja e-mail** – pole `email_verified` w modelu, brak mechanizmu wysyłania maili
 - **Logowanie OAuth przez Microsoft** – pola w .env, brak tras (msal/authlib)
-- **Walidacja serwera** – format daty, NIP (10 cyfr), numer albumu (tylko po stronie klienta)
 - **Przełączenie PDF na LaTeX** – po zainstalowaniu MiKTeX podmień w trasie `pobierz_pdf`: `generate_pdf` → `generate_pdf_latex`
 - **Powiadomienia e-mail** – brak wysyłki e-mail przy zmianie statusu dokumentu
-- **Historia zmian dokumentu** – brak logu kto/kiedy zmienił status
 - **Eksport CSV/Excel** – lista studentów z ocenami dla dziekanatu
+- **Kolejki recenzenta z DB** – statusy są już zapisywane i logowane w bazie (`document_workflow`/`document_log`), ale kolejki/powiadomienia nadal czytają `_status` z treści formularza (Mongo); do rozważenia oparcie kolejek bezpośrednio o tabelę `document_workflow`
 
 ---
 
@@ -341,7 +357,7 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 | Port 5000 zajęty | Zmień w .env: `FLASK_PORT=5001` |
 | MariaDB nie startuje | Sprawdź logi: `docker compose logs db` |
 | Flask startuje na 127.0.0.1 (niedostępny z zewnątrz) | docker-compose.yml hardkoduje `FLASK_HOST=0.0.0.0` — upewnij się że używasz `docker compose up` |
-| Puste formularze / brak efektów | Uruchom seed: `docker compose exec flask python seed.py` |
+| Puste formularze / brak efektów | Uruchom seed: `docker compose exec flask python -m core.seed` |
 | `libgdk-pixbuf2.0-0` błąd w Docker | Nazwa pakietu zmieniła się na `libgdk-pixbuf-xlib-2.0-0` w Debianie Trixie — Dockerfile jest już poprawiony |
 | Komentarz recenzenta nie wyświetla się | Bug Jinja2 z `r._xxx` – naprawione na `r.get('_xxx', '')` w podglad.html |
 | Po poprawieniu dokument nie wraca do recenzenta | Naprawione – `_persist()` auto-zmienia `rejected` → `pending` |

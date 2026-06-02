@@ -10,7 +10,7 @@ Requirements:
     - xelatex must be on the system PATH
 
 Usage:
-    from generate_pdf_latex import generate_pdf_latex
+    from core.generate_pdf_latex import generate_pdf_latex
     buf = generate_pdf_latex('zal1', context_dict)
     # buf is a BytesIO containing the PDF
 """
@@ -23,7 +23,7 @@ import io
 
 from jinja2 import Environment, FileSystemLoader
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # katalog główny (pakiet core/ jest poziom niżej)
 LATEX_DIR = os.path.join(BASE, "templates", "latex")
 
 

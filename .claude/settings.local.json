@@ -15,7 +15,32 @@
       "Bash(python -c ' *)",
       "Bash(rm -f data/studenci.json)",
       "Bash(python seed.py)",
-      "PowerShell(Remove-Item *)"
+      "PowerShell(Remove-Item *)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\({nr:{k:\\(v.get\\('_status'\\) if isinstance\\(v,dict\\) else v\\) for k,v in forms.items\\(\\)} for nr,forms in d.items\\(\\)}\\)\")",
+      "Bash(git rm *)",
+      "Bash(python -m py_compile app.py models.py workflow.py auth.py seed.py)",
+      "Bash(python -m py_compile app.py models.py workflow.py seed.py)",
+      "Bash(docker compose *)",
+      "Bash(sed -n '1,20p' generate_pdf.py)",
+      "Bash(sed -n '1,20p' generate_pdf_latex.py)",
+      "Bash(python -m py_compile app.py core/__init__.py core/models.py core/auth.py core/config.py core/workflow.py core/store.py core/generate_pdf.py core/generate_pdf_latex.py core/seed.py)",
+      "Bash(python -c \"import json; d=json.load\\(open\\('data/studenci.json',encoding='utf-8'\\)\\); z=d['21001']; print\\('JSON zal2a harmonogram:', len\\(z['zal2a'].get\\('harmonogram',[]\\)\\), '| zal6 dziennik:', len\\(z['zal6'].get\\('dziennik',[]\\)\\)\\)\")",
+      "Bash(curl -s -c /tmp/cj2.txt -b /tmp/cj2.txt -d 'email=zopz@firma.pl&password=Zopz123!' http://localhost:5000/login -o /dev/null -w 'login=%{http_code}\\\\n')",
+      "Bash(curl -s -c /tmp/cj2.txt -b /tmp/cj2.txt http://localhost:5000/student/21002 -o /tmp/p.html -w 'read_page=%{http_code}\\\\n')",
+      "Read(//tmp/**)",
+      "Bash(curl -s -c /tmp/cj2.txt -b /tmp/cj2.txt -d comment=Test%20zapisu%20do%20Mongo http://localhost:5000/student/21002/zal2a/odrzuc -o /dev/null -w 'reject_write=%{http_code}\\\\n')",
+      "Bash(python -m py_compile app.py core/models.py core/seed.py)",
+      "Bash(curl -s http://localhost:5000/login -o /tmp/lg.html -w '%{http_code}')",
+      "Bash(curl -s -c /tmp/js.txt -b /tmp/js.txt -d 'email=student@student.ans-elblag.pl&password=Student123!' http://localhost:5000/login -o /dev/null -w 'login=%{http_code}\\\\n')",
+      "Bash(curl -s -c /tmp/js.txt -b /tmp/js.txt http://localhost:5000/profil -o /tmp/pf.html -w '%{http_code}')",
+      "Bash(curl -s -c /tmp/js.txt -b /tmp/js.txt -d 'speciality=Administracja systemów i sieci komputerowych \\(ASiSK\\)&study_mode=stacjonarne&study_year=3&semester=6' http://localhost:5000/profil -o /dev/null -w 'profil_post=%{http_code}\\\\n')",
+      "Bash(curl -s -c /tmp/js.txt -b /tmp/js.txt http://localhost:5000/zal5 -o /tmp/z5.html -w '%{http_code}')",
+      "Bash(python -m py_compile app.py core/validators.py)",
+      "Bash(node -c static/js/form-validate.js)",
+      "Bash(curl -s -c /tmp/jv.txt -b /tmp/jv.txt -d 'email=student@student.ans-elblag.pl&password=Student123!' http://localhost:5000/login -o /dev/null)",
+      "Bash(curl -s -c /tmp/jv.txt -b /tmp/jv.txt --data-urlencode 'imie_nazwisko=Aleksandra Kowalska' --data-urlencode nr_albumu=21001 --data-urlencode 'specjalnosc=Administracja systemów i sieci komputerowych \\(ASiSK\\)' --data-urlencode rodzaj_studiow=stacjonarne --data-urlencode 'rok_akademicki=2025/2026 letni' --data-urlencode 'miejsce_praktyki=Techno Systems' --data-urlencode data_start=2026-04-01 --data-urlencode data_end=2026-05-31 --data-urlencode dzien[]=1 --data-urlencode data[]=2026-04-01 --data-urlencode opis[]=test --data-urlencode efekty[]=1,2 --data-urlencode podpis[]= http://localhost:5000/zal6/21001/edytuj -o /tmp/caseB.html -w 'http=%{http_code}\\\\n')",
+      "Bash(curl -s -c /tmp/ja.txt -b /tmp/ja.txt -d 'email=admin@ans-elblag.pl&password=Admin123!' http://localhost:5000/login -o /dev/null)",
+      "Bash(curl -s -c /tmp/ja.txt -b /tmp/ja.txt --data-urlencode 'imie_nazwisko=Jan2 Kowalski' --data-urlencode nr_albumu=21003 --data-urlencode 'specjalnosc=Administracja systemów i sieci komputerowych \\(ASiSK\\)' --data-urlencode rodzaj_studiow=stacjonarne --data-urlencode nip_zakladu=111-222-33-30 --data-urlencode data_start=2026-05-01 --data-urlencode data_end=2026-04-01 http://localhost:5000/zal1/21003/edytuj -o /tmp/z1.html -w 'http=%{http_code}\\\\n')"
     ]
   }
 }
