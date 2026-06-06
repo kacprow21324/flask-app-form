@@ -40,7 +40,10 @@
       "Bash(curl -s -c /tmp/jv.txt -b /tmp/jv.txt -d 'email=student@student.ans-elblag.pl&password=Student123!' http://localhost:5000/login -o /dev/null)",
       "Bash(curl -s -c /tmp/jv.txt -b /tmp/jv.txt --data-urlencode 'imie_nazwisko=Aleksandra Kowalska' --data-urlencode nr_albumu=21001 --data-urlencode 'specjalnosc=Administracja systemów i sieci komputerowych \\(ASiSK\\)' --data-urlencode rodzaj_studiow=stacjonarne --data-urlencode 'rok_akademicki=2025/2026 letni' --data-urlencode 'miejsce_praktyki=Techno Systems' --data-urlencode data_start=2026-04-01 --data-urlencode data_end=2026-05-31 --data-urlencode dzien[]=1 --data-urlencode data[]=2026-04-01 --data-urlencode opis[]=test --data-urlencode efekty[]=1,2 --data-urlencode podpis[]= http://localhost:5000/zal6/21001/edytuj -o /tmp/caseB.html -w 'http=%{http_code}\\\\n')",
       "Bash(curl -s -c /tmp/ja.txt -b /tmp/ja.txt -d 'email=admin@ans-elblag.pl&password=Admin123!' http://localhost:5000/login -o /dev/null)",
-      "Bash(curl -s -c /tmp/ja.txt -b /tmp/ja.txt --data-urlencode 'imie_nazwisko=Jan2 Kowalski' --data-urlencode nr_albumu=21003 --data-urlencode 'specjalnosc=Administracja systemów i sieci komputerowych \\(ASiSK\\)' --data-urlencode rodzaj_studiow=stacjonarne --data-urlencode nip_zakladu=111-222-33-30 --data-urlencode data_start=2026-05-01 --data-urlencode data_end=2026-04-01 http://localhost:5000/zal1/21003/edytuj -o /tmp/z1.html -w 'http=%{http_code}\\\\n')"
+      "Bash(curl -s -c /tmp/ja.txt -b /tmp/ja.txt --data-urlencode 'imie_nazwisko=Jan2 Kowalski' --data-urlencode nr_albumu=21003 --data-urlencode 'specjalnosc=Administracja systemów i sieci komputerowych \\(ASiSK\\)' --data-urlencode rodzaj_studiow=stacjonarne --data-urlencode nip_zakladu=111-222-33-30 --data-urlencode data_start=2026-05-01 --data-urlencode data_end=2026-04-01 http://localhost:5000/zal1/21003/edytuj -o /tmp/z1.html -w 'http=%{http_code}\\\\n')",
+      "Bash(python -c \"import docx2txt\")",
+      "Bash(python -c \"import docx\")",
+      "Bash(python tmp_extract_annexes.py)"
     ]
   }
 }

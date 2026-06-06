@@ -6,3 +6,4 @@ weasyprint
 PyMySQL
 cryptography
 pymongo
+gunicorn

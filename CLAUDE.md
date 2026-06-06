@@ -347,6 +347,11 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 - **Powiadomienia e-mail** – brak wysyłki e-mail przy zmianie statusu dokumentu
 - **Eksport CSV/Excel** – lista studentów z ocenami dla dziekanatu
 - **Kolejki recenzenta z DB** – statusy są już zapisywane i logowane w bazie (`document_workflow`/`document_log`), ale kolejki/powiadomienia nadal czytają `_status` z treści formularza (Mongo); do rozważenia oparcie kolejek bezpośrednio o tabelę `document_workflow`
+- **Wizualny podgląd obiegu dokumentów (diagram workflow)** – dodać widok pokazujący stan każdego załącznika (Zał. 1–9) jako diagram fazowy (Faza 0–4), z kolorystycznym statusem (szkic / oczekuje / zatwierdzone / odrzucone) oraz ścieżką sekwencyjną i równoległą:
+  - **Dla studenta** – własny obieg: które dokumenty zrobione, które czekają, gdzie utknął (z linkami do edycji/poprawy)
+  - **Dla UOPZ / ZOPZ** – widok zbiorczy „moich studentów" z diagramem na każdego (szybkie wyłapanie, kto blokuje proces, co czeka na moją akceptację)
+  - **Dla dziekanatu** – widok kilkunastu studentów naraz (tabela/grid z mini-diagramami statusów albo widok agregowany: ile osób w której fazie, ile dokumentów odrzuconych, ile gotowych do Zał. 8)
+  - Bazą danych są tabele `document_workflow` + `document_log` (już istnieją) – diagram tylko je renderuje, np. SVG/CSS grid lub biblioteką typu Mermaid renderowaną client-side
 
 ---
 
