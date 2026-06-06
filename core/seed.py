@@ -131,7 +131,8 @@ ATTACHMENTS_DATA = [
 # role -> [form_keys]
 ROLE_ACCESS_DATA = {
     'student':   ['zal1', 'zal2a', 'zal4b', 'zal5', 'zal6', 'zal7', 'zal7a'],
-    'uopz':      ['zal2', 'zal4a'],
+    # uopz ma dostęp do zal4b żeby wypełnić sekcję E (Opinia Komisji)
+    'uopz':      ['zal2', 'zal4a', 'zal4b'],
     'zopz':      ['zal3', 'zal4', 'zal9'],
     'dziekanat': ['zal8'],
     'admin':     ['zal1', 'zal2', 'zal2a', 'zal3', 'zal4', 'zal4a', 'zal4b',
@@ -357,6 +358,17 @@ def seed_role_access():
     db.session.commit()
     if added:
         print(f"Dostęp ról: dodano {added} wpisów.")
+
+
+def migrate_role_access():
+    """Aktualizuje role_form_access bez resetowania danych.
+    Uruchom: docker compose exec flask python -c
+    "from core.seed import migrate_role_access; migrate_role_access()"
+    """
+    from app import app
+    with app.app_context():
+        seed_role_access()
+        print("Migracja role_form_access zakończona.")
 
 
 def seed_student_workflow():

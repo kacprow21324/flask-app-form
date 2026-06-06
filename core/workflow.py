@@ -7,10 +7,13 @@ i `document_log`. Treść formularzy nadal jest w `data/studenci.json`, ale
 to baza jest źródłem prawdy dla kolejek recenzentów i historii.
 
 Funkcje są bezpieczne do wołania spoza kontekstu żądania (actor opcjonalny).
+
+Przejścia stanów realizowane przez DocumentFSM (core.fsm).
 """
 from flask_login import current_user
 
 from core.models import db, DocumentWorkflow, DocumentLog
+from core.fsm import DocumentFSM, InvalidTransition
 
 
 def _actor():
@@ -72,3 +75,34 @@ def get_logs(album_number, form_key=None, limit=200):
     if form_key:
         q = q.filter_by(form_key=form_key)
     return q.order_by(DocumentLog.created_at.desc(), DocumentLog.id.desc()).limit(limit).all()
+
+
+def do_transition(album_number: str, form_key: str, event: str,
+                  reviewer_role=None, comment=None):
+    """
+    Wykonuje przejście maszyny stanowej dla dokumentu.
+
+    Pobiera aktualny stan z DocumentWorkflow, waliduje przejście przez FSM,
+    zapisuje nowy stan i zdarzenie w dzienniku.
+
+    Rzuca InvalidTransition jeśli przejście niedozwolone.
+    Zwraca nowy obiekt DocumentWorkflow.
+    """
+    wf = DocumentWorkflow.query.filter_by(
+        album_number=album_number, form_key=form_key).first()
+    current_state = wf.status if wf else 'draft'
+
+    new_state = DocumentFSM.transition(current_state, event)  # rzuca InvalidTransition
+
+    return set_status(
+        album_number, form_key, new_state,
+        reviewer_role=reviewer_role,
+        action=event,
+        log_comment=comment,
+    )
+
+
+def get_statuses(album_number: str) -> dict:
+    """Zwraca słownik {form_key: status} dla wszystkich dokumentów studenta z bazy."""
+    rows = DocumentWorkflow.query.filter_by(album_number=album_number).all()
+    return {r.form_key: r.status for r in rows}

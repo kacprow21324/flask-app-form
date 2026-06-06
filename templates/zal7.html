@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik {{ '7a' if sn else '7' }} – Sprawozdanie z praktyki{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
 {% set plec = val('imie_nazwisko') | plec %}
@@ -103,7 +104,7 @@
 
                 <div class="field-group" style="margin-bottom:16px">
                     <label for="charakterystyka">
-                        1. Charakterystyka zakładu pracy / instytucji
+                        1. Charakterystyka {% if sn %}miejsca pracy{% else %}zakładu pracy / instytucji{% endif %}
                         <span style="font-weight:400; color:var(--muted)">(profil, struktura, zakres działalności)</span>
                     </label>
                     <textarea id="charakterystyka" name="charakterystyka" rows="6">{{ val('charakterystyka') }}</textarea>
@@ -111,7 +112,7 @@
 
                 <div class="field-group" style="margin-bottom:16px">
                     <label for="opis_prac">
-                        2. Opis wykonywanych prac i zadań
+                        2. Opis i analiza wykonywanych prac {% if sn %}w trakcie pracy zawodowej lub działalności gospodarczej{% else %}i zadań{% endif %}
                         <span style="font-weight:400; color:var(--muted)">(szczegółowy opis czynności, projektów, technologii)</span>
                     </label>
                     <textarea id="opis_prac" name="opis_prac" rows="8">{{ val('opis_prac') }}</textarea>
@@ -119,7 +120,7 @@
 
                 <div class="field-group">
                     <label for="wiedza_umiejetnosci">
-                        3. Nabyta wiedza i umiejętności
+                        3. {% if sn %}Wiedza i umiejętności uzyskane w trakcie pracy zawodowej lub działalności gospodarczej{% else %}Nabyta wiedza i umiejętności{% endif %}
                         <span style="font-weight:400; color:var(--muted)">(refleksja, osiągnięcia, wnioski)</span>
                     </label>
                     <textarea id="wiedza_umiejetnosci" name="wiedza_umiejetnosci" rows="6">{{ val('wiedza_umiejetnosci') }}</textarea>
@@ -134,11 +135,7 @@
                         <label for="data">Data sporządzenia sprawozdania</label>
                         <input id="data" type="date" name="data" value="{{ val('data') }}">
                     </div>
-                    <div class="sig-box">
-                        <label for="podpis_studenta">Podpis studenta</label>
-                        <input id="podpis_studenta" type="text" name="podpis_studenta"
-                               value="{{ val('podpis_studenta') }}" placeholder="Imię, nazwisko i podpis">
-                    </div>
+                    {{ sig_stamp(val('podpis_studenta'), 'Podpis studenta') }}
                 </div>
                 {% if sn %}
                 <div class="sig-row" style="margin-top:10px">

@@ -1,0 +1,138 @@
+● Raport — weryfikacja szablonów + workflow
+
+  Część 1 — Zgodność implementacji z oficjalnymi załącznikami
+
+  ┌───────────────────┬───────────┬──────────────────────────────────────────────────────────────────────────────────┐
+  │     Załącznik     │  Status   │                                      Uwagi                                       │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 1            │           │ Oryginał ma tabelę "Lp/Imię/Termin/Wymiar" dla wielu studentów; aplikacja ma     │
+  │ Porozumienie      │ ⚠️ drobne │ kartę pojedynczego studenta. W PDF brakuje 8 paragrafów obowiązków               │
+  │                   │           │ (Zakładu/Uczelni/Studenta). Dodano sensowne pola: NIP, reprezentant.             │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │                   │ ❌        │ Oficjalny dokument ma 3 etapy A/B/C (BHP → 11 efektów programowych →             │
+  │ Zał. 2 Program    │ istotny   │ zakończenie). Aplikacja ma zmyśloną generyczną listę 9 punktów. Treść istotnie   │
+  │                   │ brak      │ się różni.                                                                       │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 2a Program i │ ✅ zgodne │ 13 efektów z bazy = oryginał. Brak jawnego wiersza "Łącznie/Wymagana = 120".     │
+  │  harmonogram      │           │                                                                                  │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 3 Karta      │ ✅ zgodne │ Wszystkie 3 sekcje (skierowanie / zaświadczenie / ocena). Wszystkie 3 oceny 2–5. │
+  │ praktyki          │           │                                                                                  │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 4            │           │                                                                                  │
+  │ Potwierdzenie     │ ✅ zgodne │ 13 efektów z bazy, radio uzyskał/nie uzyskał, potwierdzenia.                     │
+  │ efektów           │           │                                                                                  │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 4a           │ ❌ brak   │ Oryginał ma TRZY stany per efekt: uzyskał / uzyskał częściowo / nie uzyskał.     │
+  │ Merytoryczna      │ opcji     │ Aplikacja ma tylko tak/nie. Brak podpisu Przewodniczącego Komisji.               │
+  │ ocena             │           │                                                                                  │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │                   │ ⚠️ brak   │ Aplikacja świetnie obsługuje uzasadnienie + dowody. Ale w oryginale to JEDEN     │
+  │ Zał. 4b Wniosek   │ sekcji    │ dokument zawierający też Opinię Komisji i Decyzję Dyrektora (3 warianty:         │
+  │                   │           │ zgoda/częściowa/odmowa) — w aplikacji brak.                                      │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 5 Ankieta    │ ✅ zgodne │ 14 pytań i 5 opcji Likerta identyczne z oryginałem.                              │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 6 Dziennik   │ ✅ zgodne │ Pełna zgodność + dodatek (upload plików).                                        │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 7            │ ✅ zgodne │ 3 sekcje treści odpowiadają oryginałowi.                                         │
+  │ Sprawozdanie      │           │                                                                                  │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 7a           │           │ Wspólny szablon z 7 z flagą sn=True. Brak pliku templates/zal7a.html jest        │
+  │ Sprawozdanie SN   │ ✅ zgodne │ celowy. Drobnostka: tytuły sekcji mogłyby być inne ("…w trakcie PRACY            │
+  │                   │           │ ZAWODOWEJ").                                                                     │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 8 Protokół   │ ✅ zgodne │ Wzór K = 0,4·E + 0,1·S + 0,2·U + 0,3·Z poprawny (sprawdzony w JS). E jest jednak │
+  │                   │           │  osobnym polem, nie średnią z 3 mini-zadań jak w oryginale.                      │
+  ├───────────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Zał. 9            │ ✅ zgodne │ Brakuje jedynie hard-coded "rok studiów: IV".                                    │
+  │ Oświadczenie      │           │                                                                                  │
+  └───────────────────┴───────────┴──────────────────────────────────────────────────────────────────────────────────┘
+
+  Werdykt: 8/13 pełna zgodność, 3/13 drobne różnice, 2/13 wymaga uwagi (Zał. 2 — wymyślona treść zamiast oryginału, Zał.
+  4a — brak opcji "częściowo", Zał. 4b — brak sekcji opinii/decyzji).
+
+  ---
+  Część 2 — Kolejność wypełniania (sequential + parallel)
+
+  Aktualny przewodnik dla studenta w bazie (STUDENT_WORKFLOW_DATA) pokazuje tylko kroki studenta. Pełen obieg z udziałem
+  innych ról wygląda tak:
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  FAZA 0 — Pre-setup                                                     │
+  │  • zopz  → Zał. 9 (oświadczenie instytucji)        ← startuje proces    │
+  │  • uopz  → Zał. 2 (ramowy program)        [może żyć statycznie obok]    │
+  └─────────────────────────────────────────────────────────────────────────┘
+                                ↓
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  FAZA 1 — Przygotowanie praktyki   (rozgałęzienie: ścieżka A lub B)     │
+  │                                                                         │
+  │  ┌── ŚCIEŻKA A (standardowa praktyka) ──────────────────────────────┐   │
+  │  │   1. student → Zał. 1   (recenzja: uopz)                         │   │
+  │  │   2. student → Zał. 2a  (recenzja: zopz)    [po Zał. 1]          │   │
+  │  │   3. uopz    → Zał. 3   skierowanie (UOPZ tworzy)                │   │
+  │  └──────────────────────────────────────────────────────────────────┘   │
+  │                                                                         │
+  │  ┌── ŚCIEŻKA B (zaliczenie na podstawie pracy/stażu) — OPCJONALNA ──┐   │
+  │  │   1. student → Zał. 4b  (recenzja: uopz)                         │   │
+  │  │   2. uopz    → Zał. 4a  (odpowiedź na 4b — Decyzja Dyrektora)    │   │
+  │  └──────────────────────────────────────────────────────────────────┘   │
+  └─────────────────────────────────────────────────────────────────────────┘
+                                ↓
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  FAZA 2 — Realizacja praktyki   (tylko ścieżka A)                       │
+  │  • student → Zał. 6 (dziennik)  → recenzja: zopz   [codziennie]         │
+  └─────────────────────────────────────────────────────────────────────────┘
+                                ↓
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  FAZA 3 — Po praktyce   (równoległe wypełnianie, 4 wątki)               │
+  │                                                                         │
+  │  ║ student → Zał. 7 (ścieżka A) lub Zał. 7a (ścieżka B)                 │
+  │  ║ student → Zał. 5 (ankieta anonimowa)                                 │
+  │  ║ zopz    → Zał. 3 cd. — ocena zakładowa + Zał. 4                      │
+  │  ║ uopz    → Zał. 3 cd. — ocena uczelniana + ocena sprawozdania         │
+  └─────────────────────────────────────────────────────────────────────────┘
+                                ↓
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  FAZA 4 — Zaliczenie końcowe (wspólna dla A i B)                        │
+  │  • dziekanat → Zał. 8 (protokół + K = 0,4E + 0,1S + 0,2U + 0,3Z)        │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Co MOŻE iść równolegle:
+  - Zał. 9 (zopz) i Zał. 2 (uopz) — niezależne
+  - W Fazie 1: Zał. 1 i Zał. 2a — można równolegle (oba wypełnia student)
+  - W Fazie 3: wszystkie 4 wątki niezależne (student/zopz/uopz)
+
+  Co MUSI iść sekwencyjnie:
+  - Zał. 9 → Zał. 1 (potrzebny nr porozumienia)
+  - Zał. 1 → Zał. 3 (Zał. 3 pobiera nr porozumienia)
+  - Zał. 4b → Zał. 4a (4a jest odpowiedzią na wniosek)
+  - Wszystko → Zał. 8 (protokół końcowy musi mieć S, U, Z, E)
+
+  ---
+  Rekomendacje do naprawy
+
+  ┌───────────┬──────────────────────────────────────────────────────────────┬────────────────────────────────────────┐
+  │ Priorytet │                              Co                              │                  Plik                  │
+  ├───────────┼──────────────────────────────────────────────────────────────┼────────────────────────────────────────┤
+  │ 🔴 wysoki │ Zastąpić zmyśloną listę 9 punktów w Zał. 2 oryginalną        │ templates/zal2.html,                   │
+  │           │ strukturą A/B/C z 11 efektami programowymi                   │ templates/print/zal2.html              │
+  ├───────────┼──────────────────────────────────────────────────────────────┼────────────────────────────────────────┤
+  │ 🔴 wysoki │ Dodać opcję "uzyskał/a częściowo" w Zał. 4a (radio 3-stanowe │ templates/zal4a.html + walidacja w     │
+  │           │  zamiast 2)                                                  │ app.py                                 │
+  ├───────────┼──────────────────────────────────────────────────────────────┼────────────────────────────────────────┤
+  │ 🟠 średni │ Dodać sekcje Opinii Komisji i Decyzji Dyrektora (3 warianty) │ templates/zal4b.html,                  │
+  │           │  do Zał. 4b                                                  │ templates/print/zal4b.html             │
+  ├───────────┼──────────────────────────────────────────────────────────────┼────────────────────────────────────────┤
+  │ 🟡 niski  │ W Zał. 2a tabela harmonogramu — dopisać wiersz "Łącznie /    │ templates/zal2a.html                   │
+  │           │ Wymagana 120"                                                │                                        │
+  ├───────────┼──────────────────────────────────────────────────────────────┼────────────────────────────────────────┤
+  │ 🟡 niski  │ Zał. 7a — sparametryzować tytuły sekcji ("…w trakcie PRACY   │ templates/zal7.html                    │
+  │           │ ZAWODOWEJ…")                                                 │                                        │
+  ├───────────┼──────────────────────────────────────────────────────────────┼────────────────────────────────────────┤
+  │ 🟡 niski  │ Zał. 8 — opisać że E jest średnią z mini-zadań lub osobnym   │ templates/zal8.html                    │
+  │           │ polem                                                        │                                        │
+  └───────────┴──────────────────────────────────────────────────────────────┴────────────────────────────────────────┘
+
+  Chciałbyś żebym którąkolwiek z tych poprawek wdrożył? Najmocniej rekomenduję Zał. 2 (treść jest po prostu inna od
+  oficjalnej) i Zał. 4a (brak kluczowej opcji "częściowo").

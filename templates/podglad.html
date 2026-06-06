@@ -127,6 +127,41 @@
             </div>
             {% endif %}
 
+            {# ── Historia obiegu per dokument ── #}
+            {% set doc_logs = logs_by_key.get(att.key, []) %}
+            {% if doc_logs %}
+            <details class="doc-log-details">
+                <summary class="doc-log-summary">Historia ({{ doc_logs|length }})</summary>
+                <div class="doc-log-timeline">
+                {% set action_cfg = {
+                    'created':   ('log-created',   'Utworzono'),
+                    'updated':   ('log-updated',    'Zaktualizowano'),
+                    'submitted': ('log-submitted',  'Wysłano do zatwierdzenia'),
+                    'approved':  ('log-approved',   'Zatwierdzono'),
+                    'rejected':  ('log-rejected',   'Odrzucono'),
+                    'deleted':   ('log-deleted',    'Usunięto'),
+                } %}
+                {% for ev in doc_logs %}
+                {% set cfg = action_cfg.get(ev.action, ('log-updated', ev.action)) %}
+                <div class="doc-log-entry">
+                    <span class="log-dot {{ cfg[0] }}"></span>
+                    <div class="log-body">
+                        <span class="log-action {{ cfg[0] }}">{{ cfg[1] }}</span>
+                        <span class="log-meta">
+                            {{ ev.actor_name or '—' }}
+                            {% if ev.actor_role %}<span class="log-role">({{ ev.actor_role }})</span>{% endif %}
+                            · {{ ev.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        </span>
+                        {% if ev.comment %}
+                        <div class="log-comment">{{ ev.comment }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+            </details>
+            {% endif %}
+
             {% if r %}
 
             {# ── Zał. 1 ── #}
@@ -316,31 +351,6 @@
 
     </div>
 
-    {# ── Historia obiegu (dziennik zdarzeń z bazy danych) ── #}
-    {% if logs %}
-    {% set log_actions = {
-        'created': 'Utworzono', 'updated': 'Zaktualizowano', 'submitted': 'Wysłano do zatwierdzenia',
-        'approved': 'Zatwierdzono', 'rejected': 'Odrzucono', 'deleted': 'Usunięto'} %}
-    <details class="doc-history">
-        <summary>Historia obiegu dokumentów ({{ logs | length }})</summary>
-        <table class="summary-table">
-            <thead><tr><th style="width:150px">Data</th><th style="width:60px">Zał.</th><th>Zdarzenie</th><th>Osoba</th></tr></thead>
-            <tbody>
-                {% for ev in logs %}
-                <tr>
-                    <td>{{ ev.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td class="nr-cell">{{ att_nr.get(ev.form_key, ev.form_key) }}</td>
-                    <td>
-                        {{ log_actions.get(ev.action, ev.action) }}
-                        {% if ev.comment %}<div class="diary-error-note">{{ ev.comment }}</div>{% endif %}
-                    </td>
-                    <td>{{ ev.actor_name or '—' }}{% if ev.actor_role %} <span class="file-link-size">({{ ev.actor_role }})</span>{% endif %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </details>
-    {% endif %}
 </div>
 <script>
 // Auto-scroll do wskazanego dokumentu po kliknięciu powiadomienia

@@ -1,0 +1,12 @@
+{# Reusable macros for form templates #}
+
+{% macro sig_stamp(value, label) %}
+<div class="sig-box">
+    <label>{{ label }}</label>
+    {% if value %}
+    <div class="sig-stamp signed">{{ value }}</div>
+    {% else %}
+    <div class="sig-stamp pending">— oczekuje na potwierdzenie —</div>
+    {% endif %}
+</div>
+{% endmacro %}

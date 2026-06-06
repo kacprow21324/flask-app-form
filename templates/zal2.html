@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 2 – Program praktyki zawodowej{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
 
@@ -58,29 +59,54 @@
             </div>
 
             <div class="form-section">
-                <div class="form-section-label">Ramowy program praktyki</div>
-                <div class="doc-info-box">
-                    Poniżej przedstawiony jest ramowy program praktyki zawodowej dla kierunku Informatyka.
-                    Student realizuje program pod nadzorem zakładowego opiekuna praktyki.
+                <div class="form-section-label">Program praktyki</div>
+
+                <div class="doc-info-box" style="margin-bottom:14px">
+                    Planowany czas realizacji praktyki: 6 miesięcy tj. 120 dni (960 godz.).
                 </div>
-                <div class="table-wrap" style="margin-top:14px">
+
+                <p style="font-weight:600; margin:0 0 8px 0">A. Etap pierwszy – rozpoczęcie praktyki</p>
+                <div class="table-wrap" style="margin-bottom:16px">
+                    <table class="effects-table">
+                        <tbody>
+                            <tr><td>Czynności organizacyjne, szkolenie BHP i ppoż.</td></tr>
+                            <tr><td>Zapoznanie się z zakresem działania zakładu pracy (rodzaj usług, produkcja, struktura organizacyjna itp.) ze szczególnym uwzględnieniem stanowisk informatycznych.</td></tr>
+                            <tr><td>Zapoznanie z projektami realizowanymi przez firmę, środkami produkcji, aplikacjami użytkowymi, stosowanymi technologiami informatycznymi z podkreśleniem wytwórczych narzędzi softwareowych i sieci komputerowych.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style="font-weight:600; margin:0 0 8px 0">B. Etap drugi</p>
+                <div class="doc-info-box" style="margin-bottom:8px">
+                    Praca na docelowym stanowisku pracy, wykonywanie prac i projektów informatycznych
+                    tak aby osiągnąć poniższe, wymagane programem studiów, efekty uczenia się:
+                </div>
+                <div class="table-wrap" style="margin-bottom:16px">
                     <table class="effects-table">
                         <thead>
                             <tr>
-                                <th class="col-nr">Lp.</th>
-                                <th>Zakres tematyczny / zadania</th>
+                                <th class="col-nr">Nr</th>
+                                <th>Efekt uczenia się</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td class="col-nr">1</td><td>Zapoznanie się z organizacją i regulaminem zakładu pracy, przepisami BHP i p.poż.</td></tr>
-                            <tr><td class="col-nr">2</td><td>Zapoznanie się ze strukturą organizacyjną, profilem i zakresem działalności zakładu.</td></tr>
-                            <tr><td class="col-nr">3</td><td>Zapoznanie się z infrastrukturą informatyczną zakładu (sieci, serwery, oprogramowanie).</td></tr>
-                            <tr><td class="col-nr">4</td><td>Uczestnictwo w projektowaniu, wdrażaniu lub administrowaniu systemami informatycznymi.</td></tr>
-                            <tr><td class="col-nr">5</td><td>Programowanie i testowanie aplikacji lub modułów oprogramowania użytkowego.</td></tr>
-                            <tr><td class="col-nr">6</td><td>Administrowanie bazami danych i utrzymanie ciągłości działania systemów.</td></tr>
-                            <tr><td class="col-nr">7</td><td>Udział w realizacji projektów IT zgodnie ze specjalnością studiów.</td></tr>
-                            <tr><td class="col-nr">8</td><td>Prowadzenie dokumentacji technicznej i raportów z wykonanych prac.</td></tr>
-                            <tr><td class="col-nr">9</td><td>Podsumowanie praktyki i opracowanie sprawozdania końcowego.</td></tr>
+                            {% for effect in effects %}
+                            <tr>
+                                <td class="col-nr">{{ "%02d" | format(effect.nr) }}</td>
+                                <td>{{ effect.opis }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style="font-weight:600; margin:0 0 8px 0">C. Etap trzeci – zakończenie praktyki</p>
+                <div class="table-wrap">
+                    <table class="effects-table">
+                        <tbody>
+                            <tr><td>W trakcie praktyki student prowadzi „Dzienniczek praktyki". Wpisy w dzienniczku powinny być potwierdzone przez zakładowego opiekuna praktyki.</td></tr>
+                            <tr><td>Na „Karcie praktyki zawodowej" kierownik zakładu pracy potwierdza odbycie praktyki, a opiekun zakładowy wystawia ocenę parametryczną i w formie opisowej.</td></tr>
+                            <tr><td>Opiekun ze strony zakładu pracy na odpowiednim druku „Potwierdzenie efektów uczenia się" potwierdza osiągnięcie przez praktykanta wymienionych powyżej efektów uczenia się.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -89,18 +115,8 @@
             <div class="form-section">
                 <div class="form-section-label">Podpisy</div>
                 <div class="sig-row">
-                    <div class="sig-box">
-                        <label for="podpis_zakladowy">Podpis zakładowego opiekuna praktyki</label>
-                        <input id="podpis_zakladowy" type="text" name="podpis_zakladowy"
-                               value="{{ val('podpis_zakladowy') }}"
-                               placeholder="Data, pieczęć i podpis">
-                    </div>
-                    <div class="sig-box">
-                        <label for="podpis_uczelniany">Podpis uczelnianego opiekuna praktyki</label>
-                        <input id="podpis_uczelniany" type="text" name="podpis_uczelniany"
-                               value="{{ val('podpis_uczelniany') }}"
-                               placeholder="Data i podpis">
-                    </div>
+                    {{ sig_stamp(val('podpis_zakladowy'), 'Podpis zakładowego opiekuna praktyki') }}
+                    {{ sig_stamp(val('podpis_uczelniany'), 'Podpis dyrektora Instytutu') }}
                 </div>
             </div>
 

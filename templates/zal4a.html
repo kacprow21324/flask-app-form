@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 4a – Merytoryczna ocena wniosku studenta{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
 {% macro ocena_val(nr, field) %}
@@ -84,13 +85,19 @@
                                         <input type="radio" name="zasadny_{{ effect.nr }}"
                                                value="tak"
                                                {% if cur_zasadny.val == 'tak' %}checked{% endif %}>
-                                        tak
+                                        uzyska/ła
+                                    </label>
+                                    <label class="radio">
+                                        <input type="radio" name="zasadny_{{ effect.nr }}"
+                                               value="częściowo"
+                                               {% if cur_zasadny.val == 'częściowo' %}checked{% endif %}>
+                                        częściowo
                                     </label>
                                     <label class="radio">
                                         <input type="radio" name="zasadny_{{ effect.nr }}"
                                                value="nie"
                                                {% if cur_zasadny.val == 'nie' %}checked{% endif %}>
-                                        nie
+                                        nie uzyska/ła
                                     </label>
                                 </td>
                                 <td>
@@ -137,11 +144,7 @@
                         <label for="data_oceny">Data oceny</label>
                         <input id="data_oceny" type="date" name="data_oceny" value="{{ val('data_oceny') }}">
                     </div>
-                    <div class="sig-box">
-                        <label for="podpis_uopz">Podpis uczelnianego opiekuna praktyki</label>
-                        <input id="podpis_uopz" type="text" name="podpis_uopz"
-                               value="{{ val('podpis_uopz') }}" placeholder="Imię, nazwisko i podpis">
-                    </div>
+                    {{ sig_stamp(val('podpis_uopz'), 'Podpis uczelnianego opiekuna praktyki') }}
                 </div>
             </div>
 

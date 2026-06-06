@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 1 – Porozumienie z zakładem pracy{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
 {% set plec = val('imie_nazwisko') | plec %}
@@ -160,18 +161,8 @@
             <div class="form-section">
                 <div class="form-section-label">D. Podpisy</div>
                 <div class="sig-row">
-                    <div class="sig-box">
-                        <label for="podpis_zakladowy">Podpis zakładowego opiekuna</label>
-                        <input id="podpis_zakladowy" type="text" name="podpis_zakladowy"
-                               value="{{ val('podpis_zakladowy') }}"
-                               placeholder="Data, pieczęć i podpis">
-                    </div>
-                    <div class="sig-box">
-                        <label for="podpis_uczelniany">Podpis uczelnianego opiekuna / Dyrektor IIS</label>
-                        <input id="podpis_uczelniany" type="text" name="podpis_uczelniany"
-                               value="{{ val('podpis_uczelniany') }}"
-                               placeholder="Data, pieczęć i podpis">
-                    </div>
+                    {{ sig_stamp(val('podpis_zakladowy'), 'Podpis zakładowego opiekuna') }}
+                    {{ sig_stamp(val('podpis_uczelniany'), 'Podpis uczelnianego opiekuna / Dyrektor IIS') }}
                 </div>
             </div>
 

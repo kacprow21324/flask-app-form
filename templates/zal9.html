@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 9 – Oświadczenie instytucji{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
 
@@ -122,11 +123,8 @@
                                value="{{ val('upowazniont_stanowisko') }}">
                     </div>
                 </div>
-                <div class="sig-box" style="margin-top:14px">
-                    <label for="podpis">Data, pieczęć i podpis upoważnionego</label>
-                    <input id="podpis" type="text" name="podpis"
-                           value="{{ val('podpis') }}"
-                           placeholder="Data, pieczęć i podpis">
+                <div style="margin-top:14px">
+                    {{ sig_stamp(val('podpis'), 'Podpis upoważnionego (zakładowego opiekuna)') }}
                 </div>
             </div>
 

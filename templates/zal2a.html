@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 2a – Program i harmonogram praktyki{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
 {% macro dzial_val(nr) %}
@@ -137,6 +138,18 @@
                             </tr>
                             {% endfor %}
                         </tbody>
+                        <tfoot>
+                            <tr style="font-weight:600; background:var(--bg-hover,#f5f5f5)">
+                                <td class="col-nr">—</td>
+                                <td>Łącznie</td>
+                                <td style="text-align:center">—</td>
+                            </tr>
+                            <tr style="font-weight:600; background:var(--bg-hover,#f5f5f5)">
+                                <td class="col-nr">—</td>
+                                <td>Wymagana</td>
+                                <td style="text-align:center">120</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -153,21 +166,9 @@
                     <div class="field-group"></div>
                 </div>
                 <div class="sig-row" style="grid-template-columns: 1fr 1fr 1fr;">
-                    <div class="sig-box">
-                        <label for="podpis_studenta">Podpis studenta</label>
-                        <input id="podpis_studenta" type="text" name="podpis_studenta"
-                               value="{{ val('podpis_studenta') }}" placeholder="Data i podpis">
-                    </div>
-                    <div class="sig-box">
-                        <label for="podpis_zakladowy">Podpis zakładowego opiekuna</label>
-                        <input id="podpis_zakladowy" type="text" name="podpis_zakladowy"
-                               value="{{ val('podpis_zakladowy') }}" placeholder="Data, pieczęć i podpis">
-                    </div>
-                    <div class="sig-box">
-                        <label for="podpis_uczelniany">Podpis uczelnianego opiekuna</label>
-                        <input id="podpis_uczelniany" type="text" name="podpis_uczelniany"
-                               value="{{ val('podpis_uczelniany') }}" placeholder="Data i podpis">
-                    </div>
+                    {{ sig_stamp(val('podpis_studenta'), 'Podpis studenta') }}
+                    {{ sig_stamp(val('podpis_zakladowy'), 'Podpis zakładowego opiekuna') }}
+                    {{ sig_stamp(val('podpis_uczelniany'), 'Podpis uczelnianego opiekuna') }}
                 </div>
             </div>
 

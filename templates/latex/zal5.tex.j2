@@ -1,59 +1,81 @@
-% ANS Elblag – Załącznik nr 5 – Kwestionariusz ankiety ewaluacyjnej
+% ANS Elblag – Załącznik nr 5 – Kwestionariusz ankiety
 \input{base}
 \begin{document}
 
 \letterhead{5}
 
-\doctitle{KWESTIONARIUSZ ANKIETY EWALUACYJNEJ PRAKTYKI ZAWODOWEJ}
+\doctitle{KWESTIONARIUSZ ANKIETY OCENIAJĄCY PRZEBIEG PRAKTYK ZAWODOWYCH}
 
-\begin{minipage}[t]{\threecolW}
-\pfield{Nr albumu}{(( data.nr_albumu | le ))}
-\end{minipage}\hfill
+{\fontsize{9}{12}\selectfont
+W trosce o stałe podnoszenie jakości przebiegu praktyk zawodowych zwracamy się do Pani/Pana
+z prośbą o wypełnienie anonimowej ankiety dotyczącej praktyk zawodowych, w której należy określić
+w jakim stopniu zgadza się Pan/Pani z poniższymi stwierdzeniami.
+}
+
+\vspace{6pt}
 \begin{minipage}[t]{\threecolW}
 \pfield{Rok akademicki}{(( data.rok_akademicki | le ))}
 \end{minipage}\hfill
 \begin{minipage}[t]{\threecolW}
-\pfield{Semestr}{(( data.semestr | le ))}
+\pfield{Kierunek studiów}{Informatyka}
+\end{minipage}\hfill
+\begin{minipage}[t]{\threecolW}
+\pfield{Forma studiów}{(( data.get('forma_studiow', '') | le ))}
 \end{minipage}
 
 \vspace{4pt}
 \begin{minipage}[t]{\twocolA}
-\pfield{Kierunek}{Informatyka}
+\pfield{Semestr studiów}{(( data.semestr | le ))}
 \end{minipage}\hfill
 \begin{minipage}[t]{\twocolB}
-\pfield{Forma studiów}{(( data.forma_studiow | le ))}
+\pfield{Liczba godzin zrealizowanej praktyki}{(( data.get('liczba_godzin_praktyki', '') | le ))}
 \end{minipage}
 
 \sectionrule
 
 \vspace{4pt}
-\renewcommand{\arraystretch}{1.4}
-\fontsize{8.5}{11}\selectfont
+\renewcommand{\arraystretch}{1.35}
+\fontsize{8}{10}\selectfont
 \begin{tabularx}{\linewidth}{%
-  |>{\centering\arraybackslash}p{18pt}%
+  |>{\centering\arraybackslash}p{16pt}%
   |X%
-  |p{120pt}|%
+  |>{\centering\arraybackslash}p{36pt}%
+  |>{\centering\arraybackslash}p{36pt}%
+  |>{\centering\arraybackslash}p{36pt}%
+  |>{\centering\arraybackslash}p{30pt}%
+  |>{\centering\arraybackslash}p{36pt}|%
 }
 \hline
 \rowcolor{lightgray}
-\textbf{Nr} & \textbf{Pytanie} & \textbf{Odpowiedź} \\
+\textbf{Nr} & \textbf{Pytanie} &
+\textbf{\tiny zdecydowanie tak} &
+\textbf{\tiny raczej tak} &
+\textbf{\tiny trudno powiedzieć} &
+\textbf{\tiny raczej nie} &
+\textbf{\tiny zdecydowanie nie} \\
 \hline
+((*- set opt_labels = ['zdecydowanie tak', 'raczej tak', 'trudno powiedzieć', 'raczej nie', 'zdecydowanie nie'] *))
 ((*- for i in range(1, 15) *))
-((*-   set cur_ans = namespace(val='---') *))
+((*-   set cur_ans = namespace(val='') *))
 ((*-   for p in data.get('pytania', []) *))
 ((*-     if p.nr == i *))
 ((*-       set cur_ans.val = p.odpowiedz *))
 ((*-     endif *))
 ((*-   endfor *))
-(( i )). & (( (questions[i-1] if questions and i <= questions|length else '---') | le )) & (( cur_ans.val | le )) \\
+(( i )). &
+{\fontsize{7.5}{10}\selectfont (( (questions[i-1] if questions and i <= questions|length else '---') | le ))} &
+((*- for opt in opt_labels *))
+((*- if cur_ans.val | lower == opt | lower *))$\boxtimes$((*- else *))$\square$((*- endif *)) &
+((*- endfor *))
+\\
 \hline
 ((*- endfor *))
 \end{tabularx}
 \normalsize
 
-((*- if data.uwagi *))
+((*- if data.get('uwagi') *))
 \sectionrule
-\pfield{Uwagi i komentarze}{(( data.uwagi | le ))}
+\pfield{Dodatkowe uwagi dotyczące przebiegu praktyki zawodowej}{(( data.uwagi | le ))}
 ((*- endif *))
 
 \end{document}

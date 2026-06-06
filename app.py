@@ -8,7 +8,7 @@ from core.config import Config
 from core.models import (
     db, User, LearningEffect,
     Specialty, Attachment, RoleFormAccess, StudentWorkflowStep,
-    SurveyQuestion, SurveyOption, AppConfig,
+    SurveyQuestion, SurveyOption, AppConfig, DocumentWorkflow,
 )
 from core import workflow
 from core import validators
@@ -128,8 +128,7 @@ def _set_config_value(key, value, label=None):
 
 def get_current_semester():
     """Zwraca aktualny rok akademicki z semestrem, np. '2025/2026 letni'."""
-    from datetime import date
-    today = date.today()
+    today = _date.today()
     m, y = today.month, today.year
     summer_start = int(get_config_value('semester_summer_start_month', 3))
     winter_start = int(get_config_value('semester_winter_start_month', 10))
@@ -311,8 +310,7 @@ def build_prefill(nr=''):
     if current_user.role == 'uopz':
         base.update({
             'uczelniany_opiekun': current_user.full_name,
-            'podpis_uczelniany':  current_user.full_name,
-            'podpis_uopz':        current_user.full_name,
+            # podpis_uczelniany / podpis_uopz są auto-stemplowane przez _stamp_sigs, nie przez prefill
         })
     elif current_user.role == 'zopz':
         base.update({
@@ -320,6 +318,96 @@ def build_prefill(nr=''):
             'opiekun_imie_nazwisko':      current_user.full_name,
         })
     return base or None
+
+
+# ─── Fazy obiegu dokumentów ───────────────────────────────────────────────────
+
+WORKFLOW_PHASES = [
+    {'nr': 0, 'label': 'Faza 0', 'subtitle': 'Pre-setup',
+     'keys': ['zal9', 'zal2']},
+    {'nr': 1, 'label': 'Faza 1', 'subtitle': 'Przygotowanie',
+     'keys': ['zal1', 'zal2a', 'zal4b', 'zal4a']},
+    {'nr': 2, 'label': 'Faza 2', 'subtitle': 'Realizacja',
+     'keys': ['zal6']},
+    {'nr': 3, 'label': 'Faza 3', 'subtitle': 'Po praktyce',
+     'keys': ['zal7', 'zal7a', 'zal5', 'zal3', 'zal4']},
+    {'nr': 4, 'label': 'Faza 4', 'subtitle': 'Zaliczenie',
+     'keys': ['zal8']},
+]
+
+# ─── Auto-signatures ──────────────────────────────────────────────────────────
+
+def _auto_sig():
+    """Returns 'FirstName LastName · DD.MM.YYYY' for the current logged-in user."""
+    return f"{current_user.first_name} {current_user.last_name} · {_date.today().strftime('%d.%m.%Y')}"
+
+# Fields auto-stamped when the given role SAVES a form.
+_SAVE_SIGS = {
+    ('zal1',  'uopz'):      ['podpis_uczelniany'],
+    ('zal1',  'admin'):     ['podpis_uczelniany'],
+    ('zal1',  'zopz'):      ['podpis_zakladowy'],
+    ('zal2',  'uopz'):      ['podpis_uczelniany'],
+    ('zal2',  'admin'):     ['podpis_uczelniany'],
+    ('zal2',  'zopz'):      ['podpis_zakladowy'],
+    ('zal2a', 'student'):   ['podpis_studenta'],
+    ('zal2a', 'uopz'):      ['podpis_uczelniany'],
+    ('zal2a', 'admin'):     ['podpis_uczelniany'],
+    ('zal2a', 'zopz'):      ['podpis_zakladowy'],
+    ('zal3',  'zopz'):      ['podpis_zakladowy'],
+    ('zal3',  'uopz'):      ['podpis_uczelniany', 'podpis_sprawozdanie'],
+    ('zal3',  'admin'):     ['podpis_uczelniany', 'podpis_sprawozdanie'],
+    ('zal4a', 'uopz'):      ['podpis_uopz'],
+    ('zal4a', 'admin'):     ['podpis_uopz'],
+    ('zal4b', 'student'):   ['podpis_studenta'],
+    ('zal4b', 'uopz'):      ['podpis_komisji'],
+    ('zal4b', 'admin'):     ['podpis_dyrektora'],
+    ('zal7',  'student'):   ['podpis_studenta'],
+    ('zal7a', 'student'):   ['podpis_studenta'],
+    ('zal8',  'dziekanat'): ['podpis_s'],
+    ('zal8',  'admin'):     ['podpis_s'],
+    ('zal9',  'zopz'):      ['podpis'],
+    ('zal9',  'admin'):     ['podpis'],
+}
+
+# Fields auto-stamped when a reviewer APPROVES a form.
+_APPROVE_SIGS = {
+    ('zal1',  'uopz'):  ['podpis_uczelniany'],
+    ('zal1',  'zopz'):  ['podpis_zakladowy'],
+    ('zal1',  'admin'): ['podpis_uczelniany'],
+    ('zal2',  'zopz'):  ['podpis_zakladowy'],
+    ('zal2',  'admin'): ['podpis_zakladowy'],
+    ('zal2a', 'zopz'):  ['podpis_zakladowy'],
+    ('zal2a', 'uopz'):  ['podpis_uczelniany'],
+    ('zal2a', 'admin'): ['podpis_uczelniany'],
+    ('zal3',  'uopz'):  ['podpis_uczelniany', 'podpis_sprawozdanie'],
+    ('zal3',  'admin'): ['podpis_uczelniany', 'podpis_sprawozdanie'],
+}
+
+
+def _stamp_sigs(record, zal_key, existing):
+    """
+    Auto-stamps the current user's signature fields in record.
+    Preserves existing signatures for fields belonging to other roles.
+    existing – the previous MongoDB record (or {} if new).
+    """
+    sig = _auto_sig()
+    role = current_user.role
+
+    # All sig fields managed for this form across all roles
+    all_sig_fields = {
+        f for (key, _), fields in _SAVE_SIGS.items()
+        if key == zal_key for f in fields
+    }
+    my_fields = set(_SAVE_SIGS.get((zal_key, role), []))
+
+    # Preserve sigs set by other roles
+    for field in all_sig_fields - my_fields:
+        existing_val = (existing or {}).get(field, '')
+        record[field] = existing_val
+
+    # Stamp current user's fields
+    for field in my_fields:
+        record[field] = sig
 
 
 def _persist(nr_albumu, key, record, label):
@@ -331,12 +419,19 @@ def _persist(nr_albumu, key, record, label):
         status_label = STATUS_LABELS.get(existing_status, (existing_status,))[0]
         flash(f'Nie mozna zapisac - dokument ma status "{status_label}".', "error")
         return redirect(url_for('student_detail', nr_albumu=nr_albumu))
+    transition_done = False
     if existing_status in ('draft', 'rejected'):
-        # Po poprawieniu odrzuconego dokumentu automatycznie wracamy do pending
+        from core.fsm import DocumentFSM
         was_rejected = (existing_status == 'rejected')
-        wf = get_document_workflow().get(key, {})
-        if was_rejected and wf.get('reviewer'):
-            record['_status'] = 'pending'
+        wf_meta = get_document_workflow().get(key, {})
+        if was_rejected and wf_meta.get('reviewer'):
+            # FSM: auto-resubmit (rejected → pending); do_transition obsługuje też log
+            record['_status'] = DocumentFSM.transition('rejected', 'submit')
+            data[nr_albumu][key] = record
+            save_data(data)
+            workflow.do_transition(nr_albumu, key, 'submit',
+                                   reviewer_role=wf_meta.get('reviewer'))
+            transition_done = True
         else:
             record['_status'] = 'draft'
         for mk in ('_rejection_comment', '_rejection_by', '_field_comments', '_diary_comments'):
@@ -346,15 +441,15 @@ def _persist(nr_albumu, key, record, label):
         for mk in ('_rejection_comment', '_rejection_by', '_field_comments'):
             if mk in existing:
                 record[mk] = existing[mk]
-    data[nr_albumu][key] = record
-    save_data(data)
-    # ── Zapis stanu i zdarzenia w bazie danych ──────────────────────────────
-    reviewer_role = get_document_workflow().get(key, {}).get('reviewer')
-    workflow.set_status(
-        nr_albumu, key, record['_status'], reviewer_role=reviewer_role,
-        action='submitted' if record['_status'] == 'pending' else (
-            'created' if existing_status == 'draft' and not existing else 'updated'),
-    )
+
+    if not transition_done:
+        data[nr_albumu][key] = record
+        save_data(data)
+        reviewer_role = get_document_workflow().get(key, {}).get('reviewer')
+        action = ('created' if existing_status == 'draft' and not existing else 'updated')
+        workflow.set_status(nr_albumu, key, record['_status'],
+                            reviewer_role=reviewer_role, action=action)
+
     if record.get('_status') == 'pending':
         reviewer_label = get_document_workflow().get(key, {}).get('reviewer_label', 'recenzenta')
         flash(f"{label} poprawiony/a i wysłany/a ponownie do: {reviewer_label}.", "success")
@@ -400,6 +495,52 @@ def powiadomienia():
     except Exception:
         notifs = []
     return render_template("powiadomienia.html", notifications=notifs)
+
+
+@app.route("/obieg")
+@login_required
+def obieg():
+    attachments = get_attachments()
+    att_map = {a['key']: a for a in attachments}
+
+    if current_user.role == 'student':
+        nr = current_user.album_number
+        if not nr:
+            flash("Brak numeru albumu — skontaktuj się z administratorem.", "error")
+            return redirect(url_for("index"))
+        wf_rows = DocumentWorkflow.query.filter_by(album_number=nr).all()
+        status_map = {r.form_key: r.status for r in wf_rows}
+        return render_template("obieg.html",
+            phases=WORKFLOW_PHASES, att_map=att_map,
+            status_map=status_map, nr_albumu=nr,
+            role=current_user.role,
+        )
+
+    # Widok pracowniczy: wszyscy studenci
+    students = (User.query
+                .filter_by(role='student')
+                .order_by(User.last_name, User.first_name)
+                .all())
+    all_wf = DocumentWorkflow.query.all()
+    wf_by_student = {}
+    for r in all_wf:
+        wf_by_student.setdefault(r.album_number, {})[r.form_key] = r.status
+
+    # Podsumowanie per klucz formularza
+    all_keys = [k for ph in WORKFLOW_PHASES for k in ph['keys']]
+    summary = {}
+    for key in all_keys:
+        counts = {'approved': 0, 'pending': 0, 'rejected': 0, 'draft': 0, 'none': 0}
+        for s in students:
+            st = wf_by_student.get(s.album_number, {}).get(key)
+            counts[st if st else 'none'] += 1
+        summary[key] = counts
+
+    return render_template("obieg.html",
+        phases=WORKFLOW_PHASES, att_map=att_map,
+        students=students, wf_by_student=wf_by_student,
+        summary=summary, role=current_user.role,
+    )
 
 
 @app.route("/profil", methods=["GET", "POST"])
@@ -464,14 +605,22 @@ def pobierz_pdf(nr_albumu, zal_key):
     effects = get_effects()
     effect_map = {e.nr: e.opis for e in effects}
     att = next((a for a in attachments if a["key"] == zal_key), None)
-    from core.generate_pdf import generate_pdf
+    from core.generate_pdf_latex import generate_pdf_latex
     ctx = dict(
         data=record, nr_albumu=nr_albumu, att=att,
         effects=effects, effect_map=effect_map,
         questions=get_survey_questions(), options=get_survey_options(),
         specialties=get_specialties(), sn=(zal_key == "zal7a"),
     )
-    buf = generate_pdf(app, zal_key, ctx)
+    try:
+        buf = generate_pdf_latex(zal_key, ctx)
+    except FileNotFoundError:
+        flash("Brak szablonu LaTeX dla tego załącznika.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    except RuntimeError as exc:
+        app.logger.error("xelatex failed: %s", exc)
+        flash("Błąd generowania PDF przez LaTeX. Sprawdź logi serwera.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
     filename = f"Zal_{att['nr']}_{nr_albumu}.pdf" if att else f"{zal_key}_{nr_albumu}.pdf"
     return send_file(buf, as_attachment=True, download_name=filename, mimetype="application/pdf")
 
@@ -578,21 +727,40 @@ def index():
             workflow=workflow, name=name, editable_forms=editable,
             status_labels=STATUS_LABELS)
 
+    # Dane z MariaDB: User (specjalność, tryb) + DocumentWorkflow (statusy)
+    user_map = {u.album_number: u
+                for u in User.query.filter_by(role='student').all()
+                if u.album_number}
+    all_wf = DocumentWorkflow.query.all()
+    wf_by_student = {}
+    for r in all_wf:
+        wf_by_student.setdefault(r.album_number, {})[r.form_key] = r.status
+
     students = []
     for nr in sorted(data.keys()):
         forms = data[nr]
-        name = ""
-        for key in ("zal3", "zal4", "zal6", "zal1", "zal7", "zal9"):
-            if key in forms:
-                name = forms[key].get("imie_nazwisko", "")
-                if name:
-                    break
+        u = user_map.get(nr)
+        name = u.full_name if u else ""
+        if not name:
+            for key in ("zal3", "zal4", "zal6", "zal1", "zal7", "zal9"):
+                if key in forms:
+                    name = forms[key].get("imie_nazwisko", "")
+                    if name:
+                        break
         filled = [a["key"] for a in attachments if a["key"] in forms]
+        sw = wf_by_student.get(nr, {})
+        statuses = list(sw.values())
         students.append({
             "nr_albumu": nr,
             "imie_nazwisko": name,
+            "speciality": u.speciality or "" if u else "",
+            "study_mode": u.study_mode or "stacjonarne" if u else "stacjonarne",
             "filled": filled,
             "count": len(filled),
+            "approved": sum(1 for s in statuses if s == "approved"),
+            "pending":  sum(1 for s in statuses if s == "pending"),
+            "rejected": sum(1 for s in statuses if s == "rejected"),
+            "zal8_status": sw.get("zal8"),
         })
 
     pending_reviews = []
@@ -644,7 +812,10 @@ def student_detail(nr_albumu):
     visible_keys = ROLE_VISIBLE_FORMS.get(current_user.role)
     filtered_atts = [a for a in all_atts if visible_keys is None or a['key'] in visible_keys]
     att_nr = {a['key']: a['nr'] for a in all_atts}
-    logs = workflow.get_logs(nr_albumu)
+    raw_logs = workflow.get_logs(nr_albumu)
+    logs_by_key = {}
+    for ev in raw_logs:
+        logs_by_key.setdefault(ev.form_key, []).append(ev)
     return render_template("podglad.html",
         nr_albumu=nr_albumu,
         student=student,
@@ -654,7 +825,7 @@ def student_detail(nr_albumu):
         user_role=current_user.role,
         document_workflow=get_document_workflow(),
         status_labels=STATUS_LABELS,
-        logs=logs,
+        logs_by_key=logs_by_key,
         att_nr=att_nr,
     )
 
@@ -681,6 +852,7 @@ def student_delete(nr_albumu):
 @app.route("/student/<nr_albumu>/<zal_key>/wyslij", methods=["POST"])
 @login_required
 def wyslij_do_oceny(nr_albumu, zal_key):
+    from core.fsm import DocumentFSM, InvalidTransition
     if current_user.role == 'student' and current_user.album_number != nr_albumu:
         flash("Brak dostępu.", "error")
         return redirect(url_for("index"))
@@ -693,16 +865,30 @@ def wyslij_do_oceny(nr_albumu, zal_key):
     if not rec:
         flash("Formularz nie został jeszcze wypełniony.", "error")
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
-    if rec.get('_status') not in ('draft', 'rejected'):
+    # FSM: walidacja przejścia
+    current_state = rec.get('_status', 'draft')
+    try:
+        DocumentFSM.transition(current_state, 'submit')
+    except InvalidTransition:
         flash("Dokument jest już w trakcie oceny lub zatwierdzony.", "info")
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    # FSM: ostrzeżenia o niespełnionych zależnościach fazowych (miękkie)
+    statuses = workflow.get_statuses(nr_albumu)
+    unmet = DocumentFSM.check_prerequisites(zal_key, statuses)
+    for u in unmet:
+        zal_nr = next((a['nr'] for a in get_attachments() if a['key'] == u['form_key']), u['form_key'])
+        flash(
+            f"Uwaga: Zał. {zal_nr} powinien mieć status "
+            f"'{DocumentFSM.STATE_LABELS.get(u['required_status'], u['required_status'])}' "
+            f"przed wysłaniem tego dokumentu (teraz: '{DocumentFSM.STATE_LABELS.get(u['actual'], u['actual'])}').",
+            "warning"
+        )
     rec['_status'] = 'pending'
     rec.pop('_rejection_comment', None)
     rec.pop('_rejection_by', None)
     rec.pop('_diary_comments', None)
     save_data(data)
-    workflow.set_status(nr_albumu, zal_key, 'pending',
-                        reviewer_role=wf.get('reviewer'), action='submitted')
+    workflow.do_transition(nr_albumu, zal_key, 'submit', reviewer_role=wf.get('reviewer'))
     flash(f"Dokument wysłany do zatwierdzenia przez {wf['reviewer_label']}.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
@@ -719,6 +905,12 @@ def zatwierdz_dokument(nr_albumu, zal_key):
     if not rec or rec.get('_status') != 'pending':
         flash("Dokument nie oczekuje na zatwierdzenie.", "error")
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    from core.fsm import DocumentFSM, InvalidTransition
+    try:
+        DocumentFSM.transition(rec.get('_status', 'draft'), 'approve')
+    except InvalidTransition as e:
+        flash(str(e), "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
     rec['_status'] = 'approved'
     rec['_approved_by'] = current_user.full_name
     rec['_approved_role'] = current_user.role
@@ -726,9 +918,11 @@ def zatwierdz_dokument(nr_albumu, zal_key):
     rec.pop('_rejection_comment', None)
     rec.pop('_rejection_by', None)
     rec.pop('_diary_comments', None)
+    for field in _APPROVE_SIGS.get((zal_key, current_user.role), []):
+        if not rec.get(field):
+            rec[field] = _auto_sig()
     save_data(data)
-    workflow.set_status(nr_albumu, zal_key, 'approved',
-                        reviewer_role=wf.get('reviewer'), action='approved')
+    workflow.do_transition(nr_albumu, zal_key, 'approve', reviewer_role=wf.get('reviewer'))
     flash("Dokument został zatwierdzony.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
@@ -756,6 +950,12 @@ def odrzuc_dokument(nr_albumu, zal_key):
         for fn, fnt in zip(field_names, field_notes)
         if fn.strip() or fnt.strip()
     ]
+    from core.fsm import DocumentFSM, InvalidTransition
+    try:
+        DocumentFSM.transition(rec.get('_status', 'draft'), 'reject')
+    except InvalidTransition as e:
+        flash(str(e), "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
     rec['_status'] = 'rejected'
     rec['_rejection_comment'] = comment
     rec['_rejection_by'] = current_user.full_name
@@ -764,9 +964,9 @@ def odrzuc_dokument(nr_albumu, zal_key):
     else:
         rec.pop('_field_comments', None)
     save_data(data)
-    workflow.set_status(nr_albumu, zal_key, 'rejected',
-                        reviewer_role=wf.get('reviewer'), action='rejected',
-                        rejection_comment=comment, rejection_by=current_user.full_name)
+    workflow.do_transition(nr_albumu, zal_key, 'reject',
+                           reviewer_role=wf.get('reviewer'),
+                           comment=comment)
     flash("Dokument został odrzucony – student może go poprawić i przesłać ponownie.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
@@ -856,9 +1056,9 @@ def _save_zal1(edit_nr):
         "data_start": f.get("data_start", "").strip(),
         "data_end": f.get("data_end", "").strip(),
         "liczba_godzin": f.get("liczba_godzin", "960").strip(),
-        "podpis_zakladowy": f.get("podpis_zakladowy", "").strip(),
-        "podpis_uczelniany": f.get("podpis_uczelniany", "").strip(),
     }
+    existing = load_data().get(nr_albumu, {}).get('zal1', {})
+    _stamp_sigs(record, 'zal1', existing)
     return _persist(nr_albumu, "zal1", record, "Załącznik 1")
 
 
@@ -874,7 +1074,7 @@ def zal2():
     if request.method == "POST":
         return _save_zal2(None)
     nr = request.args.get("nr", "")
-    return render_template("zal2.html", data=build_prefill(nr), edit_nr=None)
+    return render_template("zal2.html", data=build_prefill(nr), edit_nr=None, effects=get_effects())
 
 
 @app.route("/zal2/<nr_albumu>/edytuj", methods=["GET", "POST"])
@@ -887,7 +1087,7 @@ def zal2_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal2(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal2")
-    return render_template("zal2.html", data=existing, edit_nr=nr_albumu)
+    return render_template("zal2.html", data=existing, edit_nr=nr_albumu, effects=get_effects())
 
 
 @app.route("/zal2/<nr_albumu>/usun", methods=["POST"])
@@ -902,19 +1102,20 @@ def zal2_delete(nr_albumu):
 
 def _save_zal2(edit_nr):
     f = request.form
+    effects = get_effects()
     nr_albumu = f.get("nr_albumu", "").strip()
     if not nr_albumu or not is_digits_only(nr_albumu):
         flash("Numer albumu może zawierać tylko cyfry.", "error")
-        return render_template("zal2.html", data=f, edit_nr=edit_nr)
+        return render_template("zal2.html", data=f, edit_nr=edit_nr, effects=effects)
     record = {
         "nr_albumu": nr_albumu,
         "zaklad_pracy": f.get("zaklad_pracy", "").strip(),
         "data_start": f.get("data_start", "").strip(),
         "data_end": f.get("data_end", "").strip(),
         "data_uzgodnienia": f.get("data_uzgodnienia", "").strip(),
-        "podpis_zakladowy": f.get("podpis_zakladowy", "").strip(),
-        "podpis_uczelniany": f.get("podpis_uczelniany", "").strip(),
     }
+    existing = load_data().get(nr_albumu, {}).get('zal2', {})
+    _stamp_sigs(record, 'zal2', existing)
     return _persist(nr_albumu, "zal2", record, "Załącznik 2")
 
 
@@ -1000,10 +1201,9 @@ def _save_zal2a(edit_nr, effects):
         "efekty_plan": efekty_plan,
         "harmonogram": harmono,
         "data_uzgodnienia": f.get("data_uzgodnienia", "").strip(),
-        "podpis_uczelniany": f.get("podpis_uczelniany", "").strip(),
-        "podpis_zakladowy": f.get("podpis_zakladowy", "").strip(),
-        "podpis_studenta": f.get("podpis_studenta", "").strip(),
     }
+    existing = load_data().get(nr_albumu, {}).get('zal2a', {})
+    _stamp_sigs(record, 'zal2a', existing)
     return _persist(nr_albumu, "zal2a", record, "Załącznik 2a")
 
 
@@ -1080,13 +1280,12 @@ def _save_zal3(edit_nr):
         "zaswiadczenie_podpis": f.get("zaswiadczenie_podpis", "").strip(),
         "ocena_zakladowa_param": f.get("ocena_zakladowa_param", "").strip(),
         "ocena_zakladowa_opis": f.get("ocena_zakladowa_opis", "").strip(),
-        "podpis_zakladowy": f.get("podpis_zakladowy", "").strip(),
         "ocena_uczelniana_param": f.get("ocena_uczelniana_param", "").strip(),
         "ocena_uczelniana_opis": f.get("ocena_uczelniana_opis", "").strip(),
-        "podpis_uczelniany": f.get("podpis_uczelniany", "").strip(),
         "ocena_sprawozdania": f.get("ocena_sprawozdania", "").strip(),
-        "podpis_sprawozdanie": f.get("podpis_sprawozdanie", "").strip(),
     }
+    existing = load_data().get(nr_albumu, {}).get('zal3', {})
+    _stamp_sigs(record, 'zal3', existing)
     return _persist(nr_albumu, "zal3", record, "Załącznik 3")
 
 
@@ -1227,8 +1426,9 @@ def _save_zal4a(edit_nr, effects):
         "rekomendacja": f.get("rekomendacja", "").strip(),
         "uwagi": f.get("uwagi", "").strip(),
         "data_oceny": f.get("data_oceny", "").strip(),
-        "podpis_uopz": f.get("podpis_uopz", "").strip(),
     }
+    existing = load_data().get(nr_albumu, {}).get('zal4a', {})
+    _stamp_sigs(record, 'zal4a', existing)
     return _persist(nr_albumu, "zal4a", record, "Załącznik 4a")
 
 
@@ -1284,39 +1484,79 @@ def zal4b_delete(nr_albumu):
 
 def _save_zal4b(edit_nr, effects):
     f = request.form
-    imie_nazwisko = f.get("imie_nazwisko", "").strip()
-    nr_albumu     = student_nr(f.get("nr_albumu", "").strip())
-    nr_locked     = (current_user.role == 'student')
-    specialties   = get_specialties()
-    if not is_valid_full_name(imie_nazwisko):
-        flash("Podaj imię i nazwisko.", "error")
-        return render_template("zal4b.html", data=f, edit_nr=edit_nr, effects=effects,
-                               specialties=specialties, nr_locked=nr_locked)
-    if not nr_albumu or not is_digits_only(nr_albumu):
-        flash("Numer albumu może zawierać tylko cyfry.", "error")
-        return render_template("zal4b.html", data=f, edit_nr=edit_nr, effects=effects,
-                               specialties=specialties, nr_locked=nr_locked)
-    efekty_wniosek = [
-        {"nr": e.nr,
-         "uzasadnienie": f.get(f"uzasadnienie_{e.nr}", "").strip(),
-         "dowody": f.get(f"dowody_{e.nr}", "").strip()}
-        for e in effects
-    ]
-    record = {
-        "imie_nazwisko": imie_nazwisko,
-        "nr_albumu": nr_albumu,
-        "kierunek": "Informatyka",
-        "specjalnosc": f.get("specjalnosc", "").strip(),
-        "pracodawca": f.get("pracodawca", "").strip(),
-        "adres_pracodawcy": f.get("adres_pracodawcy", "").strip(),
-        "stanowisko": f.get("stanowisko", "").strip(),
-        "okres_od": f.get("okres_od", "").strip(),
-        "okres_do": f.get("okres_do", "").strip(),
-        "efekty_wniosek": efekty_wniosek,
-        "wykaz_dokumentow": f.get("wykaz_dokumentow", "").strip(),
-        "data": f.get("data", "").strip(),
-        "podpis_studenta": f.get("podpis_studenta", "").strip(),
-    }
+    role = current_user.role
+    specialties = get_specialties()
+
+    # nr_albumu: student_nr() zwraca własny album studenta lub wartość z formularza
+    nr_albumu = student_nr(f.get("nr_albumu", "").strip())
+    existing  = load_data().get(nr_albumu, {}).get('zal4b', {}) if nr_albumu else {}
+    nr_locked = (role == 'student')
+
+    if role == 'student':
+        # Student wypełnia sekcje A–D; walidujemy tylko wtedy gdy student zapisuje
+        imie_nazwisko = f.get("imie_nazwisko", "").strip()
+        if not is_valid_full_name(imie_nazwisko):
+            flash("Podaj imię i nazwisko.", "error")
+            return render_template("zal4b.html", data=f, edit_nr=edit_nr, effects=effects,
+                                   specialties=specialties, nr_locked=nr_locked)
+        if not nr_albumu or not is_digits_only(nr_albumu):
+            flash("Numer albumu może zawierać tylko cyfry.", "error")
+            return render_template("zal4b.html", data=f, edit_nr=edit_nr, effects=effects,
+                                   specialties=specialties, nr_locked=nr_locked)
+        efekty_wniosek = [
+            {"nr": e.nr,
+             "uzasadnienie": f.get(f"uzasadnienie_{e.nr}", "").strip(),
+             "dowody": f.get(f"dowody_{e.nr}", "").strip()}
+            for e in effects
+        ]
+        record = {
+            "imie_nazwisko": imie_nazwisko,
+            "nr_albumu": nr_albumu,
+            "kierunek": "Informatyka",
+            "specjalnosc": f.get("specjalnosc", "").strip(),
+            "pracodawca": f.get("pracodawca", "").strip(),
+            "adres_pracodawcy": f.get("adres_pracodawcy", "").strip(),
+            "stanowisko": f.get("stanowisko", "").strip(),
+            "okres_od": f.get("okres_od", "").strip(),
+            "okres_do": f.get("okres_do", "").strip(),
+            "efekty_wniosek": efekty_wniosek,
+            "wykaz_dokumentow": f.get("wykaz_dokumentow", "").strip(),
+            "data": f.get("data", "").strip(),
+            # Sekcje E i F — zachowaj istniejące (student nie edytuje)
+            "opinia_komisji": existing.get("opinia_komisji", ""),
+            "data_opinii":    existing.get("data_opinii", ""),
+            "decyzja_dyrektora": existing.get("decyzja_dyrektora", ""),
+            "data_decyzji":   existing.get("data_decyzji", ""),
+        }
+    else:
+        # uopz (sekcja E) lub admin (sekcja F) — nie dotykaj danych studenta (A–D)
+        if not nr_albumu or not is_digits_only(nr_albumu):
+            flash("Numer albumu może zawierać tylko cyfry.", "error")
+            return render_template("zal4b.html", data=existing or f, edit_nr=edit_nr,
+                                   effects=effects, specialties=specialties, nr_locked=nr_locked)
+        record = {
+            # Sekcje A–D — tylko z istniejącego rekordu (nie z formularza)
+            "imie_nazwisko":    existing.get("imie_nazwisko", ""),
+            "nr_albumu":        nr_albumu,
+            "kierunek":         "Informatyka",
+            "specjalnosc":      existing.get("specjalnosc", ""),
+            "pracodawca":       existing.get("pracodawca", ""),
+            "adres_pracodawcy": existing.get("adres_pracodawcy", ""),
+            "stanowisko":       existing.get("stanowisko", ""),
+            "okres_od":         existing.get("okres_od", ""),
+            "okres_do":         existing.get("okres_do", ""),
+            "efekty_wniosek":   existing.get("efekty_wniosek", []),
+            "wykaz_dokumentow": existing.get("wykaz_dokumentow", ""),
+            "data":             existing.get("data", ""),
+            # Sekcja E — uopz wypełnia
+            "opinia_komisji": f.get("opinia_komisji", "").strip(),
+            "data_opinii":    f.get("data_opinii", "").strip(),
+            # Sekcja F — admin wypełnia; radio disabled nie przesyła wartości, zachowaj z existing
+            "decyzja_dyrektora": f.get("decyzja_dyrektora", "").strip() or existing.get("decyzja_dyrektora", ""),
+            "data_decyzji":      f.get("data_decyzji", "").strip(),
+        }
+
+    _stamp_sigs(record, 'zal4b', existing)
     return _persist(nr_albumu, "zal4b", record, "Załącznik 4b")
 
 
@@ -1599,9 +1839,10 @@ def _save_zal7(edit_nr, sn=False):
         "opis_prac": f.get("opis_prac", "").strip(),
         "wiedza_umiejetnosci": f.get("wiedza_umiejetnosci", "").strip(),
         "data": f.get("data", "").strip(),
-        "podpis_studenta": f.get("podpis_studenta", "").strip(),
         "podpis_przelozonego": f.get("podpis_przelozonego", "").strip(),
     }
+    existing = load_data().get(nr_albumu, {}).get(key, {})
+    _stamp_sigs(record, key, existing)
     return _persist(nr_albumu, key, record, f"Załącznik {'7a' if sn else '7'}")
 
 
@@ -1730,7 +1971,6 @@ def _save_zal8(edit_nr):
         "miejsca_praktyki": miejsca,
         "ocena_s": f.get("ocena_s", "").strip(),
         "data_s": f.get("data_s", "").strip(),
-        "podpis_s": f.get("podpis_s", "").strip(),
         "ocena_u": f.get("ocena_u", "").strip(),
         "ocena_z": f.get("ocena_z", "").strip(),
         "sklad_komisji": f.get("sklad_komisji", "").strip(),
@@ -1743,6 +1983,8 @@ def _save_zal8(edit_nr):
         "ocena_e": f.get("ocena_e", "").strip(),
         "ocena_k": f.get("ocena_k", "").strip(),
     }
+    existing = load_data().get(nr_albumu, {}).get('zal8', {})
+    _stamp_sigs(record, 'zal8', existing)
     return _persist(nr_albumu, "zal8", record, "Załącznik 8")
 
 
@@ -1808,8 +2050,9 @@ def _save_zal9(edit_nr):
         "opiekun_email": f.get("opiekun_email", "").strip(),
         "upowazniont_imie_nazwisko": f.get("upowazniont_imie_nazwisko", "").strip(),
         "upowazniont_stanowisko": f.get("upowazniont_stanowisko", "").strip(),
-        "podpis": f.get("podpis", "").strip(),
     }
+    existing = load_data().get(nr_albumu, {}).get('zal9', {})
+    _stamp_sigs(record, 'zal9', existing)
     return _persist(nr_albumu, "zal9", record, "Załącznik 9")
 
 

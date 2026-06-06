@@ -69,6 +69,7 @@
 \normalsize
 
 \sectionrule
+\sectionlabel{D. Wykaz dokumentów i podpis}
 
 \pfield{Wykaz załączonych dokumentów}{(( data.wykaz_dokumentow | le ))}
 
@@ -78,6 +79,51 @@
 \end{minipage}\hfill
 \begin{minipage}[t]{\twocolB}
 \psig{Podpis studenta}{(( data.podpis_studenta | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{E. Opinia Komisji ds. praktyk zawodowych}
+
+\vspace{4pt}
+\pfield{Opinia Komisji}{(( data.get('opinia_komisji', '') | le ))}
+
+\vspace{6pt}
+\begin{minipage}[t]{\twocolA}
+\psig{Data opinii}{(( data.get('data_opinii', '') | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\psig{Podpis Przewodniczącego Komisji ds. praktyk}{(( data.get('podpis_komisji', '') | le ))}
+\end{minipage}
+
+\sectionrule
+\sectionlabel{F. Decyzja Dyrektora Instytutu Informatyki Stosowanej}
+
+\vspace{4pt}
+((*- set decyzja = data.get('decyzja_dyrektora', '') *))
+((*- if decyzja == 'zgoda' *))
+$\boxtimes$ Wyrażam zgodę na uznanie efektów uczenia się przewidzianych dla praktyki zawodowej. \\[4pt]
+$\square$ Wyrażam zgodę na częściowe zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej. \\[4pt]
+$\square$ Nie wyrażam zgody na zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej.
+((*- elif decyzja == 'czesciowa' *))
+$\square$ Wyrażam zgodę na uznanie efektów uczenia się przewidzianych dla praktyki zawodowej. \\[4pt]
+$\boxtimes$ Wyrażam zgodę na częściowe zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej. \\[4pt]
+$\square$ Nie wyrażam zgody na zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej.
+((*- elif decyzja == 'odmowa' *))
+$\square$ Wyrażam zgodę na uznanie efektów uczenia się przewidzianych dla praktyki zawodowej. \\[4pt]
+$\square$ Wyrażam zgodę na częściowe zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej. \\[4pt]
+$\boxtimes$ Nie wyrażam zgody na zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej.
+((*- else *))
+$\square$ Wyrażam zgodę na uznanie efektów uczenia się przewidzianych dla praktyki zawodowej. \\[4pt]
+$\square$ Wyrażam zgodę na częściowe zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej. \\[4pt]
+$\square$ Nie wyrażam zgody na zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej.
+((*- endif *))
+
+\vspace{6pt}
+\begin{minipage}[t]{\twocolA}
+\psig{Data decyzji}{(( data.get('data_decyzji', '') | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\psig{Podpis Dyrektora IIS im. K. Brzeskiego}{(( data.get('podpis_dyrektora', '') | le ))}
 \end{minipage}
 
 \end{document}

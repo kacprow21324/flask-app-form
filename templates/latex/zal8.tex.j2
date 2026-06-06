@@ -99,13 +99,23 @@
 
 \vspace{8pt}
 \begin{minipage}[t]{\twocolA}
-{\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}E -- ocena egzaminu końcowego}\\[2pt]
+{\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}E -- ocena egzaminu końcowego (komisja)}\\[2pt]
 {\fontsize{14}{17}\selectfont\grade{(( data.ocena_e | le ))}}
 \end{minipage}\hfill
 \begin{minipage}[t]{\twocolB}
 {\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}K -- ocena końcowa
   ($K = 0{,}4E + 0{,}1S + 0{,}2U + 0{,}3Z$)}\\[2pt]
 {\fontsize{14}{17}\selectfont\grade{(( data.ocena_k | le ))}}
+\end{minipage}
+
+\vspace{10pt}
+\sectionrule
+\vspace{6pt}
+\begin{minipage}[t]{\twocolA}
+\psig{Data oceny sprawozdania}{(( data.data_s | le ))}
+\end{minipage}\hfill
+\begin{minipage}[t]{\twocolB}
+\psig{Podpis oceniającego}{(( data.podpis_s | le ))}
 \end{minipage}
 
 \end{document}

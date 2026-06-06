@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Obieg dokumentów{% endblock %}
+
+{% macro status_dot(st, key, nr_albumu=None) %}
+{% set cfg = {
+    'approved': ('dot-approved', 'Zatwierdzone'),
+    'pending':  ('dot-pending',  'Oczekuje na zatwierdzenie'),
+    'rejected': ('dot-rejected', 'Odrzucone – wymaga poprawy'),
+    'draft':    ('dot-draft',    'Szkic – w trakcie edycji'),
+} %}
+{% if st %}
+    {% set cls, tip = cfg[st] %}
+    {% if nr_albumu %}
+    <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ key }}"
+       class="wf-dot {{ cls }}" title="{{ tip }}"></a>
+    {% else %}
+    <span class="wf-dot {{ cls }}" title="{{ tip }}"></span>
+    {% endif %}
+{% else %}
+    <span class="wf-dot dot-none" title="Nie rozpoczęto"></span>
+{% endif %}
+{% endmacro %}
+
+{% block content %}
+<div class="page">
+
+<div style="display:flex; align-items:baseline; gap:16px; margin-bottom:20px; flex-wrap:wrap">
+    <h1 style="margin:0">Obieg dokumentów</h1>
+    <div class="wf-legend">
+        <span class="wf-dot dot-approved"></span>Zatwierdzone
+        <span class="wf-dot dot-pending"></span>Oczekuje
+        <span class="wf-dot dot-rejected"></span>Odrzucone
+        <span class="wf-dot dot-draft"></span>Szkic
+        <span class="wf-dot dot-none"></span>Nie rozpoczęto
+    </div>
+</div>
+
+{# ══════════════ WIDOK STUDENTA ══════════════ #}
+{% if role == 'student' %}
+
+<div class="wf-phases-student">
+    {% for phase in phases %}
+    <div class="wf-phase-col">
+        <div class="wf-phase-header">
+            <span class="wf-phase-nr">{{ phase.label }}</span>
+            <span class="wf-phase-sub">{{ phase.subtitle }}</span>
+        </div>
+        <div class="wf-phase-body">
+            {% for key in phase.keys %}
+            {% set att = att_map.get(key) %}
+            {% if att %}
+            {% set st = status_map.get(key) %}
+            <div class="wf-student-row {% if st == 'approved' %}wf-row-approved{% elif st == 'pending' %}wf-row-pending{% elif st == 'rejected' %}wf-row-rejected{% elif st == 'draft' %}wf-row-draft{% endif %}">
+                <div class="wf-row-top">
+                    {{ status_dot(st, key, nr_albumu) }}
+                    <span class="wf-row-nr">Zał.&nbsp;{{ att.nr }}</span>
+                </div>
+                <div class="wf-row-title">{{ att.title }}</div>
+                {% if st %}
+                <div class="wf-row-actions">
+                    {% if st in ('draft', 'rejected') %}
+                    <a href="{{ url_for(key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm">Edytuj</a>
+                    {% elif st == 'approved' %}
+                    <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ key }}" class="btn btn-sm btn-secondary">Podgląd</a>
+                    {% else %}
+                    <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ key }}" class="btn btn-sm btn-secondary">Podgląd</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% if not loop.last %}
+    <div class="wf-arrow">→</div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+{# ══════════════ WIDOK PRACOWNICZY ══════════════ #}
+{% else %}
+
+{% if not students %}
+<div class="card"><p class="empty-state" style="padding:24px">Brak studentów z wypełnionymi formularzami.</p></div>
+{% else %}
+
+<div class="card" style="overflow-x:auto">
+<table class="wf-grid-table">
+    {# Nagłówek — nazwy faz #}
+    <thead>
+        <tr class="wf-phase-row">
+            <th rowspan="2" class="wf-col-student">Student</th>
+            {% for phase in phases %}
+            <th colspan="{{ phase.keys|length }}" class="wf-phase-th">
+                {{ phase.label }}<br>
+                <span class="wf-phase-sub">{{ phase.subtitle }}</span>
+            </th>
+            {% endfor %}
+        </tr>
+        {# Nagłówek — numery załączników #}
+        <tr class="wf-att-row">
+            {% for phase in phases %}
+            {% for key in phase.keys %}
+            {% set att = att_map.get(key) %}
+            <th class="wf-att-th" title="{{ att.title if att else key }}">
+                {{ att.nr if att else key }}
+            </th>
+            {% endfor %}
+            {% endfor %}
+        </tr>
+        {# Wiersz podsumowania #}
+        <tr class="wf-summary-row">
+            <td class="wf-col-student" style="font-size:0.75rem; color:var(--muted); padding:4px 12px">
+                Podsumowanie ({{ students|length }} studentów)
+            </td>
+            {% for phase in phases %}
+            {% for key in phase.keys %}
+            {% set s = summary.get(key, {}) %}
+            <td class="wf-summary-cell">
+                {% if s.approved %}<span class="sum-chip chip-approved">{{ s.approved }} zat</span>{% endif %}
+                {% if s.pending %}<span class="sum-chip chip-pending">{{ s.pending }} czk</span>{% endif %}
+                {% if s.rejected %}<span class="sum-chip chip-rejected">{{ s.rejected }} odrz</span>{% endif %}
+                {% if s.draft %}<span class="sum-chip chip-draft">{{ s.draft }} szk</span>{% endif %}
+            </td>
+            {% endfor %}
+            {% endfor %}
+        </tr>
+    </thead>
+    {# Wiersze studentów #}
+    <tbody>
+        {% for student in students %}
+        {% set sw = wf_by_student.get(student.album_number, {}) %}
+        <tr class="wf-student-tr">
+            <td class="wf-col-student">
+                <a href="{{ url_for('student_detail', nr_albumu=student.album_number) }}">
+                    {{ student.last_name }} {{ student.first_name }}
+                </a>
+                <span class="wf-album">{{ student.album_number }}</span>
+            </td>
+            {% for phase in phases %}
+            {% for key in phase.keys %}
+            {% set st = sw.get(key) %}
+            <td class="wf-cell wf-cell-{{ st or 'none' }}">
+                {{ status_dot(st, key, student.album_number) }}
+            </td>
+            {% endfor %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endif %}
+{% endif %}
+
+</div>
+{% endblock %}

@@ -152,6 +152,125 @@
     </div>
     {% endif %}
 
+    {% if role == 'dziekanat' %}
+    {# ── Widok dziekanatu: rozbudowana lista ── #}
+    <div class="card">
+        <div class="card-header" style="flex-wrap:wrap; gap:10px">
+            <h2>Lista studentów</h2>
+            <input id="search" type="search" class="search-input"
+                   placeholder="Szukaj po nazwisku, albumie lub specjalności…" autocomplete="off"
+                   style="max-width:280px">
+        </div>
+
+        {# Filtry #}
+        <div class="filter-bar">
+            <button class="filter-chip active" data-filter="all">
+                Wszyscy <span class="chip-count">{{ students|length }}</span>
+            </button>
+            <button class="filter-chip" data-filter="rejected">
+                Odrzucone <span class="chip-count">{{ students|selectattr('rejected','gt',0)|list|length }}</span>
+            </button>
+            <button class="filter-chip" data-filter="pending">
+                Oczekuje <span class="chip-count">{{ students|selectattr('pending','gt',0)|list|length }}</span>
+            </button>
+            <button class="filter-chip" data-filter="ready">
+                Komplet zatwierdzeń <span class="chip-count">{{ students|selectattr('rejected','eq',0)|selectattr('pending','eq',0)|selectattr('count','gt',0)|list|length }}</span>
+            </button>
+            <button class="filter-chip" data-filter="zal8">
+                Zał. 8 gotowe <span class="chip-count">{{ students|selectattr('zal8_status','eq','approved')|list|length }}</span>
+            </button>
+        </div>
+
+        {% if students %}
+        <div class="table-wrap">
+            <table class="table" id="students-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Specjalność / tryb</th>
+                        <th style="text-align:center">Formularze</th>
+                        <th style="text-align:center; color:#22c55e">Zat.</th>
+                        <th style="text-align:center; color:#f59e0b">Czeka</th>
+                        <th style="text-align:center; color:#ef4444">Odrz.</th>
+                        <th style="text-align:center">Zał. 8</th>
+                        <th class="col-actions">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr class="student-row"
+                        data-rejected="{{ 'true' if s.rejected > 0 else 'false' }}"
+                        data-pending="{{ 'true' if s.pending > 0 else 'false' }}"
+                        data-count="{{ s.count }}"
+                        data-zal8="{{ s.zal8_status or 'none' }}">
+                        <td>
+                            <strong>{{ s.imie_nazwisko or "—" }}</strong>
+                            <span class="text-muted d-block" style="font-size:0.78rem">{{ s.nr_albumu }}</span>
+                        </td>
+                        <td>
+                            <span style="font-size:0.83rem">{{ s.speciality or "—" }}</span>
+                            <span class="text-muted d-block" style="font-size:0.75rem">{{ s.study_mode or "—" }}</span>
+                        </td>
+                        <td style="text-align:center">
+                            <div class="progress-pill" style="min-width:90px">
+                                <div class="progress-bar-wrap">
+                                    <div class="progress-bar-fill"
+                                         style="width:{{ (s.count / attachments|length * 100)|int }}%"></div>
+                                </div>
+                                {{ s.count }}&nbsp;/&nbsp;{{ attachments|length }}
+                            </div>
+                        </td>
+                        <td style="text-align:center; font-weight:600; color:#15803d">
+                            {{ s.approved or "—" }}
+                        </td>
+                        <td style="text-align:center; font-weight:600; color:#b45309">
+                            {{ s.pending or "—" }}
+                        </td>
+                        <td style="text-align:center; font-weight:600; color:#b91c1c">
+                            {% if s.rejected %}<span class="status-badge status-rejected">{{ s.rejected }}</span>{% else %}—{% endif %}
+                        </td>
+                        <td style="text-align:center">
+                            {% set z8 = s.zal8_status %}
+                            {% if z8 == 'approved' %}
+                                <span class="status-badge status-approved">Zat.</span>
+                            {% elif z8 == 'pending' %}
+                                <span class="status-badge status-pending">Czeka</span>
+                            {% elif z8 == 'rejected' %}
+                                <span class="status-badge status-rejected">Odrz.</span>
+                            {% elif z8 == 'draft' %}
+                                <span class="status-badge status-draft">Szkic</span>
+                            {% else %}
+                                <span style="color:var(--muted)">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="row-actions">
+                                <a href="{{ url_for('student_detail', nr_albumu=s.nr_albumu) }}"
+                                   class="btn btn-sm">Podgląd</a>
+                                {% if not s.zal8_status %}
+                                <a href="{{ url_for('zal8') }}?nr={{ s.nr_albumu }}"
+                                   class="btn btn-sm btn-secondary">Zał. 8</a>
+                                {% elif s.zal8_status in ('draft', 'rejected') %}
+                                <a href="{{ url_for('zal8_edit', nr_albumu=s.nr_albumu) }}"
+                                   class="btn btn-sm btn-secondary">Edytuj Zał. 8</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p id="empty-filter-msg" class="empty-state" style="display:none; padding:20px">
+            Brak studentów spełniających wybrany filtr.
+        </p>
+        {% else %}
+        <p class="empty-state">Brak studentów z wypełnionymi formularzami.</p>
+        {% endif %}
+    </div>
+
+    {% else %}
+    {# ── Widok pozostałych ról: standardowa tabela ── #}
     <div class="card">
         <div class="card-header">
             <h2>Lista studentów</h2>
@@ -188,13 +307,6 @@
                             <div class="row-actions">
                                 <a href="{{ url_for('student_detail', nr_albumu=s.nr_albumu) }}"
                                    class="btn btn-sm">Podgląd</a>
-                                {% if role in ('admin', 'dziekanat') %}
-                                <form method="post"
-                                      action="{{ url_for('student_delete', nr_albumu=s.nr_albumu) }}"
-                                      onsubmit="return confirm('Usunąć cały rekord studenta {{ s.imie_nazwisko }}?')">
-                                    <button class="btn btn-sm btn-danger" type="submit">Usuń</button>
-                                </form>
-                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -206,19 +318,51 @@
         <p class="empty-state">Brak zapisanych formularzy. Studenci pojawią się tu po złożeniu pierwszego dokumentu.</p>
         {% endif %}
     </div>
+    {% endif %}
 
 {% endif %}
 </div>
 
 <script>
-    const search = document.getElementById("search");
-    if (search) {
-        search.addEventListener("input", function () {
-            const q = this.value.toLowerCase();
-            document.querySelectorAll(".student-row").forEach(function (row) {
-                row.style.display = row.textContent.toLowerCase().includes(q) ? "" : "none";
-            });
+(function () {
+    const rows = Array.from(document.querySelectorAll(".student-row"));
+    const searchEl = document.getElementById("search");
+    const emptyMsg = document.getElementById("empty-filter-msg");
+    let activeFilter = "all";
+    let searchQ = "";
+
+    function applyAll() {
+        let visible = 0;
+        rows.forEach(function (row) {
+            const text = row.textContent.toLowerCase();
+            const matchSearch = !searchQ || text.includes(searchQ);
+            let matchFilter = true;
+            if (activeFilter === "rejected") matchFilter = row.dataset.rejected === "true";
+            else if (activeFilter === "pending") matchFilter = row.dataset.pending === "true";
+            else if (activeFilter === "ready") matchFilter = row.dataset.rejected === "false" && row.dataset.pending === "false" && parseInt(row.dataset.count || 0) > 0;
+            else if (activeFilter === "zal8") matchFilter = row.dataset.zal8 === "approved";
+            const show = matchSearch && matchFilter;
+            row.style.display = show ? "" : "none";
+            if (show) visible++;
+        });
+        if (emptyMsg) emptyMsg.style.display = visible === 0 ? "" : "none";
+    }
+
+    if (searchEl) {
+        searchEl.addEventListener("input", function () {
+            searchQ = this.value.toLowerCase();
+            applyAll();
         });
     }
+
+    document.querySelectorAll(".filter-chip").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            document.querySelectorAll(".filter-chip").forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
+            activeFilter = this.dataset.filter;
+            applyAll();
+        });
+    });
+})();
 </script>
 {% endblock %}

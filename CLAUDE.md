@@ -100,6 +100,7 @@ flask-app-form/
 │   ├── powiadomienia.html  # Strona listy powiadomień
 │   ├── profil.html         # Profil studenta (specjalność, tryb studiów)
 │   ├── konfiguracja.html   # Konfiguracja semestru (dziekanat/admin)
+│   ├── macros.html         # Makra Jinja2 wspólne dla formularzy (sig_stamp)
 │   ├── zal1.html–zal9.html # Formularze wejściowe
 │   ├── print/              # Szablony druku HTML (WeasyPrint)
 │   └── latex/              # Szablony LaTeX (.tex.j2)
@@ -330,6 +331,14 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 - **Dziennik zdarzeń obiegu w bazie** (`document_workflow` + `document_log` via `workflow.py`) – każde utworzenie/wysłanie/zatwierdzenie/odrzucenie/usunięcie zapisuje kto/kiedy/co; historia widoczna na profilu studenta
 - **Walidacja serwerowa** (`core/validators.py`) – imię i nazwisko (litery/spacje, ≥2 wyrazy), nr albumu (4–6 cyfr), NIP (10 cyfr + suma kontrolna), daty (format + zakres), opis dziennika (min. 100 znaków). Podgląd „na bieżąco" (`static/js/form-validate.js`) – pokazuje TYLKO błędy (czerwone), bez potwierdzania poprawnych pól; blokuje wysyłkę przy błędach
 - **Auto-pieczątka zatwierdzenia** – po akceptacji (`zatwierdz_dokument`) na dokumencie zapisuje się `_approved_by/_approved_role/_approved_at`; karta w `podglad.html` pokazuje pieczątkę „ZATWIERDZONO — kto · data"
+- **Auto-podpisy elektroniczne** – pola `podpis_*` nie są już ręcznie wpisywane. System auto-stempluje `"Imię Nazwisko · DD.MM.YYYY"` z `current_user` przy: (a) zapisaniu formularza przez właściwą rolę, (b) zatwierdzeniu przez recenzenta. Logika: `_auto_sig()`, `_stamp_sigs()`, słowniki `_SAVE_SIGS` i `_APPROVE_SIGS` w `app.py`. Wyświetlenie: div `.sig-stamp.signed` (zielony) lub `.sig-stamp.pending` (szary kursywa). Makro `sig_stamp(value, label)` w `templates/macros.html`. Pola fizycznych podpisów zewnętrznych (`potwierdzenie_zgloszenia`, `potwierdzenie_bhp`, `zaswiadczenie_podpis`, `potwierdzenie_opiekuna`, `podpis_przelozonego`) pozostają jako ręczne inputy — wypełnia je ZOPZ opisując zdarzenie fizyczne.
+- **Zgodność z oficjalnymi wzorami DOCX** (`documentation/annexes/`):
+  - Zał. 2 — struktura A/B/C: Etap A (BHP/wdrożenie), Etap B (11 efektów z `learning_effects`), Etap C (zamknięcie); wcześniej było 9 zmyślonych punktów
+  - Zał. 2a — wiersz „Łącznie / Wymagana 120" na dole tabeli harmonogramu
+  - Zał. 4a — 3 stany per efekt: `uzyska/ła` / `częściowo` / `nie uzyska/ła` (wcześniej tylko tak/nie)
+  - Zał. 4b — sekcja E (Opinia Komisji ds. praktyk: textarea + podpis UOPZ) i F (Decyzja Dyrektora: 3 warianty radio + podpis admin); pola sekcji E–F są `readonly`/`disabled` dla roli student
+  - Zał. 7a — tytuły sekcji 2 i 3 odnoszą się do „pracy zawodowej lub działalności gospodarczej" zamiast generycznych
+  - Zał. 8 — pole E opatrzone opisem: ocena wystawiana przez komisję, nie średnia z mini-zadań
 - **Generowanie PDF** przez WeasyPrint
 - **Szablony LaTeX** (gotowe, wymagają MiKTeX)
 - **Dashboard** studenta z przewodnikiem kroków
@@ -347,6 +356,7 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 - **Powiadomienia e-mail** – brak wysyłki e-mail przy zmianie statusu dokumentu
 - **Eksport CSV/Excel** – lista studentów z ocenami dla dziekanatu
 - **Kolejki recenzenta z DB** – statusy są już zapisywane i logowane w bazie (`document_workflow`/`document_log`), ale kolejki/powiadomienia nadal czytają `_status` z treści formularza (Mongo); do rozważenia oparcie kolejek bezpośrednio o tabelę `document_workflow`
+- **Weryfikacja zgodności szablonów PDF z nowymi polami** – szablony `print/zal4b.html` mają sekcje E i F (Opinia Komisji, Decyzja Dyrektora); przy generowaniu PDF przez WeasyPrint należy sprawdzić układ stron dla tych rozszerzonych formularzy
 - **Wizualny podgląd obiegu dokumentów (diagram workflow)** – dodać widok pokazujący stan każdego załącznika (Zał. 1–9) jako diagram fazowy (Faza 0–4), z kolorystycznym statusem (szkic / oczekuje / zatwierdzone / odrzucone) oraz ścieżką sekwencyjną i równoległą:
   - **Dla studenta** – własny obieg: które dokumenty zrobione, które czekają, gdzie utknął (z linkami do edycji/poprawy)
   - **Dla UOPZ / ZOPZ** – widok zbiorczy „moich studentów" z diagramem na każdego (szybkie wyłapanie, kto blokuje proces, co czeka na moją akceptację)

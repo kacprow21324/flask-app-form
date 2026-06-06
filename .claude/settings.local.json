@@ -43,7 +43,13 @@
       "Bash(curl -s -c /tmp/ja.txt -b /tmp/ja.txt --data-urlencode 'imie_nazwisko=Jan2 Kowalski' --data-urlencode nr_albumu=21003 --data-urlencode 'specjalnosc=Administracja systemów i sieci komputerowych \\(ASiSK\\)' --data-urlencode rodzaj_studiow=stacjonarne --data-urlencode nip_zakladu=111-222-33-30 --data-urlencode data_start=2026-05-01 --data-urlencode data_end=2026-04-01 http://localhost:5000/zal1/21003/edytuj -o /tmp/z1.html -w 'http=%{http_code}\\\\n')",
       "Bash(python -c \"import docx2txt\")",
       "Bash(python -c \"import docx\")",
-      "Bash(python tmp_extract_annexes.py)"
+      "Bash(python tmp_extract_annexes.py)",
+      "Bash(python -c \"import docx; print\\('docx ok'\\)\")",
+      "Bash(python -c \"import oletools; print\\('oletools ok'\\)\")",
+      "Bash(pip install *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Repozytoria\\\\flask-app-form\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Get-ChildItem -Path C:\\\\Repozytoria\\\\flask-app-form -Recurse -File -Name)"
     ]
   }
 }

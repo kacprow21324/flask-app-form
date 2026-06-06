@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 8 – Protokół zaliczenia praktyki{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
 
@@ -131,8 +132,7 @@
                             <input id="data_s" type="date" name="data_s" value="{{ val('data_s') }}">
                         </div>
                         <div class="field-group">
-                            <label for="podpis_s">Podpis oceniającego</label>
-                            <input id="podpis_s" type="text" name="podpis_s" value="{{ val('podpis_s') }}">
+                            {{ sig_stamp(val('podpis_s'), 'Podpis oceniającego') }}
                         </div>
                     </div>
                 </div>
@@ -196,7 +196,10 @@
                 {% endfor %}
 
                 <div class="grade-panel">
-                    <div class="grade-panel-title">E – Ocena egzaminu końcowego</div>
+                    <div class="grade-panel-title">E – Ocena egzaminu końcowego (komisja)</div>
+                    <div class="doc-info-box" style="margin-bottom:10px; font-size:0.85em">
+                        Ocena wystawiana przez komisję podczas egzaminu końcowego z praktyki zawodowej. Nie jest średnią — komisja wpisuje ją na podstawie prezentacji i rozmowy ze studentem.
+                    </div>
                     <div class="form-row-2">
                         <div class="field-group">
                             <label for="ocena_e">Ocena E (skala 2–5)</label>

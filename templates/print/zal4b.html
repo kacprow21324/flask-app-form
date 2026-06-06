@@ -34,4 +34,16 @@
     {{ field('Wykaz załączonych dokumentów', data.wykaz_dokumentow) }}
     <div class="p-sig-row">{{ sig('Data złożenia wniosku', data.data) }}{{ sig('Podpis studenta', data.podpis_studenta) }}</div>
 </div>
+<div class="p-section">
+    <div class="p-section-label">E. Opinia Komisji ds. praktyk zawodowych</div>
+    {{ field('Opinia Komisji', data.get('opinia_komisji', '')) }}
+    <div class="p-sig-row">{{ sig('Data opinii', data.get('data_opinii', '')) }}{{ sig('Podpis Przewodniczącego Komisji ds. praktyk', data.get('podpis_komisji', '')) }}</div>
+</div>
+<div class="p-section">
+    <div class="p-section-label">F. Decyzja Dyrektora Instytutu Informatyki Stosowanej</div>
+    {% set decyzja = data.get('decyzja_dyrektora', '') %}
+    {% set decyzja_map = {'zgoda': 'Wyrażam zgodę na uznanie efektów uczenia się przewidzianych dla praktyki zawodowej.', 'czesciowa': 'Wyrażam zgodę na częściowe zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej.', 'odmowa': 'Nie wyrażam zgody na zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej.'} %}
+    {{ field('Decyzja', decyzja_map.get(decyzja, '—')) }}
+    <div class="p-sig-row">{{ sig('Data decyzji', data.get('data_decyzji', '')) }}{{ sig('Podpis Dyrektora IIS im. K. Brzeskiego', data.get('podpis_dyrektora', '')) }}</div>
+</div>
 {% endblock %}
