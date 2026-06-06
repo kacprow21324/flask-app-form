@@ -24,12 +24,13 @@
 </div>
 <div class="p-section">
     <table class="p-table" style="font-size:9pt">
-        <thead><tr><th style="width:30pt">Dzień</th><th style="width:60pt">Data</th><th>Opis wykonanych prac</th><th style="width:60pt">Efekty uczenia się</th><th style="width:70pt">Podpis opiekuna</th></tr></thead>
+        <thead><tr><th style="width:30pt">Dzień</th><th style="width:60pt">Data</th><th style="width:38pt">Godziny</th><th>Opis wykonanych prac</th><th style="width:60pt">Efekty uczenia się</th><th style="width:70pt">Podpis opiekuna</th></tr></thead>
         <tbody>
         {% for wpis in data.get('dziennik', []) %}
         <tr>
             <td style="text-align:center">{{ wpis.dzien }}</td>
             <td>{{ wpis.data }}</td>
+            <td style="text-align:center">{{ wpis.get('godziny', '') }}</td>
             <td>{{ wpis.opis }}</td>
             <td style="text-align:center">{{ wpis.efekty }}</td>
             <td>{{ wpis.podpis or '' }}</td>

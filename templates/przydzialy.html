@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Przydziały opiekunów{% endblock %}
+{% block content %}
+<div class="page">
+    <div class="workflow-page-header">
+        <div>
+            <a class="back-link" href="{{ url_for('obieg', rok=selected_year) }}">&larr; Obieg dokumentów</a>
+            <h1>Przydziały opiekunów</h1>
+            <p class="subtitle">
+                Dziekanat przypisuje studentowi opiekuna uczelnianego i zakładowego
+                na dany rok akademicki.
+            </p>
+        </div>
+        <form method="get" class="workflow-year-form">
+            <label for="assignment-year">Rok akademicki</label>
+            <select id="assignment-year" name="rok" onchange="this.form.submit()">
+                {% for year in academic_years %}
+                <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+                    {{ year }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="role-info-bar">
+        Opiekunowie widzą tylko studentów przypisanych do nich w tabeli praktyk.
+        Pozostawienie pola pustego odbiera dostęp danemu opiekunowi.
+    </div>
+
+    <div class="card">
+        {% if students %}
+        <div class="table-wrap">
+            <table class="table assignment-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>UOPZ</th>
+                        <th>ZOPZ</th>
+                        <th>Status</th>
+                        <th>Akcja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    {% set internship = internship_by_student.get(student.id) %}
+                    <tr>
+                        <td>
+                            <strong>{{ student.last_name }} {{ student.first_name }}</strong>
+                            <span class="wf-album">{{ student.album_number }}</span>
+                        </td>
+                        <td>
+                            <form id="assignment-{{ student.id }}" method="post">
+                                <input type="hidden" name="student_id" value="{{ student.id }}">
+                                <input type="hidden" name="academic_year" value="{{ selected_year }}">
+                            </form>
+                            <select name="uopz_id" form="assignment-{{ student.id }}">
+                                <option value="">Nie przypisano</option>
+                                {% for user in uopz_users %}
+                                <option value="{{ user.id }}"
+                                    {% if internship and internship.uopz_id == user.id %}selected{% endif %}>
+                                    {{ user.full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="zopz_id" form="assignment-{{ student.id }}">
+                                <option value="">Nie przypisano</option>
+                                {% for user in zopz_users %}
+                                <option value="{{ user.id }}"
+                                    {% if internship and internship.zopz_id == user.id %}selected{% endif %}>
+                                    {{ user.full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            {% if internship and internship.uopz_id and internship.zopz_id %}
+                            <span class="status-badge status-approved">Kompletny</span>
+                            {% elif internship and (internship.uopz_id or internship.zopz_id) %}
+                            <span class="status-badge status-pending">Częściowy</span>
+                            {% else %}
+                            <span class="status-badge status-rejected">Brak</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm" type="submit" form="assignment-{{ student.id }}">
+                                Zapisz
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty-state">Brak aktywnych kont studentów.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

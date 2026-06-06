@@ -1,6 +1,9 @@
 Flask
 Flask-SQLAlchemy
+Flask-Migrate
 Flask-Login
+Authlib
+requests
 python-dotenv
 weasyprint
 PyMySQL

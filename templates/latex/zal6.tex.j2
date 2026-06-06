@@ -39,18 +39,19 @@
 \fontsize{9}{11}\selectfont
 \begin{tabularx}{\linewidth}{%
   |>{\centering\arraybackslash}p{26pt}%
-  |p{52pt}%
+  |p{46pt}%
+  |>{\centering\arraybackslash}p{34pt}%
   |X%
-  |>{\centering\arraybackslash}p{52pt}%
-  |p{60pt}|%
+  |>{\centering\arraybackslash}p{46pt}%
+  |p{52pt}|%
 }
 \hline
 \rowcolor{lightgray}
-\textbf{Dzień} & \textbf{Data} & \textbf{Opis wykonanych prac} &
+\textbf{Dzień} & \textbf{Data} & \textbf{Godziny} & \textbf{Opis wykonanych prac} &
 \textbf{Efekty uczenia się} & \textbf{Podpis opiekuna} \\
 \hline
 ((*- for wpis in data.get('dziennik', []) *))
-(( wpis.dzien | le )) & (( wpis.data | le )) & (( wpis.opis | le )) &
+(( wpis.dzien | le )) & (( wpis.data | le )) & (( wpis.get('godziny', '') | le )) & (( wpis.opis | le )) &
 (( wpis.efekty | le )) & (( wpis.podpis | le )) \\
 \hline
 ((*- endfor *))

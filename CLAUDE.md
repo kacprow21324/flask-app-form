@@ -175,6 +175,8 @@ MONGO_PORT=27017
 | `/` | wszyscy | Dashboard |
 | `/regulamin` | wszyscy | Regulamin |
 | `/powiadomienia` | wszyscy | Lista powiadomień wymagających działania |
+| `/obieg` | wszyscy | Postęp praktyki i statusy dokumentów zgodnie z zakresem roli |
+| `/przydzialy` | dziekanat, admin | Jawne przypisywanie UOPZ i ZOPZ na rok akademicki |
 | `/profil` | student | Edycja specjalności i trybu studiów |
 | `/konfiguracja` | dziekanat, admin | Konfiguracja dat semestru |
 | `/student/<nr>` | wszyscy | Profil studenta (ZOPZ widzi tylko swoje formularze) |
@@ -231,9 +233,9 @@ MONGO_PORT=27017
 | Rola | Tworzy/edytuje | Widzi |
 |------|----------------|-------|
 | **student** | Zał. 1, 2a, 4b, 5, 6, 7, 7a | Tylko swoje dokumenty |
-| **uopz** | Zał. 2, 4a | Wszyscy studenci + pełny widok |
-| **zopz** | Zał. 3, 4, 9 | Wszyscy studenci + **tylko formularze: 2a, 3, 4, 6, 7a, 9** |
-| **dziekanat** | Zał. 8 | Wszyscy + może usuwać + konfiguracja semestru |
+| **uopz** | Zał. 2, 4a | Wyłącznie jawnie przypisani studenci + pełny widok |
+| **zopz** | Zał. 3, 4, 9 | Wyłącznie jawnie przypisani studenci + **tylko formularze: 2a, 3, 4, 6, 7a, 9** |
+| **dziekanat** | Zał. 8 | Wszyscy studenci + przydziały opiekunów + konfiguracja semestru |
 | **admin** | Wszystkie | Wszystko |
 
 ---
@@ -343,6 +345,9 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 - **Szablony LaTeX** (gotowe, wymagają MiKTeX)
 - **Dashboard** studenta z przewodnikiem kroków
 - **Dashboard pracowniczy** z listą studentów i dokumentami oczekującymi
+- **Jawne przydziały opiekunów** – dziekanat/admin przypisuje UOPZ i ZOPZ do praktyki w danym roku; nowa praktyka nie wybiera automatycznie pierwszego opiekuna
+- **Widok postępu `/obieg`** – student widzi własne dokumenty, godziny, dni i opiekunów; dziekanat wszystkich studentów; UOPZ/ZOPZ tylko przypisanych studentów
+- **Godziny w dzienniku praktyki** – każdy dzień zawiera 1–8 godzin; serwer kontroluje numer dnia 1–120, duplikaty dni i limit 960 godzin
 
 ---
 
@@ -357,11 +362,7 @@ Studenci mogą dołączać pliki do Dziennika praktyki:
 - **Eksport CSV/Excel** – lista studentów z ocenami dla dziekanatu
 - **Kolejki recenzenta z DB** – statusy są już zapisywane i logowane w bazie (`document_workflow`/`document_log`), ale kolejki/powiadomienia nadal czytają `_status` z treści formularza (Mongo); do rozważenia oparcie kolejek bezpośrednio o tabelę `document_workflow`
 - **Weryfikacja zgodności szablonów PDF z nowymi polami** – szablony `print/zal4b.html` mają sekcje E i F (Opinia Komisji, Decyzja Dyrektora); przy generowaniu PDF przez WeasyPrint należy sprawdzić układ stron dla tych rozszerzonych formularzy
-- **Wizualny podgląd obiegu dokumentów (diagram workflow)** – dodać widok pokazujący stan każdego załącznika (Zał. 1–9) jako diagram fazowy (Faza 0–4), z kolorystycznym statusem (szkic / oczekuje / zatwierdzone / odrzucone) oraz ścieżką sekwencyjną i równoległą:
-  - **Dla studenta** – własny obieg: które dokumenty zrobione, które czekają, gdzie utknął (z linkami do edycji/poprawy)
-  - **Dla UOPZ / ZOPZ** – widok zbiorczy „moich studentów" z diagramem na każdego (szybkie wyłapanie, kto blokuje proces, co czeka na moją akceptację)
-  - **Dla dziekanatu** – widok kilkunastu studentów naraz (tabela/grid z mini-diagramami statusów albo widok agregowany: ile osób w której fazie, ile dokumentów odrzuconych, ile gotowych do Zał. 8)
-  - Bazą danych są tabele `document_workflow` + `document_log` (już istnieją) – diagram tylko je renderuje, np. SVG/CSS grid lub biblioteką typu Mermaid renderowaną client-side
+- **Rozszerzenie obiegu o terminy** – widok postępu działa, ale nadal brakuje terminów, oznaczania opóźnień i alertów eskalacyjnych dla dziekanatu.
 
 ---
 

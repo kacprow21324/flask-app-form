@@ -5,14 +5,14 @@
 {% set cfg = {
     'approved': ('dot-approved', 'Zatwierdzone'),
     'pending':  ('dot-pending',  'Oczekuje na zatwierdzenie'),
-    'rejected': ('dot-rejected', 'Odrzucone – wymaga poprawy'),
-    'draft':    ('dot-draft',    'Szkic – w trakcie edycji'),
+    'rejected': ('dot-rejected', 'Odrzucone - wymaga poprawy'),
+    'draft':    ('dot-draft',    'Szkic - w trakcie edycji'),
 } %}
 {% if st %}
     {% set cls, tip = cfg[st] %}
     {% if nr_albumu %}
     <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ key }}"
-       class="wf-dot {{ cls }}" title="{{ tip }}"></a>
+       class="wf-dot {{ cls }}" title="{{ tip }}" aria-label="{{ tip }}"></a>
     {% else %}
     <span class="wf-dot {{ cls }}" title="{{ tip }}"></span>
     {% endif %}
@@ -21,138 +21,249 @@
 {% endif %}
 {% endmacro %}
 
+{% macro progress_bar(value, label) %}
+<div class="workflow-progress">
+    <div class="workflow-progress-label">{{ label }}</div>
+    <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:{{ value }}%"></div>
+    </div>
+    <strong>{{ value }}%</strong>
+</div>
+{% endmacro %}
+
 {% block content %}
 <div class="page">
+    <div class="workflow-page-header">
+        <div>
+            <h1>Obieg dokumentów</h1>
+            <p class="subtitle">
+                {% if role == 'student' %}
+                Twój bieżący postęp praktyki i status każdego dokumentu.
+                {% elif role in ('uopz', 'zopz') %}
+                Widoczni są wyłącznie studenci przypisani do Ciebie.
+                {% else %}
+                Zbiorczy postęp wszystkich studentów.
+                {% endif %}
+            </p>
+        </div>
+        <div class="workflow-header-actions">
+            <form method="get" class="workflow-year-form">
+                <label for="workflow-year">Rok akademicki</label>
+                <select id="workflow-year" name="rok" onchange="this.form.submit()">
+                    {% for year in academic_years %}
+                    <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+                        {{ year }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% if role in ('dziekanat', 'admin') %}
+            <a class="btn" href="{{ url_for('przydzialy', rok=selected_year) }}">
+                Przydziel opiekunów
+            </a>
+            {% endif %}
+        </div>
+    </div>
 
-<div style="display:flex; align-items:baseline; gap:16px; margin-bottom:20px; flex-wrap:wrap">
-    <h1 style="margin:0">Obieg dokumentów</h1>
-    <div class="wf-legend">
+    <div class="wf-legend workflow-legend-card">
         <span class="wf-dot dot-approved"></span>Zatwierdzone
         <span class="wf-dot dot-pending"></span>Oczekuje
         <span class="wf-dot dot-rejected"></span>Odrzucone
         <span class="wf-dot dot-draft"></span>Szkic
         <span class="wf-dot dot-none"></span>Nie rozpoczęto
     </div>
-</div>
 
-{# ══════════════ WIDOK STUDENTA ══════════════ #}
-{% if role == 'student' %}
-
-<div class="wf-phases-student">
-    {% for phase in phases %}
-    <div class="wf-phase-col">
-        <div class="wf-phase-header">
-            <span class="wf-phase-nr">{{ phase.label }}</span>
-            <span class="wf-phase-sub">{{ phase.subtitle }}</span>
+    {% if role == 'student' %}
+    <div class="workflow-stats">
+        <div class="workflow-stat">
+            <span>Dokumenty rozpoczęte</span>
+            <strong>{{ progress.started }} / {{ progress.total }}</strong>
+            {{ progress_bar(progress.started_percent, 'Uzupełniono') }}
         </div>
-        <div class="wf-phase-body">
-            {% for key in phase.keys %}
-            {% set att = att_map.get(key) %}
-            {% if att %}
-            {% set st = status_map.get(key) %}
-            <div class="wf-student-row {% if st == 'approved' %}wf-row-approved{% elif st == 'pending' %}wf-row-pending{% elif st == 'rejected' %}wf-row-rejected{% elif st == 'draft' %}wf-row-draft{% endif %}">
-                <div class="wf-row-top">
-                    {{ status_dot(st, key, nr_albumu) }}
-                    <span class="wf-row-nr">Zał.&nbsp;{{ att.nr }}</span>
-                </div>
-                <div class="wf-row-title">{{ att.title }}</div>
-                {% if st %}
-                <div class="wf-row-actions">
-                    {% if st in ('draft', 'rejected') %}
-                    <a href="{{ url_for(key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm">Edytuj</a>
-                    {% elif st == 'approved' %}
-                    <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ key }}" class="btn btn-sm btn-secondary">Podgląd</a>
-                    {% else %}
-                    <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ key }}" class="btn btn-sm btn-secondary">Podgląd</a>
-                    {% endif %}
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
-            {% endfor %}
+        <div class="workflow-stat">
+            <span>Dokumenty zatwierdzone</span>
+            <strong>{{ progress.approved }} / {{ progress.total }}</strong>
+            {{ progress_bar(progress.approved_percent, 'Zatwierdzono') }}
+        </div>
+        <div class="workflow-stat">
+            <span>Godziny praktyki</span>
+            <strong>{{ progress.hours }} / 960</strong>
+            {{ progress_bar(progress.hours_percent, 'Zrealizowano') }}
+        </div>
+        <div class="workflow-stat">
+            <span>Dni praktyki</span>
+            <strong>{{ progress.days }} / 120</strong>
+            {{ progress_bar(progress.days_percent, 'Zrealizowano') }}
         </div>
     </div>
-    {% if not loop.last %}
-    <div class="wf-arrow">→</div>
-    {% endif %}
-    {% endfor %}
-</div>
 
-{# ══════════════ WIDOK PRACOWNICZY ══════════════ #}
-{% else %}
+    <div class="card workflow-assignment-card">
+        <div>
+            <span class="workflow-card-label">Opiekun uczelniany (UOPZ)</span>
+            <strong>{{ internship.uopz.full_name if internship and internship.uopz else 'Nie przypisano' }}</strong>
+        </div>
+        <div>
+            <span class="workflow-card-label">Opiekun zakładowy (ZOPZ)</span>
+            <strong>{{ internship.zopz.full_name if internship and internship.zopz else 'Nie przypisano' }}</strong>
+        </div>
+        {% if progress.pending or progress.rejected %}
+        <div class="workflow-alerts">
+            {% if progress.pending %}
+            <span class="status-badge status-pending">{{ progress.pending }} oczekuje</span>
+            {% endif %}
+            {% if progress.rejected %}
+            <span class="status-badge status-rejected">{{ progress.rejected }} do poprawy</span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 
-{% if not students %}
-<div class="card"><p class="empty-state" style="padding:24px">Brak studentów z wypełnionymi formularzami.</p></div>
-{% else %}
-
-<div class="card" style="overflow-x:auto">
-<table class="wf-grid-table">
-    {# Nagłówek — nazwy faz #}
-    <thead>
-        <tr class="wf-phase-row">
-            <th rowspan="2" class="wf-col-student">Student</th>
-            {% for phase in phases %}
-            <th colspan="{{ phase.keys|length }}" class="wf-phase-th">
-                {{ phase.label }}<br>
+    <div class="wf-phases-student">
+        {% for phase in phases %}
+        <div class="wf-phase-col">
+            <div class="wf-phase-header">
+                <span class="wf-phase-nr">{{ phase.label }}</span>
                 <span class="wf-phase-sub">{{ phase.subtitle }}</span>
-            </th>
-            {% endfor %}
-        </tr>
-        {# Nagłówek — numery załączników #}
-        <tr class="wf-att-row">
-            {% for phase in phases %}
-            {% for key in phase.keys %}
-            {% set att = att_map.get(key) %}
-            <th class="wf-att-th" title="{{ att.title if att else key }}">
-                {{ att.nr if att else key }}
-            </th>
-            {% endfor %}
-            {% endfor %}
-        </tr>
-        {# Wiersz podsumowania #}
-        <tr class="wf-summary-row">
-            <td class="wf-col-student" style="font-size:0.75rem; color:var(--muted); padding:4px 12px">
-                Podsumowanie ({{ students|length }} studentów)
-            </td>
-            {% for phase in phases %}
-            {% for key in phase.keys %}
-            {% set s = summary.get(key, {}) %}
-            <td class="wf-summary-cell">
-                {% if s.approved %}<span class="sum-chip chip-approved">{{ s.approved }} zat</span>{% endif %}
-                {% if s.pending %}<span class="sum-chip chip-pending">{{ s.pending }} czk</span>{% endif %}
-                {% if s.rejected %}<span class="sum-chip chip-rejected">{{ s.rejected }} odrz</span>{% endif %}
-                {% if s.draft %}<span class="sum-chip chip-draft">{{ s.draft }} szk</span>{% endif %}
-            </td>
-            {% endfor %}
-            {% endfor %}
-        </tr>
-    </thead>
-    {# Wiersze studentów #}
-    <tbody>
-        {% for student in students %}
-        {% set sw = wf_by_student.get(student.album_number, {}) %}
-        <tr class="wf-student-tr">
-            <td class="wf-col-student">
-                <a href="{{ url_for('student_detail', nr_albumu=student.album_number) }}">
-                    {{ student.last_name }} {{ student.first_name }}
-                </a>
-                <span class="wf-album">{{ student.album_number }}</span>
-            </td>
-            {% for phase in phases %}
-            {% for key in phase.keys %}
-            {% set st = sw.get(key) %}
-            <td class="wf-cell wf-cell-{{ st or 'none' }}">
-                {{ status_dot(st, key, student.album_number) }}
-            </td>
-            {% endfor %}
-            {% endfor %}
-        </tr>
+            </div>
+            <div class="wf-phase-body">
+                {% for key in phase["keys"] %}
+                {% set att = att_map.get(key) %}
+                {% set st = status_map.get(key) %}
+                <div class="wf-student-row wf-row-{{ st or 'none' }}">
+                    <div class="wf-row-top">
+                        {{ status_dot(st, key, nr_albumu) }}
+                        <span class="wf-row-nr">Zał. {{ att.nr }}</span>
+                    </div>
+                    <div class="wf-row-title">{{ att.title }}</div>
+                    {% if st %}
+                    <div class="wf-row-actions">
+                        {% if st in ('draft', 'rejected') %}
+                        <a href="{{ url_for(key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm">Edytuj</a>
+                        {% else %}
+                        <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ key }}"
+                           class="btn btn-sm btn-secondary">Podgląd</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% if not loop.last %}<div class="wf-arrow">&rarr;</div>{% endif %}
         {% endfor %}
-    </tbody>
-</table>
-</div>
-{% endif %}
-{% endif %}
+    </div>
 
+    {% else %}
+    {% set totals = namespace(pending=0, rejected=0, actions=0) %}
+    {% for student in students %}
+        {% set item = progress_by_student.get(student.album_number) %}
+        {% set totals.pending = totals.pending + item.pending %}
+        {% set totals.rejected = totals.rejected + item.rejected %}
+        {% set totals.actions = totals.actions + item.pending_for_role %}
+    {% endfor %}
+    <div class="workflow-stats workflow-stats-staff">
+        <div class="workflow-stat">
+            <span>Studenci w widoku</span>
+            <strong>{{ students|length }}</strong>
+        </div>
+        <div class="workflow-stat">
+            <span>Dokumenty oczekujące</span>
+            <strong>{{ totals.pending }}</strong>
+        </div>
+        <div class="workflow-stat">
+            <span>Dokumenty odrzucone</span>
+            <strong>{{ totals.rejected }}</strong>
+        </div>
+        {% if role in ('uopz', 'zopz') %}
+        <div class="workflow-stat">
+            <span>Wymagają Twojej decyzji</span>
+            <strong>{{ totals.actions }}</strong>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not students %}
+    <div class="card">
+        <p class="empty-state">
+            {% if role in ('uopz', 'zopz') %}
+            Brak studentów przypisanych do Ciebie w roku {{ selected_year }}.
+            {% else %}
+            Brak studentów.
+            {% endif %}
+        </p>
+    </div>
+    {% else %}
+    <div class="card workflow-table-card">
+        <div class="table-wrap">
+            <table class="wf-grid-table workflow-overview-table">
+                <thead>
+                    <tr class="wf-phase-row">
+                        <th rowspan="2" class="wf-col-student">Student</th>
+                        <th rowspan="2" class="workflow-progress-th">Postęp</th>
+                        <th rowspan="2" class="workflow-progress-th">Przydział</th>
+                        {% for phase in phases %}
+                        <th colspan="{{ phase["keys"]|length }}" class="wf-phase-th">
+                            {{ phase.label }}<br>
+                            <span class="wf-phase-sub">{{ phase.subtitle }}</span>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                    <tr class="wf-att-row">
+                        {% for phase in phases %}
+                        {% for key in phase["keys"] %}
+                        {% set att = att_map.get(key) %}
+                        <th class="wf-att-th" title="{{ att.title }}">{{ att.nr }}</th>
+                        {% endfor %}
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    {% set sw = wf_by_student.get(student.album_number, {}) %}
+                    {% set item = progress_by_student.get(student.album_number) %}
+                    {% set internship = internship_by_student.get(student.id) %}
+                    <tr class="wf-student-tr">
+                        <td class="wf-col-student">
+                            {% if item.started %}
+                            <a href="{{ url_for('student_detail', nr_albumu=student.album_number) }}">
+                                {{ student.last_name }} {{ student.first_name }}
+                            </a>
+                            {% else %}
+                            <strong>{{ student.last_name }} {{ student.first_name }}</strong>
+                            {% endif %}
+                            <span class="wf-album">{{ student.album_number }}</span>
+                        </td>
+                        <td class="workflow-progress-cell">
+                            <strong>{{ item.started }} / {{ item.total }}</strong>
+                            <span>{{ item.approved }} zatwierdzonych</span>
+                            <span>{{ item.hours }} h / {{ item.days }} dni</span>
+                            {% if item.pending_for_role %}
+                            <span class="status-badge status-pending">{{ item.pending_for_role }} do decyzji</span>
+                            {% endif %}
+                        </td>
+                        <td class="workflow-assignment-cell">
+                            {% if internship %}
+                            <span>UOPZ: {{ internship.uopz.full_name if internship.uopz else 'brak' }}</span>
+                            <span>ZOPZ: {{ internship.zopz.full_name if internship.zopz else 'brak' }}</span>
+                            {% else %}
+                            <span class="status-badge status-rejected">Brak przydziału</span>
+                            {% endif %}
+                        </td>
+                        {% for phase in phases %}
+                        {% for key in phase["keys"] %}
+                        {% set st = sw.get(key) %}
+                        <td class="wf-cell wf-cell-{{ st or 'none' }}">
+                            {{ status_dot(st, key, student.album_number if item.started else None) }}
+                        </td>
+                        {% endfor %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
 </div>
 {% endblock %}

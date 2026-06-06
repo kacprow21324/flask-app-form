@@ -110,9 +110,17 @@ def generate_pdf_latex(zal_key, context):
         # Run xelatex twice so cross-references and page numbers settle
         for _ in range(2):
             result = subprocess.run(
-                ['xelatex', '-interaction=nonstopmode', '-output-directory', tmpdir, tex_path],
+                [
+                    'xelatex',
+                    '-no-shell-escape',
+                    '-halt-on-error',
+                    '-interaction=nonstopmode',
+                    '-output-directory', tmpdir,
+                    tex_path,
+                ],
                 capture_output=True,
                 timeout=60,
+                cwd=tmpdir,
             )
 
         if not os.path.exists(pdf_path):

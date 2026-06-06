@@ -91,3 +91,25 @@ def validate_diary_opis(v):
     if len(v) < DIARY_MIN_LEN:
         return False, f"Opis za krótki (min. {DIARY_MIN_LEN} znaków, jest {len(v)})."
     return True, ""
+
+
+def validate_diary_day(v):
+    """Numer dnia praktyki: liczba całkowita od 1 do 120."""
+    try:
+        day = int(str(v).strip())
+    except (TypeError, ValueError):
+        return False, "Numer dnia musi być liczbą całkowitą."
+    if not 1 <= day <= 120:
+        return False, "Numer dnia musi mieścić się w zakresie 1-120."
+    return True, ""
+
+
+def validate_diary_hours(v):
+    """Dzienny wymiar praktyki: liczba całkowita od 1 do 8 godzin."""
+    try:
+        hours = int(str(v).strip())
+    except (TypeError, ValueError):
+        return False, "Liczba godzin musi być liczbą całkowitą."
+    if not 1 <= hours <= 8:
+        return False, "Dzienny wymiar praktyki musi mieścić się w zakresie 1-8 godzin."
+    return True, ""

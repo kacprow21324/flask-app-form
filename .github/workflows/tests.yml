@@ -1,0 +1,27 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit-and-migrations:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-secret-key-with-at-least-32-characters
+      DATABASE_URL: sqlite:////tmp/flask-app-form-ci.db
+      MONGO_URL: mongodb://localhost:27017/ci
+      SESSION_COOKIE_SECURE: "false"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+      - run: flask --app app db upgrade
+      - run: flask --app app db check

@@ -184,6 +184,171 @@ class DocumentLog(db.Model):
         return f"<DocumentLog {self.album_number}/{self.form_key} {self.action}>"
 
 
+class UserSession(db.Model):
+    __tablename__ = "sessions"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False, index=True,
+    )
+    token_hash = db.Column(db.String(64), nullable=False, unique=True)
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.String(500))
+    expires_at = db.Column(db.DateTime, nullable=False, index=True)
+    is_revoked = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    revoked_at = db.Column(db.DateTime)
+
+    user = db.relationship("User", foreign_keys=[user_id])
+
+
+class LoginAttempt(db.Model):
+    __tablename__ = "login_attempts"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    email = db.Column(db.String(255), nullable=False, index=True)
+    ip_address = db.Column(db.String(45))
+    success = db.Column(db.Integer, nullable=False)
+    failure_reason = db.Column(db.String(50))
+    attempted_at = db.Column(
+        db.DateTime, nullable=False, default=datetime.utcnow, index=True,
+    )
+
+
+class Company(db.Model):
+    __tablename__ = "companies"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(300), nullable=False, index=True)
+    nip = db.Column(db.String(20), unique=True)
+    regon = db.Column(db.String(20))
+    address = db.Column(db.String(500))
+    representative_name = db.Column(db.String(200))
+    representative_position = db.Column(db.String(200))
+    phone = db.Column(db.String(50))
+    email = db.Column(db.String(255))
+    is_verified = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow,
+    )
+
+
+class Internship(db.Model):
+    __tablename__ = "internships"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    student_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False, index=True,
+    )
+    uopz_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), index=True,
+    )
+    zopz_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), index=True,
+    )
+    company_id = db.Column(
+        db.Integer, db.ForeignKey("companies.id", ondelete="SET NULL"), index=True,
+    )
+    academic_year = db.Column(db.String(20), nullable=False, index=True)
+    agreement_number = db.Column(db.String(100))
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
+    status = db.Column(db.String(30), nullable=False, default="draft", index=True)
+    total_hours = db.Column(db.Integer, nullable=False, default=0)
+    total_days = db.Column(db.Integer, nullable=False, default=0)
+    grade_z = db.Column(db.Numeric(3, 2))
+    grade_u = db.Column(db.Numeric(3, 2))
+    grade_s = db.Column(db.Numeric(3, 2))
+    grade_e = db.Column(db.Numeric(3, 2))
+    grade_k = db.Column(db.Numeric(3, 2))
+    is_archived = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow,
+    )
+
+    student = db.relationship("User", foreign_keys=[student_id])
+    uopz = db.relationship("User", foreign_keys=[uopz_id])
+    zopz = db.relationship("User", foreign_keys=[zopz_id])
+    company = db.relationship("Company", foreign_keys=[company_id])
+
+    __table_args__ = (
+        db.UniqueConstraint("student_id", "academic_year", name="uq_internship_student_year"),
+    )
+
+
+class Notification(db.Model):
+    __tablename__ = "notifications"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    recipient_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False, index=True,
+    )
+    type = db.Column(db.String(50), nullable=False)
+    title = db.Column(db.String(250), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    link = db.Column(db.String(500))
+    related_entity_type = db.Column(db.String(50))
+    related_entity_id = db.Column(db.Integer)
+    dedupe_key = db.Column(db.String(255), unique=True)
+    is_read = db.Column(db.Integer, nullable=False, default=0, index=True)
+    read_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    recipient = db.relationship("User", foreign_keys=[recipient_id])
+
+
+class GeneratedDocument(db.Model):
+    __tablename__ = "generated_documents"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    internship_id = db.Column(
+        db.Integer, db.ForeignKey("internships.id", ondelete="SET NULL"), index=True,
+    )
+    album_number = db.Column(db.String(20), nullable=False, index=True)
+    form_key = db.Column(db.String(10), nullable=False)
+    template_version = db.Column(db.String(50))
+    file_path = db.Column(db.String(700), nullable=False)
+    file_name = db.Column(db.String(255), nullable=False)
+    file_size_bytes = db.Column(db.Integer, nullable=False)
+    mime_type = db.Column(db.String(100), nullable=False, default="application/pdf")
+    checksum_sha256 = db.Column(db.String(64), nullable=False)
+    generated_by = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), index=True,
+    )
+    generated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    download_count = db.Column(db.Integer, nullable=False, default=0)
+
+    internship = db.relationship("Internship", foreign_keys=[internship_id])
+    generator = db.relationship("User", foreign_keys=[generated_by])
+
+
+class AuditLog(db.Model):
+    __tablename__ = "audit_logs"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), index=True,
+    )
+    user_role = db.Column(db.String(20))
+    action = db.Column(db.String(30), nullable=False, index=True)
+    entity_type = db.Column(db.String(50), nullable=False)
+    entity_id = db.Column(db.String(100), index=True)
+    changes_before = db.Column(db.JSON)
+    changes_after = db.Column(db.JSON)
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.String(500))
+    performed_at = db.Column(
+        db.DateTime, nullable=False, default=datetime.utcnow, index=True,
+    )
+
+    user = db.relationship("User", foreign_keys=[user_id])
+
+
 class User(UserMixin, db.Model):
     """
     Konto użytkownika – mapuje tabelę `users` ze schematu bazy danych.

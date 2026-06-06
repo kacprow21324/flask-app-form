@@ -14,6 +14,7 @@ from flask_login import current_user
 
 from core.models import db, DocumentWorkflow, DocumentLog
 from core.fsm import DocumentFSM, InvalidTransition
+from core.audit import log_action
 
 
 def _actor():
@@ -47,6 +48,7 @@ def set_status(album_number, form_key, status, *, reviewer_role=None,
     """
     wf = DocumentWorkflow.query.filter_by(
         album_number=album_number, form_key=form_key).first()
+    old_status = wf.status if wf is not None else None
     if wf is None:
         wf = DocumentWorkflow(album_number=album_number, form_key=form_key)
         db.session.add(wf)
@@ -57,6 +59,17 @@ def set_status(album_number, form_key, status, *, reviewer_role=None,
     wf.rejection_by = rejection_by
     log_event(album_number, form_key, action or status,
               comment=log_comment if log_comment is not None else rejection_comment)
+    audit_action = {
+        "created": "create",
+        "updated": "update",
+    }.get(action or status, action or status)
+    log_action(
+        audit_action,
+        "document",
+        f"{album_number}/{form_key}",
+        before={"status": old_status},
+        after={"status": status, "reviewer_role": reviewer_role},
+    )
     db.session.commit()
     return wf
 
@@ -66,6 +79,7 @@ def delete_doc(album_number, form_key):
     DocumentWorkflow.query.filter_by(
         album_number=album_number, form_key=form_key).delete()
     log_event(album_number, form_key, "deleted")
+    log_action("delete", "document", f"{album_number}/{form_key}")
     db.session.commit()
 
 
@@ -94,12 +108,29 @@ def do_transition(album_number: str, form_key: str, event: str,
 
     new_state = DocumentFSM.transition(current_state, event)  # rzuca InvalidTransition
 
+    _, actor_name, _ = _actor()
     return set_status(
         album_number, form_key, new_state,
         reviewer_role=reviewer_role,
+        rejection_comment=comment if new_state == "rejected" else None,
+        rejection_by=actor_name if new_state == "rejected" else None,
         action=event,
         log_comment=comment,
     )
+
+
+def get_document(album_number: str, form_key: str):
+    """Return the workflow row for one document, or None."""
+    return DocumentWorkflow.query.filter_by(
+        album_number=album_number,
+        form_key=form_key,
+    ).first()
+
+
+def get_status(album_number: str, form_key: str, default="draft") -> str:
+    """Return the authoritative document status from MariaDB."""
+    row = get_document(album_number, form_key)
+    return row.status if row is not None else default
 
 
 def get_statuses(album_number: str) -> dict:

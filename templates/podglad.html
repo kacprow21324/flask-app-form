@@ -36,7 +36,8 @@
 
         {% for att in attachments %}
         {% set r = student.get(att.key) %}
-        {% set status = r.get('_status', 'draft') if r else '' %}
+        {% set state = workflow_states.get(att.key) %}
+        {% set status = state.status if r and state else ('draft' if r else '') %}
         {% set wf = document_workflow.get(att.key, {}) %}
         {% set reviewer_role = wf.get('reviewer') %}
         {% set is_creator = att.key in editable_forms %}
@@ -91,8 +92,8 @@
             </div>
 
 
-            {% set rej_comment = r.get('_rejection_comment', '') if r else '' %}
-            {% set rej_by      = r.get('_rejection_by', '') if r else '' %}
+            {% set rej_comment = state.rejection_comment if state else '' %}
+            {% set rej_by      = state.rejection_by if state else '' %}
             {% set rej_fields  = r.get('_field_comments', []) if r else [] %}
             {% if r and status == 'rejected' and rej_comment %}
             <div class="rejection-notice">
@@ -116,13 +117,13 @@
             </div>
             {% endif %}
 
-            {% set app_by = r.get('_approved_by', '') if r else '' %}
-            {% if r and status == 'approved' and app_by %}
+            {% set approval = approval_by_key.get(att.key) %}
+            {% if r and status == 'approved' and approval %}
             {% set role_labels = {'zopz': 'Opiekun Zakładowy', 'uopz': 'Opiekun Uczelniany', 'dziekanat': 'Dziekanat', 'admin': 'Administrator'} %}
             <div class="approval-notice">
                 <span class="approval-seal">✔ ZATWIERDZONO</span>
                 <span class="approval-meta">
-                    {{ app_by }}{% if r.get('_approved_role') %} — {{ role_labels.get(r.get('_approved_role'), r.get('_approved_role')) }}{% endif %}{% if r.get('_approved_at') %} · {{ r.get('_approved_at') }}{% endif %}
+                    {{ approval.actor_name }}{% if approval.actor_role %} — {{ role_labels.get(approval.actor_role, approval.actor_role) }}{% endif %}{% if approval.created_at %} · {{ approval.created_at.strftime('%Y-%m-%d') }}{% endif %}
                 </span>
             </div>
             {% endif %}

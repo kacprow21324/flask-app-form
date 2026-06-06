@@ -140,6 +140,10 @@
                                 </th>
                                 <th>Data</th>
                                 <th>
+                                    Godziny
+                                    <span class="info-icon small" data-tooltip="Od 1 do 8 godzin w jednym dniu.">?</span>
+                                </th>
+                                <th>
                                     Opis wykonanych prac
                                     <span class="info-icon small" data-tooltip="Wpisy powinny zawierać opis wykonywanych prac, z których powinno wynikać, do nabycia jakich umiejętności studenta prowadzą oraz do nabycia których efektów uczenia się. Unikać skrótowych opisów.">?</span>
                                 </th>
@@ -158,8 +162,10 @@
                                 {% set err = dc_map.get(wpis.dzien|string, '') %}
                                 <tr{% if err %} class="diary-row--error"{% endif %}>
                                     <td><input class="day-input" type="number" name="dzien[]"
-                                               value="{{ wpis.dzien }}" min="1" required></td>
+                                               value="{{ wpis.dzien }}" min="1" max="120" required></td>
                                     <td><input type="date" name="data[]" value="{{ wpis.data }}" required></td>
+                                    <td><input class="hours-input" type="number" name="godziny[]"
+                                               value="{{ wpis.get('godziny', '') }}" min="1" max="8" required></td>
                                     <td>
                                         {% if err %}<div class="diary-error-note">⚠ {{ err }}</div>{% endif %}
                                         <textarea class="opis-textarea" name="opis[]" rows="2" required>{{ wpis.opis }}</textarea>
@@ -192,8 +198,9 @@
                                 {% endfor %}
                             {% else %}
                                 <tr>
-                                    <td><input class="day-input" type="number" name="dzien[]" min="1" required></td>
+                                    <td><input class="day-input" type="number" name="dzien[]" min="1" max="120" required></td>
                                     <td><input type="date" name="data[]" required></td>
+                                    <td><input class="hours-input" type="number" name="godziny[]" min="1" max="8" required></td>
                                     <td><textarea class="opis-textarea" name="opis[]" rows="2" required></textarea></td>
                                     <td>
                                         <div class="effects-picker">
@@ -332,7 +339,7 @@
         const row = document.createElement("tr");
         const tdDay = document.createElement("td");
         const inDay = document.createElement("input");
-        inDay.type = "number"; inDay.name = "dzien[]"; inDay.min = "1"; inDay.required = true;
+        inDay.type = "number"; inDay.name = "dzien[]"; inDay.min = "1"; inDay.max = "120"; inDay.required = true;
         inDay.className = "day-input"; inDay.value = next.day;
         tdDay.appendChild(inDay);
         const tdDate = document.createElement("td");
@@ -340,6 +347,12 @@
         inDate.type = "date"; inDate.name = "data[]"; inDate.required = true;
         inDate.value = next.date;
         tdDate.appendChild(inDate);
+        const tdHours = document.createElement("td");
+        const inHours = document.createElement("input");
+        inHours.type = "number"; inHours.name = "godziny[]";
+        inHours.min = "1"; inHours.max = "8"; inHours.required = true;
+        inHours.className = "hours-input"; inHours.value = "8";
+        tdHours.appendChild(inHours);
         const tdDesc = document.createElement("td");
         const ta = document.createElement("textarea");
         ta.name = "opis[]"; ta.required = true; ta.rows = 2; ta.className = "opis-textarea";
@@ -355,7 +368,7 @@
         btnDel.type = "button"; btnDel.textContent = "Usuń"; btnDel.className = "btn btn-sm btn-danger";
         btnDel.onclick = function () { deleteRow(btnDel); };
         tdAct.appendChild(btnDel);
-        [tdDay, tdDate, tdDesc, tdEff, tdAct].forEach(function (td) { row.appendChild(td); });
+        [tdDay, tdDate, tdHours, tdDesc, tdEff, tdAct].forEach(function (td) { row.appendChild(td); });
         tbody.appendChild(row);
         autoGrow(ta);
     }

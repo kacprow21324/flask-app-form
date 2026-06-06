@@ -23,7 +23,6 @@ DB_FILE  = os.path.join(BASE_DIR, "data", "studenci.json")
 USERS = [
     {
         "email": "student@student.ans-elblag.pl",
-        "password": "Student123!",
         "first_name": "Aleksandra",
         "last_name": "Kowalska",
         "role": "student",
@@ -33,7 +32,6 @@ USERS = [
     },
     {
         "email": "opiekun@ans-elblag.pl",
-        "password": "Opiekun123!",
         "first_name": "Irena",
         "last_name": "Malinowska",
         "role": "uopz",
@@ -42,7 +40,6 @@ USERS = [
     },
     {
         "email": "zopz@firma.pl",
-        "password": "Zopz123!",
         "first_name": "Zbigniew",
         "last_name": "Ostrowski",
         "role": "zopz",
@@ -51,7 +48,6 @@ USERS = [
     },
     {
         "email": "dziekanat@ans-elblag.pl",
-        "password": "Dziekanat123!",
         "first_name": "Dorota",
         "last_name": "Kamińska",
         "role": "dziekanat",
@@ -60,7 +56,6 @@ USERS = [
     },
     {
         "email": "admin@ans-elblag.pl",
-        "password": "Admin123!",
         "first_name": "Adam",
         "last_name": "Wiśniewski",
         "role": "admin",
@@ -69,7 +64,6 @@ USERS = [
     },
     {
         "email": "student2@student.ans-elblag.pl",
-        "password": "Student123!",
         "first_name": "Marek",
         "last_name": "Nowak",
         "role": "student",
@@ -79,7 +73,6 @@ USERS = [
     },
     {
         "email": "student3@student.ans-elblag.pl",
-        "password": "Student123!",
         "first_name": "Katarzyna",
         "last_name": "Wróbel",
         "role": "student",
@@ -239,31 +232,6 @@ FORM_FIELDS_DATA = {
 }
 
 
-def migrate_db():
-    """Dodaje nowe kolumny do istniejących tabel (bezpieczne przy ponownym uruchomieniu)."""
-    from sqlalchemy import text
-    with db.engine.connect() as conn:
-        try:
-            conn.execute(text("ALTER TABLE users ADD COLUMN speciality VARCHAR(400)"))
-            conn.commit()
-            print("Migracja: dodano kolumnę users.speciality")
-        except Exception:
-            pass
-        try:
-            conn.execute(text("ALTER TABLE users ADD COLUMN study_mode VARCHAR(20) DEFAULT 'stacjonarne'"))
-            conn.commit()
-            print("Migracja: dodano kolumnę users.study_mode")
-        except Exception:
-            pass
-        for col in ("semester VARCHAR(10)", "study_year VARCHAR(10)"):
-            try:
-                conn.execute(text(f"ALTER TABLE users ADD COLUMN {col}"))
-                conn.commit()
-                print(f"Migracja: dodano kolumnę users.{col.split()[0]}")
-            except Exception:
-                pass
-
-
 def seed_app_config():
     defaults = [
         ('semester_summer_start_month', '3',  'Miesiąc początku semestru letniego'),
@@ -292,9 +260,16 @@ def seed_users():
             updated += 1
             print(f"  zaktualizowano: {data['email']}  ({data['first_name']} {data['last_name']})")
         else:
+            env_name = f"SEED_{data['role'].upper()}_PASSWORD"
+            password = os.environ.get(env_name, "")
+            if len(password) < 12:
+                raise RuntimeError(
+                    f"Ustaw {env_name} (minimum 12 znaków), aby utworzyć konto "
+                    f"{data['email']}."
+                )
             user = User(
                 email=data["email"],
-                password_hash=generate_password_hash(data["password"]),
+                password_hash=generate_password_hash(password),
                 first_name=data["first_name"],
                 last_name=data["last_name"],
                 role=data["role"],
@@ -305,7 +280,7 @@ def seed_users():
             )
             db.session.add(user)
             added += 1
-            print(f"  dodano: {data['email']}  hasło: {data['password']}")
+            print(f"  dodano: {data['email']}")
     db.session.commit()
     print(f"Użytkownicy: dodano {added}, zaktualizowano {updated}.")
 
@@ -857,8 +832,6 @@ def seed_workflow_from_json():
 
 
 with app.app_context():
-    db.create_all()
-    migrate_db()
     seed_users()
     seed_effects()
     seed_app_config()

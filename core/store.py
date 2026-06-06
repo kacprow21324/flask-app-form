@@ -8,18 +8,29 @@ Każdy formularz studenta jest osobnym dokumentem w kolekcji `practice_forms`:
       "data": { ... pełna treść formularza ... },
       "updated_at": <datetime> }
 
-Moduł wystawia ten sam interfejs co dawny zapis w `studenci.json`
-(`load_data()` / `save_data()`), zwracając zagnieżdżony słownik
-`{nr_albumu: {zal_key: dane}}`, więc reszta aplikacji nie wymaga zmian.
+Odczyty zbiorcze zachowują format dawnego pliku `studenci.json`:
+`{nr_albumu: {zal_key: dane}}`. Zapisy i usunięcia zawsze dotyczą jednego
+formularza albo jednego studenta, aby równoległe żądania nie nadpisywały
+pozostałych dokumentów.
 """
 import os
 from datetime import datetime
 
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument
+from pymongo.errors import DuplicateKeyError
 
 _DEFAULT_URL = "mongodb://mongo:27017/ems"
 _client = None
 _collection = None
+
+WORKFLOW_METADATA_FIELDS = {
+    "_status",
+    "_rejection_comment",
+    "_rejection_by",
+    "_approved_by",
+    "_approved_role",
+    "_approved_at",
+}
 
 
 def _coll():
@@ -39,6 +50,15 @@ def _doc_id(album_number, form_key):
     return f"{album_number}:{form_key}"
 
 
+def without_workflow_metadata(record):
+    """Return form content without workflow metadata owned by MariaDB."""
+    return {
+        key: value
+        for key, value in record.items()
+        if key not in WORKFLOW_METADATA_FIELDS
+    }
+
+
 def load_data():
     """Zwraca {nr_albumu: {zal_key: dane}} – wszystkie formularze z Mongo."""
     data = {}
@@ -47,31 +67,107 @@ def load_data():
     return data
 
 
-def save_data(all_data):
+def get_student_forms(album_number):
+    """Zwraca wszystkie formularze jednego studenta."""
+    forms = {}
+    for doc in _coll().find({"album_number": album_number}):
+        forms[doc["form_key"]] = doc.get("data", {})
+    return forms
+
+
+def get_form(album_number, form_key):
+    """Zwraca treść jednego formularza albo None."""
+    doc = _coll().find_one(
+        {"_id": _doc_id(album_number, form_key)},
+        {"data": 1},
+    )
+    return doc.get("data", {}) if doc else None
+
+
+def get_form_revision(album_number, form_key):
+    """Zwraca aktualną rewizję dokumentu; starsze dokumenty mają rewizję 0."""
+    doc = _coll().find_one(
+        {"_id": _doc_id(album_number, form_key)},
+        {"revision": 1},
+    )
+    if not doc:
+        return None
+    return doc.get("revision", 0)
+
+
+class ConcurrentUpdateError(RuntimeError):
+    """Dokument został zmieniony od czasu jego odczytu."""
+
+
+def save_form(album_number, form_key, record, expected_revision=None):
     """
-    Synchronizuje cały stan formularzy z Mongo: zapisuje obecne dokumenty
-    i usuwa te, których już nie ma w `all_data` (obsługa kasowania załączników).
+    Atomowo zapisuje jeden formularz i zwiększa jego rewizję.
+
+    `expected_revision` włącza optimistic locking. Brak zgodności oznacza,
+    że inny proces zapisał dokument wcześniej i zgłaszany jest konflikt.
     """
     coll = _coll()
-    present = set()
-    for album_number, forms in all_data.items():
-        for form_key, record in forms.items():
-            if not isinstance(record, dict):
-                continue
-            coll.update_one(
-                {"_id": _doc_id(album_number, form_key)},
-                {"$set": {
-                    "album_number": album_number,
-                    "form_key": form_key,
-                    "data": record,
-                    "updated_at": datetime.utcnow(),
-                }},
-                upsert=True,
-            )
-            present.add(_doc_id(album_number, form_key))
-    for doc in coll.find({}, {"_id": 1}):
-        if doc["_id"] not in present:
-            coll.delete_one({"_id": doc["_id"]})
+    document_id = _doc_id(album_number, form_key)
+    values = {
+        "album_number": album_number,
+        "form_key": form_key,
+        "data": without_workflow_metadata(record),
+        "updated_at": datetime.utcnow(),
+    }
+
+    if expected_revision is None:
+        doc = coll.find_one_and_update(
+            {"_id": document_id},
+            {"$set": values, "$inc": {"revision": 1}},
+            upsert=True,
+            return_document=ReturnDocument.AFTER,
+        )
+        return doc["revision"]
+
+    revision_filter = {"revision": expected_revision}
+    if expected_revision == 0:
+        revision_filter = {
+            "$or": [{"revision": 0}, {"revision": {"$exists": False}}],
+        }
+    doc = coll.find_one_and_update(
+        {"_id": document_id, **revision_filter},
+        {"$set": values, "$inc": {"revision": 1}},
+        return_document=ReturnDocument.AFTER,
+    )
+    if doc:
+        return doc["revision"]
+
+    if expected_revision == 0:
+        try:
+            coll.insert_one({
+                "_id": document_id,
+                **values,
+                "revision": 1,
+            })
+            return 1
+        except DuplicateKeyError:
+            pass
+    raise ConcurrentUpdateError(
+        f"Formularz {album_number}/{form_key} został zmieniony przez inny proces."
+    )
+
+
+def delete_form(album_number, form_key):
+    """Usuwa wyłącznie wskazany formularz."""
+    result = _coll().delete_one({"_id": _doc_id(album_number, form_key)})
+    return result.deleted_count > 0
+
+
+def delete_student_forms(album_number):
+    """Usuwa wszystkie formularze jednego studenta i zwraca ich klucze."""
+    coll = _coll()
+    keys = [
+        doc["form_key"]
+        for doc in coll.find({"album_number": album_number}, {"form_key": 1})
+    ]
+    if keys:
+        coll.delete_many({"album_number": album_number})
+    return keys
 
 
 def import_from_json(json_path):
@@ -94,7 +190,8 @@ def import_from_json(json_path):
                 {"_id": _doc_id(album_number, form_key)},
                 {"$set": {
                     "album_number": album_number, "form_key": form_key,
-                    "data": record, "updated_at": datetime.utcnow(),
+                    "data": without_workflow_metadata(record),
+                    "updated_at": datetime.utcnow(),
                 }},
                 upsert=True,
             )

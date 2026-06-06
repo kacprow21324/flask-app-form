@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Logowanie – System Praktyk ANS Elbląg</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/ikona.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <style>
         body { margin: 0; min-height: 100vh; background: #eef1f7; }
@@ -12,34 +13,34 @@
         /* ── Lewa kolumna: branding ── */
         .auth-brand {
             position: relative; overflow: hidden;
-            background: linear-gradient(150deg, var(--accent, #1f3a93) 0%, #0d1b3d 100%);
-            color: #fff; padding: 56px 52px; display: flex; flex-direction: column; justify-content: space-between;
+            background:
+                linear-gradient(rgba(8,16,42,0.88), rgba(8,16,42,0.92)),
+                url("{{ url_for('static', filename='images/ANS.jpg') }}") center/cover no-repeat;
+            color: #fff; padding: 56px 52px; display: flex; flex-direction: column; justify-content: center;
         }
         .auth-brand::after {
             content: ""; position: absolute; right: -120px; bottom: -120px;
             width: 380px; height: 380px; border-radius: 50%;
-            background: rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.05);
         }
-        .auth-brand-mark {
-            display: inline-flex; align-items: center; gap: 10px;
-            font-family: "Spectral", serif; font-weight: 600; letter-spacing: .04em;
-        }
-        .auth-brand-mark .chip {
-            background: #fff; color: var(--accent, #1f3a93);
-            padding: 4px 11px; border-radius: 4px; font-size: 1.05rem; letter-spacing: .12em;
-        }
+        .auth-brand > * { position: relative; z-index: 1; }
         .auth-brand h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 14px; color: #fff; }
         .auth-brand p { color: rgba(255,255,255,0.8); font-size: 0.98rem; line-height: 1.6; margin: 0; max-width: 30ch; }
-        .auth-feats { list-style: none; padding: 0; margin: 26px 0 0; display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; }
+        .auth-feats { list-style: none; padding: 0; margin: 26px 0 0; display: flex; flex-direction: column; gap: 12px; }
         .auth-feats li { display: flex; align-items: center; gap: 11px; font-size: 0.92rem; color: rgba(255,255,255,0.92); }
         .auth-feats svg { flex-shrink: 0; }
-        .auth-brand-foot { font-size: 0.8rem; color: rgba(255,255,255,0.6); position: relative; z-index: 1; }
 
         /* ── Prawa kolumna: formularz ── */
         .auth-form-col { display: flex; align-items: center; justify-content: center; padding: 32px; }
         .auth-card { width: 100%; max-width: 380px; }
-        .auth-card h2 { margin: 0 0 4px; font-size: 1.5rem; }
-        .auth-card .subtitle { margin: 0 0 26px; font-size: 0.9rem; }
+        .auth-card-logo {
+            display: flex; justify-content: center; margin-bottom: 28px;
+        }
+        .auth-card-logo img {
+            height: 72px; width: auto; display: block;
+            background: #fff; padding: 8px 20px; border-radius: 8px;
+        }
+        .auth-card h2 { margin: 0 0 22px; font-size: 1.5rem; text-align: center; }
         .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
         .field label { font-size: 0.82rem; font-weight: 600; color: var(--text); }
         .field input {
@@ -47,20 +48,57 @@
             font-size: 0.95rem; transition: border-color .14s, box-shadow .14s; background: #fff;
         }
         .field input:focus { outline: none; border-color: var(--accent, #1f3a93); box-shadow: 0 0 0 3px rgba(31,58,147,0.12); }
-        .btn-full { width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px; margin-top: 4px; }
-        .auth-quick { margin-top: 26px; border-top: 1px solid var(--border, #e3e8f1); padding-top: 18px; }
-        .auth-quick-label { font-size: 0.74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted, #6b7690); margin-bottom: 10px; }
-        .auth-quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-        .btn-quick {
-            background: #f2f5fb; color: var(--text); border: 1px solid var(--border, #dde3ef);
-            padding: 8px 6px; font-size: 0.8rem; font-weight: 600; font-family: inherit;
-            border-radius: 7px; cursor: pointer; transition: background .14s, border-color .14s;
+        .btn-full {
+            width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px; margin-top: 4px;
+            background: #0d1b3d; border-color: #0d1b3d;
         }
-        .btn-quick:hover { background: #e6ecf8; border-color: var(--accent, #1f3a93); }
+        .btn-full:hover { background: #162848; border-color: #162848; }
+
+        /* ── Przycisk OAuth ── */
+        .oauth-wrap { margin-top: 20px; }
+        .oauth-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 16px; color: var(--muted); font-size: 0.82rem;
+        }
+        .oauth-divider::before, .oauth-divider::after {
+            content: ""; flex: 1; height: 1px; background: var(--border, #e3e8f1);
+        }
+        .btn-oauth {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 11px 16px; font-size: 0.93rem; font-weight: 500;
+            border-radius: 8px; border: 1.5px solid var(--border, #cdd5e4);
+            background: #fff; color: var(--text); cursor: pointer;
+            font-family: inherit; text-decoration: none;
+            transition: background .14s, border-color .14s, box-shadow .14s;
+        }
+        .btn-oauth:hover { background: #f5f7fc; border-color: #1f3a93; color: var(--text); box-shadow: 0 2px 8px rgba(31,58,147,0.10); }
+        .btn-oauth + .btn-oauth { margin-top: 10px; }
+        .btn-oauth.is-disabled {
+            opacity: .55; cursor: not-allowed; pointer-events: none;
+        }
+        .auth-debug {
+            margin-top: 22px; padding-top: 18px;
+            border-top: 1px dashed var(--border, #d7deeb);
+        }
+        .auth-debug-label {
+            margin-bottom: 10px; color: var(--muted); font-size: .72rem;
+            font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+        }
+        .auth-debug-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px;
+        }
+        .auth-debug-grid form { margin: 0; }
+        .btn-debug {
+            width: 100%; padding: 8px 5px; border-radius: 7px;
+            border: 1px solid var(--border, #d7deeb); background: #f2f5fb;
+            color: var(--text); cursor: pointer; font: inherit;
+            font-size: .76rem; font-weight: 600;
+        }
+        .btn-debug:hover { border-color: #1f3a93; background: #e8edf8; }
 
         @media (max-width: 820px) {
             .auth { grid-template-columns: 1fr; }
-            .auth-brand { padding: 36px 32px; }
+            .auth-brand { padding: 36px 32px; min-height: 200px; }
             .auth-feats { display: none; }
             .auth-brand h1 { font-size: 1.5rem; }
         }
@@ -71,15 +109,12 @@
 
     <aside class="auth-brand">
         <div>
-            <div class="auth-brand-mark"><span class="chip">ANS</span> Elbląg</div>
-        </div>
-        <div>
             <h1>System Rozliczania Praktyk Zawodowych</h1>
             <p>Cyfrowy obieg dokumentacji praktyk Instytutu Informatyki Stosowanej.</p>
             <ul class="auth-feats">
                 <li>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
-                    Wszystkie załączniki 1–9 online
+                    Formularze dokumentacji dostępne tutaj
                 </li>
                 <li>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -91,13 +126,16 @@
                 </li>
             </ul>
         </div>
-        <div class="auth-brand-foot">Akademia Nauk Stosowanych w Elblągu</div>
     </aside>
 
     <main class="auth-form-col">
         <div class="auth-card">
-            <h2>Zaloguj się</h2>
-            <p class="subtitle">Użyj konta uczelnianego, aby kontynuować.</p>
+
+            <div class="auth-card-logo">
+                <img src="{{ url_for('static', filename='images/logo-ans-poziom.png') }}" alt="ANS Elbląg">
+            </div>
+
+            <h2>Panel logowania</h2>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% for category, message in messages %}
@@ -106,40 +144,63 @@
             {% endwith %}
 
             <form method="POST" action="{{ url_for('login_page') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <div class="field">
                     <label for="email">Adres e-mail</label>
                     <input type="email" id="email" name="email"
-                           placeholder="login@ans-elblag.pl" required autocomplete="email" autofocus>
+                           required autocomplete="email" autofocus>
                 </div>
                 <div class="field">
                     <label for="password">Hasło</label>
                     <input type="password" id="password" name="password"
-                           placeholder="••••••••" required autocomplete="current-password">
+                           required autocomplete="current-password">
                 </div>
                 <button type="submit" class="btn btn-full">Zaloguj się</button>
             </form>
 
-            <div class="auth-quick">
-                <div class="auth-quick-label">Szybkie logowanie testowe</div>
-                <div class="auth-quick-grid">
-                    <button type="button" class="btn-quick" onclick="quickLogin('student@student.ans-elblag.pl','Student123!')">Student</button>
-                    <button type="button" class="btn-quick" onclick="quickLogin('student2@student.ans-elblag.pl','Student123!')">Student 2</button>
-                    <button type="button" class="btn-quick" onclick="quickLogin('opiekun@ans-elblag.pl','Opiekun123!')">UOPZ</button>
-                    <button type="button" class="btn-quick" onclick="quickLogin('zopz@firma.pl','Zopz123!')">ZOPZ</button>
-                    <button type="button" class="btn-quick" onclick="quickLogin('dziekanat@ans-elblag.pl','Dziekanat123!')">Dziekanat</button>
-                    <button type="button" class="btn-quick" onclick="quickLogin('admin@ans-elblag.pl','Admin123!')">Admin</button>
+            <div class="oauth-wrap">
+                <div class="oauth-divider">lub</div>
+                <a href="{{ url_for('auth.microsoft_login') if oauth_providers.microsoft else '#' }}"
+                   class="btn-oauth{% if not oauth_providers.microsoft %} is-disabled{% endif %}"
+                   {% if not oauth_providers.microsoft %}aria-disabled="true" title="Skonfiguruj Microsoft OAuth w .env"{% endif %}>
+                    <svg width="18" height="18" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                        <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                        <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                        <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+                    </svg>
+                    Zaloguj przez Microsoft
+                </a>
+                <a href="{{ url_for('auth.google_login') if oauth_providers.google else '#' }}"
+                   class="btn-oauth{% if not oauth_providers.google %} is-disabled{% endif %}"
+                   {% if not oauth_providers.google %}aria-disabled="true" title="Skonfiguruj Google OAuth w .env"{% endif %}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.5-.2-2.2H12v4.3h5.4a4.6 4.6 0 0 1-2 3v2.8h3.3c1.9-1.8 2.9-4.4 2.9-7.9z"/>
+                        <path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.8c-.9.6-2.1 1-3.4 1a5.9 5.9 0 0 1-5.6-4.1H3v2.9A10 10 0 0 0 12 22z"/>
+                        <path fill="#FBBC05" d="M6.4 13.7A6 6 0 0 1 6.1 12c0-.6.1-1.2.3-1.7V7.4H3A10 10 0 0 0 2 12c0 1.7.4 3.2 1 4.6l3.4-2.9z"/>
+                        <path fill="#EA4335" d="M12 6.1c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 12 2a10 10 0 0 0-9 5.4l3.4 2.9A5.9 5.9 0 0 1 12 6.1z"/>
+                    </svg>
+                    Zaloguj przez Google
+                </a>
+            </div>
+
+            {% if debug_login_accounts %}
+            <div class="auth-debug">
+                <div class="auth-debug-label">Logowanie testowe</div>
+                <div class="auth-debug-grid">
+                    {% for account in debug_login_accounts %}
+                    <form method="post" action="{{ url_for('auth.debug_login', account_key=account.key) }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn-debug" type="submit">{{ account.label }}</button>
+                    </form>
+                    {% endfor %}
                 </div>
             </div>
+            {% endif %}
+
         </div>
     </main>
 
 </div>
-<script>
-function quickLogin(email, password) {
-    document.getElementById('email').value = email;
-    document.getElementById('password').value = password;
-    document.querySelector('form').submit();
-}
-</script>
 </body>
 </html>
