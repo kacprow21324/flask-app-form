@@ -122,7 +122,7 @@
                             <label for="ocena_s">Ocena S (skala 2–5)</label>
                             <select id="ocena_s" name="ocena_s">
                                 <option value="">— brak —</option>
-                                {% for g in [2,3,4,5] %}
+                                {% for g in [2,3,3.5,4,4.5,5] %}
                                     <option value="{{ g }}" {% if val('ocena_s')|string == g|string %}selected{% endif %}>{{ g }}</option>
                                 {% endfor %}
                             </select>
@@ -147,7 +147,7 @@
                             <label for="ocena_u">Ocena U – uczelnianego opiekuna (skala 2–5)</label>
                             <select id="ocena_u" name="ocena_u">
                                 <option value="">— brak —</option>
-                                {% for g in [2,3,4,5] %}
+                                {% for g in [2,3,3.5,4,4.5,5] %}
                                     <option value="{{ g }}" {% if val('ocena_u')|string == g|string %}selected{% endif %}>{{ g }}</option>
                                 {% endfor %}
                             </select>
@@ -156,7 +156,7 @@
                             <label for="ocena_z">Ocena Z – zakładowego opiekuna (skala 2–5)</label>
                             <select id="ocena_z" name="ocena_z">
                                 <option value="">— brak —</option>
-                                {% for g in [2,3,4,5] %}
+                                {% for g in [2,3,3.5,4,4.5,5] %}
                                     <option value="{{ g }}" {% if val('ocena_z')|string == g|string %}selected{% endif %}>{{ g }}</option>
                                 {% endfor %}
                             </select>
@@ -186,7 +186,7 @@
                             <label>Ocena (skala 2–5)</label>
                             <select name="mini_ocena_{{ i }}">
                                 <option value="">— brak —</option>
-                                {% for g in [2,3,4,5] %}
+                                {% for g in [2,3,3.5,4,4.5,5] %}
                                     <option value="{{ g }}" {% if mt.ocena|string == g|string %}selected{% endif %}>{{ g }}</option>
                                 {% endfor %}
                             </select>
@@ -205,7 +205,7 @@
                             <label for="ocena_e">Ocena E (skala 2–5)</label>
                             <select id="ocena_e" name="ocena_e" onchange="calcK()">
                                 <option value="">— brak —</option>
-                                {% for g in [2,3,4,5] %}
+                                {% for g in [2,3,3.5,4,4.5,5] %}
                                     <option value="{{ g }}" {% if val('ocena_e')|string == g|string %}selected{% endif %}>{{ g }}</option>
                                 {% endfor %}
                             </select>
@@ -227,12 +227,11 @@
                         <label for="ocena_k">Ocena końcowa K (obliczona)</label>
                         <input id="ocena_k" type="text" name="ocena_k"
                                value="{{ val('ocena_k') }}" placeholder="np. 4"
+                               readonly
                                style="font-weight:700;font-size:1.1rem;background:var(--panel-2)">
                     </div>
                     <div class="field-group">
-                        <button type="button" class="btn btn-secondary" onclick="calcK()" style="align-self:flex-end">
-                            Przelicz ocenę K
-                        </button>
+                        <span class="field-hint">Wartość poglądowa. Ostateczny wynik oblicza i zapisuje serwer.</span>
                     </div>
                 </div>
             </div>

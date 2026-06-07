@@ -41,6 +41,11 @@ def init_security(app):
             "Content-Security-Policy",
             "base-uri 'self'; frame-ancestors 'none'; object-src 'none'",
         )
+        if app.config.get("ENABLE_HSTS") and request.is_secure:
+            response.headers.setdefault(
+                "Strict-Transport-Security",
+                "max-age=31536000; includeSubDomains",
+            )
         if request.endpoint != "static":
             response.headers.setdefault("Cache-Control", "no-store")
         return response

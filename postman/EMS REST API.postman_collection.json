@@ -1,0 +1,373 @@
+{
+  "info": {
+    "_postman_id": "bbdb7189-8804-4c28-b7bd-70a2fc247758",
+    "name": "EMS REST API",
+    "description": "Run requests in order. Set the email and password collection variables first.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:5000"},
+    {"key": "email", "value": "admin@ans-elblag.pl"},
+    {"key": "password", "value": ""},
+    {"key": "login_csrf_token", "value": ""},
+    {"key": "csrf_token", "value": ""},
+    {"key": "test_album_number", "value": ""},
+    {"key": "test_student_email", "value": ""},
+    {"key": "student_id", "value": ""},
+    {"key": "internship_id", "value": ""},
+    {"key": "document_id", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Session",
+      "item": [
+        {
+          "name": "1. Get login CSRF",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                "const match = pm.response.text().match(/name=\"_csrf_token\" value=\"([^\"]+)\"/);",
+                "pm.expect(match).not.to.equal(null);",
+                "pm.collectionVariables.set('login_csrf_token', match[1]);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "2. Login",
+          "protocolProfileBehavior": {"followRedirects": false},
+          "request": {
+            "method": "POST",
+            "header": [{
+              "key": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {"key": "email", "value": "{{email}}"},
+                {"key": "password", "value": "{{password}}"},
+                {"key": "_csrf_token", "value": "{{login_csrf_token}}"}
+              ]
+            },
+            "url": "{{base_url}}/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Login redirects', () => pm.response.to.have.status(302));"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "3. Get API CSRF",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/csrf-token"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                "pm.collectionVariables.set('csrf_token', pm.response.json().csrf_token);"
+              ]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Create student",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const suffix = Date.now().toString().slice(-8);",
+                  "pm.collectionVariables.set('test_album_number', suffix);",
+                  "pm.collectionVariables.set('test_student_email', `api.${suffix}@example.test`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('student_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-CSRF-Token", "value": "{{csrf_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"first_name\":\"Anna\",\"last_name\":\"Nowak\",\"album_number\":\"{{test_album_number}}\",\"email\":\"{{test_student_email}}\"}"
+            },
+            "url": "{{base_url}}/api/students"
+          }
+        },
+        {
+          "name": "List students",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/students"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"]
+            }
+          }]
+        },
+        {
+          "name": "Get student",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/students/{{student_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"]
+            }
+          }]
+        },
+        {
+          "name": "Update student",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-CSRF-Token", "value": "{{csrf_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"first_name\":\"Anna\",\"last_name\":\"Kowalska\",\"album_number\":\"{{test_album_number}}\",\"email\":\"{{test_student_email}}\"}"
+            },
+            "url": "{{base_url}}/api/students/{{student_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"]
+            }
+          }]
+        },
+        {
+          "name": "Invalid student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-CSRF-Token", "value": "{{csrf_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"first_name\":\"\",\"last_name\":\"Nowak\",\"album_number\":\"abc\",\"email\":\"invalid\"}"
+            },
+            "url": "{{base_url}}/api/students"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 400', () => pm.response.to.have.status(400));"]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Internships",
+      "item": [
+        {
+          "name": "Create internship",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-CSRF-Token", "value": "{{csrf_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"student_id\":{{student_id}},\"company_name\":\"Example Company\",\"start_date\":\"2026-07-01\",\"end_date\":\"2026-07-31\",\"status\":\"draft\"}"
+            },
+            "url": "{{base_url}}/api/internships"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                "pm.collectionVariables.set('internship_id', pm.response.json().id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Filter internships",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/internships?student_id={{student_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"]
+            }
+          }]
+        },
+        {
+          "name": "Get internship",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/internships/{{internship_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"]
+            }
+          }]
+        },
+        {
+          "name": "Update internship status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-CSRF-Token", "value": "{{csrf_token}}"}
+            ],
+            "body": {"mode": "raw", "raw": "{\"status\":\"active\"}"},
+            "url": "{{base_url}}/api/internships/{{internship_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
+        {
+          "name": "Create document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-CSRF-Token", "value": "{{csrf_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Dziennik praktyk\",\"document_type\":\"diary\",\"uploaded_at\":\"2026-07-10T12:30:00\",\"internship_id\":{{internship_id}},\"verification_status\":\"pending\",\"supervisor_comment\":\"Do sprawdzenia.\"}"
+            },
+            "url": "{{base_url}}/api/documents"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                "pm.collectionVariables.set('document_id', pm.response.json().id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Filter documents",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/documents?internship_id={{internship_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"]
+            }
+          }]
+        },
+        {
+          "name": "Get document",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/documents/{{document_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"]
+            }
+          }]
+        },
+        {
+          "name": "Delete document",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "X-CSRF-Token", "value": "{{csrf_token}}"}],
+            "url": "{{base_url}}/api/documents/{{document_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 204', () => pm.response.to.have.status(204));"]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Cleanup",
+      "item": [
+        {
+          "name": "Delete internship",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "X-CSRF-Token", "value": "{{csrf_token}}"}],
+            "url": "{{base_url}}/api/internships/{{internship_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 204', () => pm.response.to.have.status(204));"]
+            }
+          }]
+        },
+        {
+          "name": "Delete student",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "X-CSRF-Token", "value": "{{csrf_token}}"}],
+            "url": "{{base_url}}/api/students/{{student_id}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Status is 204', () => pm.response.to.have.status(204));"]
+            }
+          }]
+        }
+      ]
+    }
+  ]
+}

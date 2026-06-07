@@ -236,6 +236,7 @@ def seed_app_config():
     defaults = [
         ('semester_summer_start_month', '3',  'Miesiąc początku semestru letniego'),
         ('semester_winter_start_month', '10', 'Miesiąc początku semestru zimowego'),
+        ('data_retention_years', '10', 'Okres retencji archiwum studenta w latach'),
     ]
     added = 0
     for key, value, label in defaults:
@@ -819,6 +820,11 @@ def seed_workflow_from_json():
                 reviewer_role=reviewers.get(key),
                 rejection_comment=rec.get('_rejection_comment'),
                 rejection_by=rec.get('_rejection_by'),
+                approved_revision=(
+                    store.get_form_revision(nr, key)
+                    if status == "approved"
+                    else None
+                ),
             ))
             db.session.add(DocumentLog(
                 album_number=nr, form_key=key, action=status,

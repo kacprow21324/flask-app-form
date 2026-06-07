@@ -34,6 +34,28 @@
         if (c === 10 || c !== parseInt(d[9], 10)) return [false, "Błędna suma kontrolna NIP."];
         return [true, "NIP poprawny."];
     }
+    function email(v) {
+        v = (v || "").trim();
+        if (!v) return [false, "Adres e-mail jest wymagany."];
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) {
+            return [false, "Podaj poprawny adres e-mail."];
+        }
+        return [true, ""];
+    }
+    function diaryDay(v) {
+        var value = Number(v);
+        if (!Number.isInteger(value) || value < 1 || value > 120) {
+            return [false, "Numer dnia musi mieścić się w zakresie 1-120."];
+        }
+        return [true, ""];
+    }
+    function diaryHours(v) {
+        var value = Number(v);
+        if (!Number.isInteger(value) || value < 1 || value > 8) {
+            return [false, "Liczba godzin musi mieścić się w zakresie 1-8."];
+        }
+        return [true, ""];
+    }
     function diaryOpis(v) {
         v = (v || "").trim();
         if (!v) return [false, "Opis wymagany."];
@@ -71,6 +93,9 @@
     document.querySelectorAll('[name="imie_nazwisko"]').forEach(function (f) { bind(f, fullName); });
     document.querySelectorAll('[name="nr_albumu"]').forEach(function (f) { bind(f, album); });
     document.querySelectorAll('[name="nip_zakladu"]').forEach(function (f) { bind(f, nip); });
+    document.querySelectorAll('input[type="email"]').forEach(function (f) { bind(f, email); });
+    document.querySelectorAll('.day-input').forEach(function (f) { bind(f, diaryDay); });
+    document.querySelectorAll('.hours-input').forEach(function (f) { bind(f, diaryHours); });
     document.querySelectorAll('textarea[name="opis[]"]').forEach(function (f) { bind(f, diaryOpis); });
 
     // Zakres dat

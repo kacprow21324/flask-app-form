@@ -211,7 +211,60 @@ def _oauth_redirect_uri(config_key, endpoint):
     return current_app.config.get(config_key) or url_for(endpoint, _external=True)
 
 
-def _finish_oauth_login(client):
+def resolve_microsoft_user(userinfo):
+    tenant_id = (current_app.config.get("MS_TENANT_ID") or "").strip()
+    if tenant_id.lower() in {"", "common", "organizations", "consumers"}:
+        raise AuthError(
+            "Logowanie uczelniane wymaga skonfigurowanego tenant-a Microsoft."
+        )
+
+    claim_tenant = (userinfo.get("tid") or "").strip()
+    object_id = (userinfo.get("oid") or "").strip()
+    issuer = (userinfo.get("iss") or "").rstrip("/")
+    expected_issuer = (
+        f"https://login.microsoftonline.com/{tenant_id}/v2.0"
+    ).rstrip("/")
+    if claim_tenant.lower() != tenant_id.lower() or issuer.lower() != (
+        expected_issuer.lower()
+    ):
+        raise AuthError("Konto nie należy do tenant-a uczelni.")
+    if not object_id:
+        raise AuthError("Microsoft nie zwrócił identyfikatora konta.")
+
+    email = (
+        userinfo.get("email")
+        or userinfo.get("preferred_username")
+        or ""
+    ).lower().strip()
+    if not email or "@" not in email:
+        raise AuthError("Microsoft nie zwrócił uczelnianego adresu e-mail.")
+
+    allowed_domains = current_app.config.get("MS_ALLOWED_EMAIL_DOMAINS") or ()
+    email_domain = email.rsplit("@", 1)[1]
+    if allowed_domains and email_domain not in allowed_domains:
+        raise AuthError("Adres e-mail nie należy do dozwolonej domeny uczelni.")
+
+    user = User.query.filter_by(
+        microsoft_tenant_id=claim_tenant,
+        microsoft_object_id=object_id,
+    ).first()
+    if user is None:
+        user = User.query.filter_by(email=email).first()
+        if user is not None and user.microsoft_object_id:
+            raise AuthError("Konto jest już powiązane z inną tożsamością Microsoft.")
+        if user is not None:
+            user.microsoft_tenant_id = claim_tenant
+            user.microsoft_object_id = object_id
+            user.email_verified = 1
+
+    if user is None or not user.is_active:
+        raise AuthError(
+            "To konto nie jest przypisane do aktywnego użytkownika systemu."
+        )
+    return user
+
+
+def _finish_oauth_login(client, provider):
     try:
         token = client.authorize_access_token()
     except OAuthError:
@@ -220,16 +273,24 @@ def _finish_oauth_login(client):
         return redirect(url_for("login_page"))
 
     userinfo = token.get("userinfo") or {}
-    email = (
-        userinfo.get("email")
-        or userinfo.get("preferred_username")
-        or ""
-    ).lower().strip()
-    user = User.query.filter_by(email=email).first() if email else None
-    if user is None or not user.is_active:
+    try:
+        if provider == "microsoft":
+            user = resolve_microsoft_user(userinfo)
+        else:
+            email = (
+                userinfo.get("email")
+                or userinfo.get("preferred_username")
+                or ""
+            ).lower().strip()
+            user = User.query.filter_by(email=email).first() if email else None
+            if user is None or not user.is_active:
+                raise AuthError(
+                    "To konto nie jest przypisane do aktywnego użytkownika systemu."
+                )
+    except AuthError as exc:
+        db.session.rollback()
         flash(
-            "To konto nie jest przypisane do aktywnego użytkownika systemu.",
-            "error",
+            str(exc), "error",
         )
         return redirect(url_for("login_page"))
 
@@ -254,7 +315,7 @@ def microsoft_callback():
     client = oauth.create_client("microsoft")
     if client is None:
         abort(404)
-    return _finish_oauth_login(client)
+    return _finish_oauth_login(client, "microsoft")
 
 
 @auth_bp.route("/google")
@@ -272,7 +333,7 @@ def google_callback():
     client = oauth.create_client("google")
     if client is None:
         abort(404)
-    return _finish_oauth_login(client)
+    return _finish_oauth_login(client, "google")
 
 
 @auth_bp.route("/debug-login/<account_key>", methods=["POST"])

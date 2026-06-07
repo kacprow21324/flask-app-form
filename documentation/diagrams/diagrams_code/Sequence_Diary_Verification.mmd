@@ -6,7 +6,7 @@ sequenceDiagram
     actor ZOPZ as Opiekun Zakladowy (ZOPZ)
 
     Student->>Flask: Proba zapisu wpisu dnia<br/>(dzien, data, opis, efekty, godziny)
-    Flask->>Flask: Fail-fast walidacja<br/>opis dnia wymagany<br/>spojnosc merytoryczna opisu i dnia<br/>suma godzin po zapisie <= 9660
+    Flask->>Flask: Fail-fast walidacja<br/>opis dnia wymagany<br/>spojnosc merytoryczna opisu i dnia<br/>suma godzin po zapisie <= 960
 
     alt Walidacja nieudana
         Flask-->>Student: HTTP 400 + blad walidacji

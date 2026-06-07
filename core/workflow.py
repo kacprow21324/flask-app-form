@@ -15,6 +15,7 @@ from flask_login import current_user
 from core.models import db, DocumentWorkflow, DocumentLog
 from core.fsm import DocumentFSM, InvalidTransition
 from core.audit import log_action
+from core.store import get_form_revision
 
 
 def _actor():
@@ -53,6 +54,11 @@ def set_status(album_number, form_key, status, *, reviewer_role=None,
         wf = DocumentWorkflow(album_number=album_number, form_key=form_key)
         db.session.add(wf)
     wf.status = status
+    wf.approved_revision = (
+        get_form_revision(album_number, form_key)
+        if status == "approved"
+        else None
+    )
     if reviewer_role is not None:
         wf.reviewer_role = reviewer_role
     wf.rejection_comment = rejection_comment

@@ -7,9 +7,10 @@ from unittest.mock import patch
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 
 import app as application_module
+import core.web as web_module
 from core.documents import archive_pdf
 from core.models import GeneratedDocument
-from core.models import Attachment, Internship, User, db
+from core.models import Attachment, Internship, InternshipPart, User, db
 from core.internships import current_academic_year, ensure_internship
 from werkzeug.security import generate_password_hash
 
@@ -75,7 +76,7 @@ class AccessControlTests(unittest.TestCase):
             "21002": {"zal1": {"imie_nazwisko": "Student B"}},
         }
         self.load_data_patch = patch.object(
-            application_module, "load_data", return_value=self.forms,
+            web_module, "load_data", return_value=self.forms,
         )
         self.load_data_patch.start()
 
@@ -204,6 +205,81 @@ class AccessControlTests(unittest.TestCase):
             db.session.delete(internship)
             db.session.commit()
 
+    def test_dean_can_create_multiple_internship_parts(self):
+        year = "2030/2031"
+        self.assertEqual(self.login("dziekanat@example.test").status_code, 302)
+        token = self.csrf_for(f"/czesci-praktyki?nr=21002&rok={year}")
+        with self.app.app_context():
+            student = User.query.filter_by(album_number="21002").one()
+            uopz = User.query.filter_by(email="uopz@example.test").one()
+            student_id = student.id
+            uopz_id = uopz.id
+
+        for name, company, hours, days in (
+            ("Część w firmie A", "Firma A", 80, 10),
+            ("Część w firmie B", "Firma B", 120, 15),
+        ):
+            response = self.client.post("/czesci-praktyki", data={
+                "_csrf_token": token,
+                "nr": "21002",
+                "academic_year": year,
+                "action": "save",
+                "name": name,
+                "company_name": company,
+                "start_date": "2030-07-01",
+                "end_date": "2030-07-31",
+                "planned_hours": hours,
+                "total_hours": hours,
+                "total_days": days,
+                "status": "completed",
+                "uopz_id": uopz_id,
+                "zopz_id": "",
+            })
+            self.assertEqual(response.status_code, 302)
+
+        with self.app.app_context():
+            internship = Internship.query.filter_by(
+                student_id=student_id,
+                academic_year=year,
+            ).one()
+            self.assertEqual(len(internship.parts), 2)
+            self.assertEqual(
+                [part.part_number for part in internship.parts],
+                [1, 2],
+            )
+            self.assertEqual(internship.total_hours, 200)
+            self.assertEqual(internship.total_days, 25)
+            db.session.delete(internship)
+            db.session.commit()
+
+    def test_supervisor_access_can_come_from_internship_part(self):
+        year = "2031/2032"
+        with self.app.app_context():
+            student = User.query.filter_by(album_number="21002").one()
+            uopz = User.query.filter_by(email="uopz@example.test").one()
+            internship = Internship(
+                student_id=student.id,
+                academic_year=year,
+            )
+            db.session.add(internship)
+            db.session.flush()
+            db.session.add(InternshipPart(
+                internship_id=internship.id,
+                part_number=1,
+                name="Część z osobnym opiekunem",
+                uopz_id=uopz.id,
+                status="active",
+            ))
+            db.session.commit()
+            internship_id = internship.id
+
+        self.assertEqual(self.login("uopz@example.test").status_code, 302)
+        self.assertEqual(self.client.get("/student/21002").status_code, 200)
+
+        with self.app.app_context():
+            db.session.delete(db.session.get(Internship, internship_id))
+            db.session.commit()
+
     def test_workflow_visibility_follows_assignments(self):
         self.assertEqual(self.login("uopz@example.test").status_code, 302)
         response = self.client.get("/obieg?rok=2025/2026")
@@ -247,6 +323,9 @@ class AccessControlTests(unittest.TestCase):
                 form_key="zal1",
                 file_name="zal1.pdf",
                 generated_by=admin,
+                source_revision=1,
+                source_digest="a" * 64,
+                template_version="latex-test",
             )
             db.session.flush()
 

@@ -37,6 +37,7 @@
                         <th>Student</th>
                         <th>UOPZ</th>
                         <th>ZOPZ</th>
+                        <th>Części praktyki</th>
                         <th>Status</th>
                         <th>Akcja</th>
                     </tr>
@@ -44,6 +45,15 @@
                 <tbody>
                     {% for student in students %}
                     {% set internship = internship_by_student.get(student.id) %}
+                    {% set assigned = namespace(uopz=false, zopz=false) %}
+                    {% if internship %}
+                        {% set assigned.uopz = internship.uopz_id is not none %}
+                        {% set assigned.zopz = internship.zopz_id is not none %}
+                        {% for part in internship.parts if part.status != 'cancelled' %}
+                            {% if part.uopz_id %}{% set assigned.uopz = true %}{% endif %}
+                            {% if part.zopz_id %}{% set assigned.zopz = true %}{% endif %}
+                        {% endfor %}
+                    {% endif %}
                     <tr>
                         <td>
                             <strong>{{ student.last_name }} {{ student.first_name }}</strong>
@@ -76,9 +86,15 @@
                             </select>
                         </td>
                         <td>
-                            {% if internship and internship.uopz_id and internship.zopz_id %}
+                            <a class="btn btn-sm btn-secondary"
+                               href="{{ url_for('czesci_praktyki', nr=student.album_number, rok=selected_year) }}">
+                                Zarządzaj{% if internship %} ({{ internship.parts|length }}){% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            {% if assigned.uopz and assigned.zopz %}
                             <span class="status-badge status-approved">Kompletny</span>
-                            {% elif internship and (internship.uopz_id or internship.zopz_id) %}
+                            {% elif assigned.uopz or assigned.zopz %}
                             <span class="status-badge status-pending">Częściowy</span>
                             {% else %}
                             <span class="status-badge status-rejected">Brak</span>

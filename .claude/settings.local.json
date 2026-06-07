@@ -49,7 +49,10 @@
       "Bash(pip install *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Repozytoria\\\\flask-app-form\" -Recurse -Directory)",
       "Bash(Select-Object -First 20)",
-      "Bash(Get-ChildItem -Path C:\\\\Repozytoria\\\\flask-app-form -Recurse -File -Name)"
+      "Bash(Get-ChildItem -Path C:\\\\Repozytoria\\\\flask-app-form -Recurse -File -Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Repozytoria\\\\flask-app-form\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)"
     ]
   }
 }

@@ -10,3 +10,5 @@ PyMySQL
 cryptography
 pymongo
 gunicorn
+prometheus-client
+PyMuPDF

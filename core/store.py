@@ -46,6 +46,11 @@ def _coll():
     return _collection
 
 
+def ping():
+    """Sprawdza połączenie z MongoDB bez odczytu danych formularzy."""
+    _coll().database.command("ping")
+
+
 def _doc_id(album_number, form_key):
     return f"{album_number}:{form_key}"
 

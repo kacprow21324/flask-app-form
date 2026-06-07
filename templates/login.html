@@ -169,7 +169,7 @@
                         <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
                         <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
                     </svg>
-                    Zaloguj przez Microsoft
+                    Zaloguj kontem uczelnianym Microsoft
                 </a>
                 <a href="{{ url_for('auth.google_login') if oauth_providers.google else '#' }}"
                    class="btn-oauth{% if not oauth_providers.google %} is-disabled{% endif %}"

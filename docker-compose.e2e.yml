@@ -1,0 +1,65 @@
+services:
+  mongo-e2e:
+    image: mongo:7
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  flask-e2e:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SECRET_KEY: e2e-secret-key-with-at-least-32-characters
+      DATABASE_URL: sqlite:////tmp/flask-app-form-e2e.db
+      MONGO_URL: mongodb://mongo-e2e:27017/e2e
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: "5001"
+      FLASK_DEBUG: "true"
+      DEBUG_LOGIN_BUTTONS: "true"
+      SESSION_COOKIE_SECURE: "false"
+      SEED_STUDENT_PASSWORD: e2e-student-password
+      SEED_UOPZ_PASSWORD: e2e-uopz-password
+      SEED_ZOPZ_PASSWORD: e2e-zopz-password
+      SEED_DZIEKANAT_PASSWORD: e2e-dziekanat-password
+      SEED_ADMIN_PASSWORD: e2e-admin-password
+    command:
+      - sh
+      - -c
+      - >-
+        flask --app app db upgrade &&
+        python -m core.seed &&
+        exec gunicorn --config gunicorn.conf.py app:app
+    depends_on:
+      mongo-e2e:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://localhost:5001/login', timeout=2)
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  e2e:
+    build:
+      context: .
+      dockerfile: Dockerfile.e2e
+    environment:
+      E2E_BASE_URL: http://flask-e2e:5001
+      E2E_ARTIFACT_DIR: /tests/artifacts
+      PDF_ARTIFACT_DIR: /tests/pdf-artifacts
+    volumes:
+      - ./documentation/testy-ui/screenshots:/tests/artifacts
+      - ./documentation/testy-pdf/pobieranie:/tests/pdf-artifacts
+    depends_on:
+      flask-e2e:
+        condition: service_healthy

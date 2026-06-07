@@ -1,0 +1,896 @@
+{
+  "dziennik_31001.pdf": {
+    "data": {
+      "imie_nazwisko": "Anna Żółć",
+      "nr_albumu": "31001",
+      "specjalnosc": "Administracja systemów i sieci komputerowych",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Łączność i Rozwój Sp. z o.o., Elbląg",
+      "data_start": "2026-07-01",
+      "data_end": "2026-08-15",
+      "dziennik": [
+        {
+          "dzien": "1",
+          "data": "2026-07-01",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "2",
+          "data": "2026-07-02",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "3",
+          "data": "2026-07-03",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "4",
+          "data": "2026-07-04",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "5",
+          "data": "2026-07-05",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "6",
+          "data": "2026-07-06",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "7",
+          "data": "2026-07-07",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "8",
+          "data": "2026-07-08",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "9",
+          "data": "2026-07-09",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "10",
+          "data": "2026-07-10",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "11",
+          "data": "2026-07-11",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "12",
+          "data": "2026-07-12",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "13",
+          "data": "2026-07-13",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "14",
+          "data": "2026-07-14",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "15",
+          "data": "2026-07-15",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "16",
+          "data": "2026-07-16",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "17",
+          "data": "2026-07-17",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "18",
+          "data": "2026-07-18",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "19",
+          "data": "2026-07-19",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "20",
+          "data": "2026-07-20",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "21",
+          "data": "2026-07-21",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "22",
+          "data": "2026-07-22",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "23",
+          "data": "2026-07-23",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "inż. Michał Górski"
+        },
+        {
+          "dzien": "24",
+          "data": "2026-07-24",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "inż. Michał Górski"
+        }
+      ]
+    }
+  },
+  "efekty_31001.pdf": {
+    "data": {
+      "imie_nazwisko": "Anna Żółć",
+      "nr_albumu": "31001",
+      "specjalnosc": "Administracja systemów i sieci komputerowych",
+      "wymiar_godzin": "240",
+      "potwierdzenie_opiekuna": "inż. Michał Górski, Elbląg, 2026-08-18",
+      "opinia_opiekuna": "Student/ka osiągnął/osiągnęła wszystkie wskazane efekty.",
+      "efekty": [
+        {
+          "nr": 1,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 2,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 3,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 4,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 5,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 6,
+          "status": "osiągnięty"
+        }
+      ]
+    },
+    "effect_map": {
+      "1": "Potrafi analizować wymagania i dobierać narzędzia informatyczne.",
+      "2": "Konfiguruje systemy operacyjne, usługi sieciowe i bazy danych.",
+      "3": "Stosuje zasady bezpieczeństwa informacji i ochrony danych.",
+      "4": "Dokumentuje wykonane zadania oraz przedstawia ich rezultaty.",
+      "5": "Współpracuje w zespole i komunikuje problemy techniczne.",
+      "6": "Planuje pracę, ocenia ryzyko i przestrzega zasad BHP."
+    }
+  },
+  "raport_koncowy_31001.pdf": {
+    "data": {
+      "imie_nazwisko": "Anna Żółć",
+      "nr_albumu": "31001",
+      "specjalnosc": "Administracja systemów i sieci komputerowych",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Łączność i Rozwój Sp. z o.o., Elbląg",
+      "charakterystyka": "Łączność i Rozwój Sp. z o.o. realizuje projekty informatyczne dla klientów sektora publicznego i prywatnego.",
+      "opis_prac": "Praktyka obejmowała analizę wymagań, konfigurację środowiska, implementację, testy, dokumentowanie wyników i współpracę z zespołem.",
+      "wiedza_umiejetnosci": "Rozwinięto umiejętność diagnozowania problemów, bezpiecznej pracy z danymi oraz tworzenia czytelnej dokumentacji.",
+      "data": "2026-08-20",
+      "podpis_studenta": "Anna Żółć"
+    }
+  },
+  "protokol_31001.pdf": {
+    "data": {
+      "imie_nazwisko": "Anna Żółć",
+      "nr_albumu": "31001",
+      "data_zaliczenia": "2026-09-02",
+      "przewodniczacy": "dr Irena Malinowska",
+      "czlonek_2": "mgr Tomasz Witek",
+      "czlonek_3": "mgr Anna Kowalczyk",
+      "czlonek_4": "",
+      "miejsca_praktyki": [
+        {
+          "nazwa": "Łączność i Rozwój Sp. z o.o., Elbląg",
+          "okres": "2026-07-01 - 2026-08-15",
+          "dni": "30"
+        }
+      ],
+      "ocena_s": "5,0",
+      "ocena_u": "4,5",
+      "ocena_z": "5,0",
+      "mini_zadania": [
+        {
+          "tresc": "Omów najważniejszy problem techniczny.",
+          "ocena": "5,0"
+        },
+        {
+          "tresc": "Przedstaw sposób zabezpieczenia danych.",
+          "ocena": "4,5"
+        }
+      ],
+      "ocena_e": "5,0",
+      "ocena_k": "4,9",
+      "data_s": "2026-08-25",
+      "podpis_s": "dr Irena Malinowska"
+    }
+  },
+  "dziennik_31002.pdf": {
+    "data": {
+      "imie_nazwisko": "Łukasz Ćwikła",
+      "nr_albumu": "31002",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "R&D Północ S.A., Gdańsk",
+      "data_start": "2026-07-01",
+      "data_end": "2026-08-15",
+      "dziennik": [
+        {
+          "dzien": "1",
+          "data": "2026-07-01",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "2",
+          "data": "2026-07-02",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "3",
+          "data": "2026-07-03",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "4",
+          "data": "2026-07-04",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "5",
+          "data": "2026-07-05",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "6",
+          "data": "2026-07-06",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "7",
+          "data": "2026-07-07",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "8",
+          "data": "2026-07-08",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "9",
+          "data": "2026-07-09",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "10",
+          "data": "2026-07-10",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "11",
+          "data": "2026-07-11",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "12",
+          "data": "2026-07-12",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "13",
+          "data": "2026-07-13",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "14",
+          "data": "2026-07-14",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "15",
+          "data": "2026-07-15",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "16",
+          "data": "2026-07-16",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "17",
+          "data": "2026-07-17",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "18",
+          "data": "2026-07-18",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "19",
+          "data": "2026-07-19",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "20",
+          "data": "2026-07-20",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "21",
+          "data": "2026-07-21",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "22",
+          "data": "2026-07-22",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "23",
+          "data": "2026-07-23",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "mgr inż. Joanna Wróbel"
+        },
+        {
+          "dzien": "24",
+          "data": "2026-07-24",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "mgr inż. Joanna Wróbel"
+        }
+      ]
+    }
+  },
+  "efekty_31002.pdf": {
+    "data": {
+      "imie_nazwisko": "Łukasz Ćwikła",
+      "nr_albumu": "31002",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe",
+      "wymiar_godzin": "240",
+      "potwierdzenie_opiekuna": "mgr inż. Joanna Wróbel, Gdańsk, 2026-08-18",
+      "opinia_opiekuna": "Student/ka osiągnął/osiągnęła wszystkie wskazane efekty.",
+      "efekty": [
+        {
+          "nr": 1,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 2,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 3,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 4,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 5,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 6,
+          "status": "osiągnięty"
+        }
+      ]
+    },
+    "effect_map": {
+      "1": "Potrafi analizować wymagania i dobierać narzędzia informatyczne.",
+      "2": "Konfiguruje systemy operacyjne, usługi sieciowe i bazy danych.",
+      "3": "Stosuje zasady bezpieczeństwa informacji i ochrony danych.",
+      "4": "Dokumentuje wykonane zadania oraz przedstawia ich rezultaty.",
+      "5": "Współpracuje w zespole i komunikuje problemy techniczne.",
+      "6": "Planuje pracę, ocenia ryzyko i przestrzega zasad BHP."
+    }
+  },
+  "raport_koncowy_31002.pdf": {
+    "data": {
+      "imie_nazwisko": "Łukasz Ćwikła",
+      "nr_albumu": "31002",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "R&D Północ S.A., Gdańsk",
+      "charakterystyka": "R&D Północ S.A. realizuje projekty informatyczne dla klientów sektora publicznego i prywatnego.",
+      "opis_prac": "Praktyka obejmowała analizę wymagań, konfigurację środowiska, implementację, testy, dokumentowanie wyników i współpracę z zespołem.",
+      "wiedza_umiejetnosci": "Rozwinięto umiejętność diagnozowania problemów, bezpiecznej pracy z danymi oraz tworzenia czytelnej dokumentacji.",
+      "data": "2026-08-20",
+      "podpis_studenta": "Łukasz Ćwikła"
+    }
+  },
+  "protokol_31002.pdf": {
+    "data": {
+      "imie_nazwisko": "Łukasz Ćwikła",
+      "nr_albumu": "31002",
+      "data_zaliczenia": "2026-09-02",
+      "przewodniczacy": "dr Irena Malinowska",
+      "czlonek_2": "mgr Tomasz Witek",
+      "czlonek_3": "mgr Anna Kowalczyk",
+      "czlonek_4": "",
+      "miejsca_praktyki": [
+        {
+          "nazwa": "R&D Północ S.A., Gdańsk",
+          "okres": "2026-07-01 - 2026-08-15",
+          "dni": "30"
+        }
+      ],
+      "ocena_s": "5,0",
+      "ocena_u": "4,5",
+      "ocena_z": "5,0",
+      "mini_zadania": [
+        {
+          "tresc": "Omów najważniejszy problem techniczny.",
+          "ocena": "5,0"
+        },
+        {
+          "tresc": "Przedstaw sposób zabezpieczenia danych.",
+          "ocena": "4,5"
+        }
+      ],
+      "ocena_e": "5,0",
+      "ocena_k": "4,9",
+      "data_s": "2026-08-25",
+      "podpis_s": "dr Irena Malinowska"
+    }
+  },
+  "dziennik_31003.pdf": {
+    "data": {
+      "imie_nazwisko": "Małgorzata Ździebło",
+      "nr_albumu": "31003",
+      "specjalnosc": "Technologie internetowe i multimedialne",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Źródło Danych sp. z o.o., Olsztyn",
+      "data_start": "2026-07-01",
+      "data_end": "2026-08-15",
+      "dziennik": [
+        {
+          "dzien": "1",
+          "data": "2026-07-01",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "2",
+          "data": "2026-07-02",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "3",
+          "data": "2026-07-03",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "4",
+          "data": "2026-07-04",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "5",
+          "data": "2026-07-05",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "6",
+          "data": "2026-07-06",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "7",
+          "data": "2026-07-07",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "8",
+          "data": "2026-07-08",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "9",
+          "data": "2026-07-09",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "10",
+          "data": "2026-07-10",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "11",
+          "data": "2026-07-11",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "12",
+          "data": "2026-07-12",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "13",
+          "data": "2026-07-13",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "14",
+          "data": "2026-07-14",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "15",
+          "data": "2026-07-15",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "16",
+          "data": "2026-07-16",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "17",
+          "data": "2026-07-17",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "18",
+          "data": "2026-07-18",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "19",
+          "data": "2026-07-19",
+          "godziny": "8",
+          "opis": "Konfiguracja środowiska testowego oraz kontrola dostępu użytkowników.",
+          "efekty": "1, 2",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "20",
+          "data": "2026-07-20",
+          "godziny": "8",
+          "opis": "Analiza wymagań i przygotowanie dokumentacji technicznej rozwiązania.",
+          "efekty": "2, 3",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "21",
+          "data": "2026-07-21",
+          "godziny": "8",
+          "opis": "Implementacja modułu obsługi danych oraz testy poprawności walidacji.",
+          "efekty": "3, 4",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "22",
+          "data": "2026-07-22",
+          "godziny": "8",
+          "opis": "Przegląd logów, diagnoza błędów i przygotowanie propozycji poprawek.",
+          "efekty": "4, 5",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "23",
+          "data": "2026-07-23",
+          "godziny": "8",
+          "opis": "Konfiguracja kopii zapasowej oraz próba odtworzenia danych.",
+          "efekty": "5, 6",
+          "podpis": "Paweł Jaśkiewicz"
+        },
+        {
+          "dzien": "24",
+          "data": "2026-07-24",
+          "godziny": "8",
+          "opis": "Aktualizacja instrukcji wdrożenia i prezentacja wyników zespołowi.",
+          "efekty": "6, 1",
+          "podpis": "Paweł Jaśkiewicz"
+        }
+      ]
+    }
+  },
+  "efekty_31003.pdf": {
+    "data": {
+      "imie_nazwisko": "Małgorzata Ździebło",
+      "nr_albumu": "31003",
+      "specjalnosc": "Technologie internetowe i multimedialne",
+      "wymiar_godzin": "240",
+      "potwierdzenie_opiekuna": "Paweł Jaśkiewicz, Olsztyn, 2026-08-18",
+      "opinia_opiekuna": "Student/ka osiągnął/osiągnęła wszystkie wskazane efekty.",
+      "efekty": [
+        {
+          "nr": 1,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 2,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 3,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 4,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 5,
+          "status": "osiągnięty"
+        },
+        {
+          "nr": 6,
+          "status": "osiągnięty"
+        }
+      ]
+    },
+    "effect_map": {
+      "1": "Potrafi analizować wymagania i dobierać narzędzia informatyczne.",
+      "2": "Konfiguruje systemy operacyjne, usługi sieciowe i bazy danych.",
+      "3": "Stosuje zasady bezpieczeństwa informacji i ochrony danych.",
+      "4": "Dokumentuje wykonane zadania oraz przedstawia ich rezultaty.",
+      "5": "Współpracuje w zespole i komunikuje problemy techniczne.",
+      "6": "Planuje pracę, ocenia ryzyko i przestrzega zasad BHP."
+    }
+  },
+  "raport_koncowy_31003.pdf": {
+    "data": {
+      "imie_nazwisko": "Małgorzata Ździebło",
+      "nr_albumu": "31003",
+      "specjalnosc": "Technologie internetowe i multimedialne",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "Źródło Danych sp. z o.o., Olsztyn",
+      "charakterystyka": "Źródło Danych sp. z o.o. realizuje projekty informatyczne dla klientów sektora publicznego i prywatnego.",
+      "opis_prac": "Praktyka obejmowała analizę wymagań, konfigurację środowiska, implementację, testy, dokumentowanie wyników i współpracę z zespołem.",
+      "wiedza_umiejetnosci": "Rozwinięto umiejętność diagnozowania problemów, bezpiecznej pracy z danymi oraz tworzenia czytelnej dokumentacji.",
+      "data": "2026-08-20",
+      "podpis_studenta": "Małgorzata Ździebło"
+    }
+  },
+  "protokol_31003.pdf": {
+    "data": {
+      "imie_nazwisko": "Małgorzata Ździebło",
+      "nr_albumu": "31003",
+      "data_zaliczenia": "2026-09-02",
+      "przewodniczacy": "dr Irena Malinowska",
+      "czlonek_2": "mgr Tomasz Witek",
+      "czlonek_3": "mgr Anna Kowalczyk",
+      "czlonek_4": "",
+      "miejsca_praktyki": [
+        {
+          "nazwa": "Źródło Danych sp. z o.o., Olsztyn",
+          "okres": "2026-07-01 - 2026-08-15",
+          "dni": "30"
+        }
+      ],
+      "ocena_s": "5,0",
+      "ocena_u": "4,5",
+      "ocena_z": "5,0",
+      "mini_zadania": [
+        {
+          "tresc": "Omów najważniejszy problem techniczny.",
+          "ocena": "5,0"
+        },
+        {
+          "tresc": "Przedstaw sposób zabezpieczenia danych.",
+          "ocena": "4,5"
+        }
+      ],
+      "ocena_e": "5,0",
+      "ocena_k": "4,9",
+      "data_s": "2026-08-25",
+      "podpis_s": "dr Irena Malinowska"
+    }
+  }
+}

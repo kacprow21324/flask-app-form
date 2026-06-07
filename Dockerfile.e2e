@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/playwright/python:v1.52.0-noble
+
+WORKDIR /tests
+
+COPY requirements-e2e.txt .
+RUN pip install --no-cache-dir -r requirements-e2e.txt
+
+COPY tests/e2e ./e2e
+
+CMD ["python", "-m", "unittest", "discover", "-s", "e2e", "-v"]

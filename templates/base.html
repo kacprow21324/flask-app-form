@@ -106,6 +106,10 @@
                 Obieg dokumentów
             </a>
             {% if current_user.role == 'student' %}
+            <a href="{{ url_for('czesci_praktyki') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v5H4z"/><path d="M4 14h16v5H4z"/></svg>
+                Części praktyki
+            </a>
             <a href="{{ url_for('profil') }}" class="sidebar-link">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v1h20v-1c0-3.3-6.7-5-10-5z"/></svg>
                 Mój profil
@@ -166,6 +170,10 @@
             {# ── Formularze dziekanatu ── #}
             {% if current_user.role in ('dziekanat', 'admin') %}
             <div class="sidebar-section-title">Dziekanat</div>
+            <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M8 3v18M3 9h18"/></svg>
+                <span>Administracja</span>
+            </a>
             <a href="{{ url_for('przydzialy') }}" class="sidebar-link">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="9" cy="7" r="4"/><path d="M2 21v-2a6 6 0 0 1 6-6h2"/>
@@ -184,6 +192,8 @@
 
         </nav>
     </aside>
+    <button class="sidebar-overlay" id="sidebarOverlay" type="button"
+            aria-label="Zamknij menu"></button>
 
     <div class="site-main">
         {% with messages = get_flashed_messages(with_categories=True) %}
@@ -255,17 +265,44 @@ document.addEventListener('DOMContentLoaded', function () {
         form.appendChild(input);
     });
 
-    var toggle  = document.getElementById('sidebarToggle');
+    var toggle = document.getElementById('sidebarToggle');
     var sidebar = document.getElementById('siteSidebar');
-    var body    = document.body;
+    var overlay = document.getElementById('sidebarOverlay');
+    var body = document.body;
+    var mobileQuery = window.matchMedia('(max-width: 768px)');
 
-    if (localStorage.getItem('sidebarClosed') === '1') {
+    if (!mobileQuery.matches && localStorage.getItem('sidebarClosed') === '1') {
         body.classList.add('sidebar-closed');
     }
 
+    function closeMobileSidebar() {
+        body.classList.remove('mobile-sidebar-open');
+        toggle.setAttribute('aria-expanded', 'false');
+    }
+
     toggle.addEventListener('click', function () {
+        if (mobileQuery.matches) {
+            body.classList.toggle('mobile-sidebar-open');
+            toggle.setAttribute(
+                'aria-expanded',
+                body.classList.contains('mobile-sidebar-open') ? 'true' : 'false'
+            );
+            return;
+        }
         body.classList.toggle('sidebar-closed');
-        localStorage.setItem('sidebarClosed', body.classList.contains('sidebar-closed') ? '1' : '0');
+        localStorage.setItem(
+            'sidebarClosed',
+            body.classList.contains('sidebar-closed') ? '1' : '0'
+        );
+    });
+    toggle.setAttribute('aria-controls', 'siteSidebar');
+    toggle.setAttribute('aria-expanded', 'false');
+    overlay.addEventListener('click', closeMobileSidebar);
+    mobileQuery.addEventListener('change', function () {
+        closeMobileSidebar();
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeMobileSidebar();
     });
 
     var path = window.location.pathname;
@@ -273,6 +310,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (a.getAttribute('href') === path) {
             a.classList.add('sidebar-link-active');
         }
+        a.addEventListener('click', function () {
+            if (mobileQuery.matches) closeMobileSidebar();
+        });
     });
 
     // ── Dzwonek powiadomień ────────────────────────────────────────────────

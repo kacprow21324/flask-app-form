@@ -25,3 +25,35 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: flask --app app db upgrade
       - run: flask --app app db check
+
+  browser-e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build E2E environment
+        run: docker compose -f docker-compose.e2e.yml build
+
+      - name: Run browser tests
+        run: >-
+          docker compose -f docker-compose.e2e.yml
+          up --abort-on-container-exit --exit-code-from e2e e2e
+
+      - name: Show application logs after failure
+        if: failure()
+        run: docker compose -f docker-compose.e2e.yml logs flask-e2e mongo-e2e
+
+      - name: Upload UI test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence
+          path: |
+            documentation/testy-ui/screenshots
+            documentation/testy-pdf
+          if-no-files-found: warn
+
+      - name: Remove E2E environment
+        if: always()
+        run: docker compose -f docker-compose.e2e.yml down --volumes

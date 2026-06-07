@@ -65,7 +65,7 @@ w jakim stopniu zgadza się Pan/Pani z poniższymi stwierdzeniami.
 (( i )). &
 {\fontsize{7.5}{10}\selectfont (( (questions[i-1] if questions and i <= questions|length else '---') | le ))} &
 ((*- for opt in opt_labels *))
-((*- if cur_ans.val | lower == opt | lower *))$\boxtimes$((*- else *))$\square$((*- endif *)) &
+((*- if cur_ans.val | lower == opt | lower *))$\boxtimes$((*- else *))$\square$((*- endif *))((*- if not loop.last *)) & ((*- endif *))
 ((*- endfor *))
 \\
 \hline

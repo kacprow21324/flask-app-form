@@ -1,0 +1,19 @@
+groups:
+  - name: internship-app
+    rules:
+      - alert: InternshipAppUnavailable
+        expr: up{job="internship-app"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Aplikacja praktyk nie odpowiada
+
+      - alert: InternshipAppHttp5xx
+        expr: >-
+          sum(increase(flask_http_requests_total{status=~"5.."}[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Podwyższona liczba błędów HTTP 5xx

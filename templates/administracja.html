@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}Administracja{% endblock %}
+{% block content %}
+<div class="page admin-page">
+    <div class="workflow-page-header">
+        <div>
+            <h1>Administracja</h1>
+            <p class="subtitle">Użytkownicy, import studentów, raporty, audyt i archiwa.</p>
+        </div>
+    </div>
+
+    <div class="workflow-stats">
+        <div class="workflow-stat"><span>Użytkownicy</span><strong>{{ counts.users }}</strong></div>
+        <div class="workflow-stat"><span>Aktywne konta</span><strong>{{ counts.active }}</strong></div>
+        <div class="workflow-stat"><span>Studenci</span><strong>{{ counts.students }}</strong></div>
+        <div class="workflow-stat"><span>Aktywne archiwa</span><strong>{{ counts.archives }}</strong></div>
+    </div>
+
+    <div class="admin-grid">
+        <section class="card">
+            <h2>Import studentów CSV</h2>
+            <p class="subtitle">Import jest atomowy: błąd w dowolnym wierszu blokuje cały zapis.</p>
+            <form method="post" action="{{ url_for('admin.import_students') }}" enctype="multipart/form-data">
+                <div class="field-group">
+                    <label for="csv-file">Plik UTF-8 CSV, maksymalnie 2 MB</label>
+                    <input id="csv-file" type="file" name="csv_file" accept=".csv,text/csv" required>
+                </div>
+                <div class="form-actions">
+                    <button class="btn" type="submit">Importuj studentów</button>
+                    <a class="btn btn-secondary" href="{{ url_for('admin.import_template') }}">Pobierz wzór</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Raport postępu</h2>
+            <p class="subtitle">Eksport części praktyki, godzin, statusów dokumentów i oceny końcowej.</p>
+            <form method="get" action="{{ url_for('admin.progress_report') }}">
+                <div class="field-group">
+                    <label for="report-year">Rok akademicki</label>
+                    <select id="report-year" name="rok">
+                        {% for year in academic_years %}<option value="{{ year }}">{{ year }}</option>{% endfor %}
+                    </select>
+                </div>
+                <button class="btn" type="submit">Pobierz CSV</button>
+            </form>
+        </section>
+    </div>
+
+    <section class="card admin-section">
+        <div class="admin-section-header">
+            <h2>Użytkownicy</h2>
+            <form method="get" class="admin-filters">
+                <input name="q" value="{{ query_text }}" placeholder="Szukaj po nazwie, emailu lub albumie">
+                <select name="rola">
+                    <option value="">Wszystkie role</option>
+                    {% for role in ['student','uopz','zopz','dziekanat','admin'] %}
+                    <option value="{{ role }}" {% if role_filter == role %}selected{% endif %}>{{ role }}</option>
+                    {% endfor %}
+                </select>
+                <select name="aktywny">
+                    <option value="">Każdy status</option>
+                    <option value="1" {% if active_filter == '1' %}selected{% endif %}>Aktywne</option>
+                    <option value="0" {% if active_filter == '0' %}selected{% endif %}>Nieaktywne</option>
+                </select>
+                <button class="btn btn-sm" type="submit">Filtruj</button>
+            </form>
+        </div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead><tr><th>Użytkownik</th><th>Rola</th><th>Album</th><th>Status</th><th>Ostatnie logowanie</th><th>Akcje</th></tr></thead>
+                <tbody>
+                {% for user in users %}
+                <tr>
+                    <td><strong>{{ user.full_name }}</strong><br><span class="wf-album">{{ user.email }}</span></td>
+                    <td>{{ user.role }}</td>
+                    <td>{{ user.album_number or '—' }}</td>
+                    <td><span class="status-badge status-{{ 'approved' if user.is_active else 'rejected' }}">{{ 'Aktywne' if user.is_active else 'Nieaktywne' }}</span></td>
+                    <td>{{ user.last_login_at.strftime('%d.%m.%Y %H:%M') if user.last_login_at else '—' }}</td>
+                    <td class="admin-actions">
+                        {% if current_user.role == 'admin' and user.id != current_user.id %}
+                        <form method="post" action="{{ url_for('admin.user_status', user_id=user.id) }}">
+                            <button class="btn btn-sm btn-secondary" type="submit">{{ 'Dezaktywuj' if user.is_active else 'Aktywuj' }}</button>
+                        </form>
+                        <form method="post" action="{{ url_for('admin.reset_password', user_id=user.id) }}"
+                              onsubmit="return confirm('Wygenerować nowe hasło tymczasowe i unieważnić aktywne sesje?')">
+                            <button class="btn btn-sm btn-secondary" type="submit">Reset hasła</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card api-manager" id="api-student-manager"
+             aria-labelledby="api-manager-title">
+        <div class="api-manager-header">
+            <div>
+                <h2 id="api-manager-title">Studenci przez REST API</h2>
+                <p class="subtitle">
+                    Ten moduł komunikuje się z backendem przez GET, POST, PUT i DELETE.
+                    Dziennik poniżej pokazuje rzeczywiste statusy HTTP.
+                </p>
+            </div>
+            <button class="btn btn-sm btn-secondary" id="apiReloadStudents"
+                    type="button">Odśwież GET</button>
+        </div>
+
+        <div class="api-manager-status" id="apiStudentStatus"
+             role="status" aria-live="polite" data-testid="api-status">
+            Oczekiwanie na pobranie danych.
+        </div>
+
+        <form class="api-student-form" id="apiStudentForm">
+            <input type="hidden" id="apiStudentId">
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label for="apiFirstName">Imię</label>
+                    <input id="apiFirstName" name="first_name" required maxlength="100">
+                </div>
+                <div class="field-group">
+                    <label for="apiLastName">Nazwisko</label>
+                    <input id="apiLastName" name="last_name" required maxlength="100">
+                </div>
+            </div>
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label for="apiAlbumNumber">Numer albumu</label>
+                    <input id="apiAlbumNumber" name="album_number" required
+                           inputmode="numeric" pattern="[0-9]{4,20}"
+                           title="Numer albumu musi zawierać od 4 do 20 cyfr">
+                </div>
+                <div class="field-group">
+                    <label for="apiEmail">Adres e-mail</label>
+                    <input id="apiEmail" name="email" type="email" required maxlength="255">
+                </div>
+            </div>
+            <div class="api-form-actions">
+                <div>
+                    <button class="btn" id="apiSaveStudent" type="submit">
+                        Dodaj przez POST
+                    </button>
+                    <button class="btn btn-secondary" id="apiCancelEdit"
+                            type="button" hidden>Anuluj edycję</button>
+                </div>
+                <small id="apiOperationHint">
+                    Wybierz „Edytuj”, aby wykonać PUT dla istniejącego studenta.
+                </small>
+            </div>
+        </form>
+
+        <div class="table-wrap">
+            <table class="table" aria-label="Studenci pobrani z REST API">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Numer albumu</th>
+                        <th>E-mail</th>
+                        <th>Akcje REST</th>
+                    </tr>
+                </thead>
+                <tbody id="apiStudentsBody" data-testid="api-students-body">
+                    <tr><td colspan="4">Ładowanie...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="api-http-log">
+            <div class="api-manager-toolbar">
+                <h3>Dziennik komunikacji HTTP</h3>
+                <button class="btn btn-sm btn-secondary" id="apiClearLog"
+                        type="button">Wyczyść dziennik</button>
+            </div>
+            <div class="api-http-log-list" id="apiHttpLog"
+                 aria-live="polite" data-testid="api-http-log"></div>
+        </div>
+    </section>
+
+    <div class="admin-grid">
+        <section class="card admin-section">
+            <h2>Ostatnie zdarzenia audytowe</h2>
+            <div class="admin-log-list">
+                {% for entry in audit_logs %}
+                <div>
+                    <strong>{{ entry.action }}</strong>
+                    <span>{{ entry.entity_type }} {{ entry.entity_id or '' }}</span>
+                    <small>{{ entry.performed_at.strftime('%d.%m.%Y %H:%M:%S') }} · {{ entry.user_role or 'system' }}</small>
+                </div>
+                {% else %}<p class="empty-state">Brak zdarzeń.</p>{% endfor %}
+            </div>
+        </section>
+
+        <section class="card admin-section">
+            <h2>Archiwa</h2>
+            <div class="admin-log-list">
+                {% for package in archives %}
+                <div>
+                    <strong>{{ package.original_album_number or package.album_hash[:12] }}</strong>
+                    <span>v{{ package.package_version }} · {{ package.status }}</span>
+                    <small>Retencja do {{ package.retention_until.strftime('%d.%m.%Y') }}</small>
+                    {% if package.status == 'active' %}
+                    <a href="{{ url_for('pobierz_archiwum', package_id=package.id) }}">Pobierz ZIP</a>
+                    {% endif %}
+                </div>
+                {% else %}<p class="empty-state">Brak pakietów archiwalnych.</p>{% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/admin-api.js') }}"></script>
+{% endblock %}

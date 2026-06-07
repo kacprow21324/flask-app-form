@@ -24,13 +24,42 @@
                 <button class="btn btn-sm btn-secondary" type="submit">Wypełnij danymi testowymi</button>
             </form>
             {% endif %}
+            {% if not record_archived %}
             <form method="post" action="{{ url_for('student_delete', nr_albumu=nr_albumu) }}"
-                  onsubmit="return confirm('Usunąć cały rekord tego studenta wraz ze wszystkimi załącznikami?')">
-                <button class="btn btn-danger" type="submit">Usuń cały rekord</button>
+                  onsubmit="return confirm('Utworzyć kompletny pakiet archiwalny i zablokować rekord do edycji?')">
+                <button class="btn btn-danger" type="submit">Archiwizuj cały rekord</button>
             </form>
+            {% endif %}
         </div>
         {% endif %}
+
     </div>
+
+    {% if archive_packages %}
+    <div class="card archive-packages-card">
+        <h2>Pakiety archiwalne</h2>
+        {% for package in archive_packages %}
+        <div class="archive-package-row">
+            <div>
+                <strong>Wersja {{ package.package_version }}</strong>
+                <span>
+                    Utworzono {{ package.created_at.strftime('%d.%m.%Y %H:%M') }},
+                    retencja do {{ package.retention_until.strftime('%d.%m.%Y') }}
+                </span>
+                <code>{{ package.checksum_sha256[:16] }}…</code>
+            </div>
+            {% if package.status == 'active' %}
+            <a class="btn btn-sm btn-secondary"
+               href="{{ url_for('pobierz_archiwum', package_id=package.id) }}">
+                Pobierz ZIP
+            </a>
+            {% else %}
+            <span class="status-badge status-draft">Usunięty po retencji</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="attachments-grid">
 
@@ -42,7 +71,7 @@
         {% set reviewer_role = wf.get('reviewer') %}
         {% set is_creator = att.key in editable_forms %}
         {% set is_reviewer = reviewer_role and (user_role == reviewer_role or user_role == 'admin') %}
-        {% set can_edit = (is_creator and status in ('draft', 'rejected')) or (user_role == 'admin' and status == 'draft') %}
+        {% set can_edit = not record_archived and ((is_creator and status in ('draft', 'rejected')) or (user_role == 'admin' and status == 'draft')) %}
 
         <div id="doc-{{ att.key }}" class="attachment-card {% if r %}card-filled{% else %}card-empty{% endif %}{% if status == 'rejected' %} card-rejected{% endif %}">
             <div class="attachment-head">
@@ -59,7 +88,12 @@
                             <a href="{{ url_for(att.key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Edytuj</a>
                         {% endif %}
 
-                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary" target="_blank">Drukuj / PDF</a>
+                        {% if status == 'approved' and state.approved_revision is not none %}
+                        <a href="{{ url_for('pobierz_pdf', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary">
+                            Pobierz zatwierdzony PDF
+                        </a>
+                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary" target="_blank">Podgląd wydruku</a>
+                        {% endif %}
 
                         {% if can_edit %}
                         <form method="post" action="{{ url_for(att.key ~ '_delete', nr_albumu=nr_albumu) }}"
@@ -79,6 +113,21 @@
                         <a href="{{ url_for('formularz_recenzuj', nr_albumu=nr_albumu, zal_key=att.key) }}"
                            class="btn btn-sm btn-secondary">Przejrzyj i odrzuć…</a>
                         <button type="submit" form="approve-{{ att.key }}" class="btn btn-sm btn-success btn-review-action">Zatwierdź</button>
+                        {% endif %}
+
+                        {% set versions = generated_versions.get(att.key, []) %}
+                        {% if versions %}
+                        <details class="generated-versions">
+                            <summary>Wersje PDF ({{ versions|length }})</summary>
+                            {% for version in versions %}
+                            <a href="{{ url_for('pobierz_wersje_pdf', document_id=version.id) }}">
+                                v{{ version.document_version }}
+                                · rewizja {{ version.source_revision }}
+                                · {{ version.generated_at.strftime('%d.%m.%Y %H:%M') }}
+                                {% if version.is_current %}· aktualna{% endif %}
+                            </a>
+                            {% endfor %}
+                        </details>
                         {% endif %}
 
                     {% else %}

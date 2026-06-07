@@ -8,7 +8,7 @@ flowchart TD
     S0 -->|SZKIC / ODRZUCONY / DO_POPRAWY_UOPZ| S1[Edycja dozwolona]
     S1 --> S2{Akcja: Zapis?}
     S2 -- Nie --> S3[Tylko podglad]
-    S2 -- Tak --> S4[Walidacja fail-fast:<br/>opis dnia wymagany<br/>merytoryka opisu dnia<br/>suma godzin <= 9660]
+    S2 -- Tak --> S4[Walidacja fail-fast:<br/>opis dnia wymagany<br/>merytoryka opisu dnia<br/>suma godzin <= 960]
     S4 --> S5{Walidacja poprawna?}
     S5 -- Nie --> S6[HTTP 400 + blad merytoryczny]
     S5 -- Tak --> S7[Zapis do bazy]

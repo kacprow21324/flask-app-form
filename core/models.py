@@ -152,6 +152,7 @@ class DocumentWorkflow(db.Model):
     reviewer_role = db.Column(db.String(20))
     rejection_comment = db.Column(db.Text)
     rejection_by = db.Column(db.String(200))
+    approved_revision = db.Column(db.Integer)
     updated_at = db.Column(
         db.DateTime, nullable=False,
         default=datetime.utcnow, onupdate=datetime.utcnow,
@@ -274,9 +275,63 @@ class Internship(db.Model):
     uopz = db.relationship("User", foreign_keys=[uopz_id])
     zopz = db.relationship("User", foreign_keys=[zopz_id])
     company = db.relationship("Company", foreign_keys=[company_id])
+    parts = db.relationship(
+        "InternshipPart",
+        back_populates="internship",
+        cascade="all, delete-orphan",
+        order_by="InternshipPart.part_number",
+    )
 
     __table_args__ = (
         db.UniqueConstraint("student_id", "academic_year", name="uq_internship_student_year"),
+    )
+
+
+class InternshipPart(db.Model):
+    __tablename__ = "internship_parts"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    internship_id = db.Column(
+        db.Integer,
+        db.ForeignKey("internships.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    part_number = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String(200), nullable=False)
+    company_id = db.Column(
+        db.Integer, db.ForeignKey("companies.id", ondelete="SET NULL"), index=True,
+    )
+    uopz_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), index=True,
+    )
+    zopz_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), index=True,
+    )
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
+    planned_hours = db.Column(db.Integer, nullable=False, default=0)
+    total_hours = db.Column(db.Integer, nullable=False, default=0)
+    total_days = db.Column(db.Integer, nullable=False, default=0)
+    status = db.Column(db.String(30), nullable=False, default="planned", index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow,
+    )
+
+    internship = db.relationship("Internship", back_populates="parts")
+    company = db.relationship("Company", foreign_keys=[company_id])
+    uopz = db.relationship("User", foreign_keys=[uopz_id])
+    zopz = db.relationship("User", foreign_keys=[zopz_id])
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "internship_id", "part_number", name="uq_internship_part_number",
+        ),
+        db.CheckConstraint("part_number > 0", name="ck_internship_part_number_positive"),
+        db.CheckConstraint("planned_hours >= 0", name="ck_internship_part_planned_hours"),
+        db.CheckConstraint("total_hours >= 0", name="ck_internship_part_total_hours"),
+        db.CheckConstraint("total_days >= 0", name="ck_internship_part_total_days"),
     )
 
 
@@ -309,9 +364,19 @@ class GeneratedDocument(db.Model):
     internship_id = db.Column(
         db.Integer, db.ForeignKey("internships.id", ondelete="SET NULL"), index=True,
     )
+    internship_part_id = db.Column(
+        db.Integer,
+        db.ForeignKey("internship_parts.id", ondelete="SET NULL"),
+        index=True,
+    )
     album_number = db.Column(db.String(20), nullable=False, index=True)
     form_key = db.Column(db.String(10), nullable=False)
-    template_version = db.Column(db.String(50))
+    document_version = db.Column(db.Integer, nullable=False, default=1)
+    source_revision = db.Column(db.Integer, nullable=False, default=0)
+    source_checksum = db.Column(db.String(64), nullable=False)
+    source_fingerprint = db.Column(db.String(64), nullable=False, unique=True)
+    source_approved_at = db.Column(db.DateTime)
+    template_version = db.Column(db.String(80), nullable=False)
     file_path = db.Column(db.String(700), nullable=False)
     file_name = db.Column(db.String(255), nullable=False)
     file_size_bytes = db.Column(db.Integer, nullable=False)
@@ -322,9 +387,63 @@ class GeneratedDocument(db.Model):
     )
     generated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     download_count = db.Column(db.Integer, nullable=False, default=0)
+    is_current = db.Column(db.Integer, nullable=False, default=1, index=True)
 
     internship = db.relationship("Internship", foreign_keys=[internship_id])
+    internship_part = db.relationship(
+        "InternshipPart", foreign_keys=[internship_part_id],
+    )
     generator = db.relationship("User", foreign_keys=[generated_by])
+
+
+class PracticeDocument(db.Model):
+    """Metadane dokumentu przeslanego w ramach konkretnej praktyki."""
+
+    __tablename__ = "practice_documents"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    internship_id = db.Column(
+        db.Integer,
+        db.ForeignKey("internships.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    name = db.Column(db.String(255), nullable=False)
+    document_type = db.Column(db.String(100), nullable=False)
+    uploaded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    verification_status = db.Column(
+        db.String(20), nullable=False, default="pending", index=True,
+    )
+    supervisor_comment = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    internship = db.relationship("Internship", foreign_keys=[internship_id])
+
+
+class GradeCalculation(db.Model):
+    __tablename__ = "grade_calculations"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    internship_id = db.Column(
+        db.Integer,
+        db.ForeignKey("internships.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    grade_e = db.Column(db.Numeric(3, 2), nullable=False)
+    grade_s = db.Column(db.Numeric(3, 2), nullable=False)
+    grade_u = db.Column(db.Numeric(3, 2), nullable=False)
+    grade_z = db.Column(db.Numeric(3, 2), nullable=False)
+    weighted_result = db.Column(db.Numeric(4, 2), nullable=False)
+    final_grade = db.Column(db.Numeric(3, 2), nullable=False)
+    formula_version = db.Column(db.String(30), nullable=False)
+    calculated_by = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), index=True,
+    )
+    calculated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    internship = db.relationship("Internship", foreign_keys=[internship_id])
+    calculator = db.relationship("User", foreign_keys=[calculated_by])
 
 
 class AuditLog(db.Model):
@@ -379,6 +498,9 @@ class User(UserMixin, db.Model):
     failed_login_attempts = db.Column(db.Integer, nullable=False, default=0)
     locked_until = db.Column(db.DateTime)
     avatar_url = db.Column(db.String(500))
+    anonymized_at = db.Column(db.DateTime)
+    microsoft_tenant_id = db.Column(db.String(36))
+    microsoft_object_id = db.Column(db.String(36))
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(
@@ -388,9 +510,52 @@ class User(UserMixin, db.Model):
         onupdate=datetime.utcnow,
     )
 
+    __table_args__ = (
+        db.UniqueConstraint(
+            "microsoft_tenant_id",
+            "microsoft_object_id",
+            name="uq_users_microsoft_identity",
+        ),
+    )
+
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
     def __repr__(self) -> str:
         return f"<User {self.email} role={self.role}>"
+
+
+class ArchivePackage(db.Model):
+    __tablename__ = "archive_packages"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    student_id = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), index=True,
+    )
+    original_album_number = db.Column(db.String(20), index=True)
+    album_hash = db.Column(db.String(64), nullable=False, index=True)
+    package_version = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default="active", index=True)
+    file_path = db.Column(db.String(700))
+    file_name = db.Column(db.String(255))
+    file_size_bytes = db.Column(db.Integer)
+    checksum_sha256 = db.Column(db.String(64), nullable=False)
+    manifest_checksum_sha256 = db.Column(db.String(64), nullable=False)
+    manifest = db.Column(db.JSON, nullable=False)
+    created_by = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"), index=True,
+    )
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    retention_until = db.Column(db.DateTime, nullable=False, index=True)
+    anonymized_at = db.Column(db.DateTime)
+    purged_at = db.Column(db.DateTime)
+
+    student = db.relationship("User", foreign_keys=[student_id])
+    creator = db.relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "student_id", "package_version", name="uq_archive_student_version",
+        ),
+    )

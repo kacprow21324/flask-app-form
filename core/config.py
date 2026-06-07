@@ -37,6 +37,13 @@ class Config:
     SESSION_COOKIE_SECURE = os.environ.get(
         "SESSION_COOKIE_SECURE", "false",
     ).lower() == "true"
+    TRUST_PROXY_HEADERS = os.environ.get(
+        "TRUST_PROXY_HEADERS", "false",
+    ).lower() == "true"
+    ENABLE_HSTS = os.environ.get(
+        "ENABLE_HSTS", "false",
+    ).lower() == "true"
+    JSON_LOGS = os.environ.get("JSON_LOGS", "false").lower() == "true"
     PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
@@ -46,6 +53,11 @@ class Config:
     MS_CLIENT_SECRET = os.environ.get("MS_CLIENT_SECRET", "")
     MS_TENANT_ID = os.environ.get("MS_TENANT_ID", "common")
     MS_REDIRECT_URI = os.environ.get("MS_REDIRECT_URI", "")
+    MS_ALLOWED_EMAIL_DOMAINS = tuple(
+        domain.strip().lower()
+        for domain in os.environ.get("MS_ALLOWED_EMAIL_DOMAINS", "").split(",")
+        if domain.strip()
+    )
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
     GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")

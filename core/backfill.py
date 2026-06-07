@@ -93,3 +93,17 @@ def backfill_operational_data():
         "notifications": Notification.query.count(),
     }
     return {key: after[key] - before[key] for key in before}
+
+
+def backfill_approved_revisions():
+    updated = 0
+    for state in DocumentWorkflow.query.filter_by(status="approved").all():
+        if state.approved_revision is not None:
+            continue
+        revision = store.get_form_revision(state.album_number, state.form_key)
+        if revision is None:
+            continue
+        state.approved_revision = revision
+        updated += 1
+    db.session.commit()
+    return updated

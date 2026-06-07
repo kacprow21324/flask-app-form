@@ -1,0 +1,37 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/students",
+    "status": 200
+  },
+  {
+    "method": "POST",
+    "path": "/api/students",
+    "status": 201
+  },
+  {
+    "method": "GET",
+    "path": "/api/students",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/api/students/8",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/api/students",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/students/8",
+    "status": 204
+  },
+  {
+    "method": "GET",
+    "path": "/api/students",
+    "status": 200
+  }
+]

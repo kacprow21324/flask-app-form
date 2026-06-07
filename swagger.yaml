@@ -1,0 +1,474 @@
+openapi: 3.0.3
+info:
+  title: EMS Student Internships REST API
+  version: 1.0.0
+  description: REST API for students, internships and practice documents.
+servers:
+  - url: http://localhost:5000
+security:
+  - sessionCookie: []
+tags:
+  - name: Session
+  - name: Students
+  - name: Internships
+  - name: Documents
+paths:
+  /api/csrf-token:
+    get:
+      tags: [Session]
+      summary: Return a CSRF token for the authenticated session
+      responses:
+        "200":
+          description: CSRF token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  csrf_token:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/students:
+    get:
+      tags: [Students]
+      summary: List active students
+      responses:
+        "200":
+          description: Student list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  students:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Student"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags: [Students]
+      summary: Create a student
+      parameters:
+        - $ref: "#/components/parameters/CSRFToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentInput"
+      responses:
+        "201":
+          description: Student created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/students/{studentId}:
+    parameters:
+      - name: studentId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Students]
+      summary: Return a student
+      responses:
+        "200":
+          description: Student data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Students]
+      summary: Replace student data
+      parameters:
+        - $ref: "#/components/parameters/CSRFToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentInput"
+      responses:
+        "200":
+          description: Student updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [Students]
+      summary: Deactivate a student
+      parameters:
+        - $ref: "#/components/parameters/CSRFToken"
+      responses:
+        "204":
+          description: Student deactivated
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/internships:
+    get:
+      tags: [Internships]
+      summary: List internships
+      parameters:
+        - name: student_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Internship list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  internships:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Internship"
+    post:
+      tags: [Internships]
+      summary: Create an internship
+      parameters:
+        - $ref: "#/components/parameters/CSRFToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InternshipInput"
+      responses:
+        "201":
+          description: Internship created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Internship"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /api/internships/{internshipId}:
+    parameters:
+      - name: internshipId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Internships]
+      summary: Return an internship
+      responses:
+        "200":
+          description: Internship data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Internship"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Internships]
+      summary: Update internship status
+      parameters:
+        - $ref: "#/components/parameters/CSRFToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: "#/components/schemas/InternshipStatus"
+      responses:
+        "200":
+          description: Internship updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Internship"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Internships]
+      summary: Archive an internship
+      parameters:
+        - $ref: "#/components/parameters/CSRFToken"
+      responses:
+        "204":
+          description: Internship archived
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/documents:
+    get:
+      tags: [Documents]
+      summary: List practice documents
+      parameters:
+        - name: internship_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Document list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PracticeDocument"
+    post:
+      tags: [Documents]
+      summary: Create practice document metadata
+      parameters:
+        - $ref: "#/components/parameters/CSRFToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PracticeDocumentInput"
+      responses:
+        "201":
+          description: Document created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PracticeDocument"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/documents/{documentId}:
+    parameters:
+      - name: documentId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Documents]
+      summary: Return practice document metadata
+      responses:
+        "200":
+          description: Document data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PracticeDocument"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Documents]
+      summary: Delete practice document metadata
+      parameters:
+        - $ref: "#/components/parameters/CSRFToken"
+      responses:
+        "204":
+          description: Document deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session
+  parameters:
+    CSRFToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      schema:
+        type: string
+  schemas:
+    Student:
+      type: object
+      required: [id, first_name, last_name, album_number, email]
+      properties:
+        id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        album_number:
+          type: string
+        email:
+          type: string
+          format: email
+    StudentInput:
+      type: object
+      required: [first_name, last_name, album_number, email]
+      properties:
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        album_number:
+          type: string
+          pattern: "^[0-9]{4,20}$"
+        email:
+          type: string
+          format: email
+    InternshipStatus:
+      type: string
+      enum: [draft, active, completed, cancelled]
+    Internship:
+      type: object
+      properties:
+        id:
+          type: integer
+        student_id:
+          type: integer
+        company_name:
+          type: string
+          nullable: true
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        status:
+          $ref: "#/components/schemas/InternshipStatus"
+        academic_year:
+          type: string
+          example: 2025/2026
+    InternshipInput:
+      type: object
+      required: [student_id, company_name, start_date, end_date, status]
+      properties:
+        student_id:
+          type: integer
+        company_name:
+          type: string
+          maxLength: 300
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          $ref: "#/components/schemas/InternshipStatus"
+        academic_year:
+          type: string
+          example: 2025/2026
+    VerificationStatus:
+      type: string
+      enum: [pending, approved, rejected]
+    PracticeDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        document_type:
+          type: string
+        uploaded_at:
+          type: string
+          format: date-time
+        internship_id:
+          type: integer
+        verification_status:
+          $ref: "#/components/schemas/VerificationStatus"
+        supervisor_comment:
+          type: string
+          nullable: true
+    PracticeDocumentInput:
+      type: object
+      required: [name, document_type, internship_id]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        document_type:
+          type: string
+          maxLength: 100
+        uploaded_at:
+          type: string
+          format: date-time
+        internship_id:
+          type: integer
+        verification_status:
+          $ref: "#/components/schemas/VerificationStatus"
+        supervisor_comment:
+          type: string
+          nullable: true
+    Error:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Conflict:
+      description: Unique data conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

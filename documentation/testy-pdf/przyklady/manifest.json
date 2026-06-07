@@ -1,0 +1,189 @@
+{
+  "generated_at": "2026-06-07",
+  "generator": "XeLaTeX + Jinja2",
+  "profiles": [
+    {
+      "name": "Anna Żółć",
+      "album": "31001",
+      "specialty": "Administracja systemów i sieci komputerowych",
+      "company": "Łączność i Rozwój Sp. z o.o.",
+      "city": "Elbląg",
+      "supervisor": "inż. Michał Górski"
+    },
+    {
+      "name": "Łukasz Ćwikła",
+      "album": "31002",
+      "specialty": "Projektowanie baz danych i oprogramowanie użytkowe",
+      "company": "R&D Północ S.A.",
+      "city": "Gdańsk",
+      "supervisor": "mgr inż. Joanna Wróbel"
+    },
+    {
+      "name": "Małgorzata Ździebło",
+      "album": "31003",
+      "specialty": "Technologie internetowe i multimedialne",
+      "company": "Źródło Danych sp. z o.o.",
+      "city": "Olsztyn",
+      "supervisor": "Paweł Jaśkiewicz"
+    }
+  ],
+  "documents": [
+    {
+      "pages": 2,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 3167,
+      "file": "dziennik_31001.pdf",
+      "template": "zal6",
+      "template_version": "latex-6a4165201e1dd102",
+      "size_bytes": 40983,
+      "sha256": "87da02bd5a55939853d74dd7dbcb5d40accb25e2be66135a2fe18e3aa4d1b871",
+      "generation_time_ms": 1193.1
+    },
+    {
+      "pages": 1,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 1155,
+      "file": "efekty_31001.pdf",
+      "template": "zal4",
+      "template_version": "latex-77d3d44b8ebf1d21",
+      "size_bytes": 39985,
+      "sha256": "2fce0a5e6d7560481a1650566e8962a3db64f0f1cef20a099020d71bf5c86065",
+      "generation_time_ms": 1011.8
+    },
+    {
+      "pages": 1,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 893,
+      "file": "raport_koncowy_31001.pdf",
+      "template": "zal7",
+      "template_version": "latex-c88c9aab80476406",
+      "size_bytes": 32596,
+      "sha256": "6a5c823fc58a3efcd4dae9f3967458b6ac8e4c873cccb0011796e8ab4c4f476b",
+      "generation_time_ms": 1095.5
+    },
+    {
+      "pages": 1,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 899,
+      "file": "protokol_31001.pdf",
+      "template": "zal8",
+      "template_version": "latex-c58f1bfe5f461b8e",
+      "size_bytes": 46306,
+      "sha256": "5269f22b98bde7a35177aed85e8338efc8c356e704c91f9fedb6c3a3c9cf825a",
+      "generation_time_ms": 1096.8
+    },
+    {
+      "pages": 2,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 3308,
+      "file": "dziennik_31002.pdf",
+      "template": "zal6",
+      "template_version": "latex-6a4165201e1dd102",
+      "size_bytes": 41315,
+      "sha256": "20c0b4d6a4d2ca5904fa1cf6b3b842ac7f289adeb2cac5793660cc8cfde6a40a",
+      "generation_time_ms": 1010.8
+    },
+    {
+      "pages": 1,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 1169,
+      "file": "efekty_31002.pdf",
+      "template": "zal4",
+      "template_version": "latex-77d3d44b8ebf1d21",
+      "size_bytes": 40038,
+      "sha256": "b5a55344028c15ab9e22a36009ab726b5ab939b08174906ea2ef8e321e9856f4",
+      "generation_time_ms": 1014.4
+    },
+    {
+      "pages": 1,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 879,
+      "file": "raport_koncowy_31002.pdf",
+      "template": "zal7",
+      "template_version": "latex-c88c9aab80476406",
+      "size_bytes": 32923,
+      "sha256": "01d8f8412c64cf1bb6647b37b71a14dfd7e3c8e84d272d1983f44c0bd84b3a46",
+      "generation_time_ms": 1003.8
+    },
+    {
+      "pages": 1,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 890,
+      "file": "protokol_31002.pdf",
+      "template": "zal8",
+      "template_version": "latex-c58f1bfe5f461b8e",
+      "size_bytes": 46662,
+      "sha256": "60e1e15303bd9c15b02e41c9ae745e0583a6fdd18a6c491c4e0c803374df67e1",
+      "generation_time_ms": 1141.0
+    },
+    {
+      "pages": 2,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 3169,
+      "file": "dziennik_31003.pdf",
+      "template": "zal6",
+      "template_version": "latex-6a4165201e1dd102",
+      "size_bytes": 40315,
+      "sha256": "4f6be8f0904b0dd35c92bf55facf3ff5f21bcaf388f79070c5f6bace74383b9a",
+      "generation_time_ms": 1031.0
+    },
+    {
+      "pages": 1,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 1159,
+      "file": "efekty_31003.pdf",
+      "template": "zal4",
+      "template_version": "latex-77d3d44b8ebf1d21",
+      "size_bytes": 39992,
+      "sha256": "e3bd68ffae6d47c15a33667405baad6a408058dd21d8cee5a654ccbf359ebcdc",
+      "generation_time_ms": 1044.9
+    },
+    {
+      "pages": 1,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 899,
+      "file": "raport_koncowy_31003.pdf",
+      "template": "zal7",
+      "template_version": "latex-c88c9aab80476406",
+      "size_bytes": 32482,
+      "sha256": "c372565c154f82ea71f5e345a9d83397b663d2a7e02ca25504558f65f8b0ca8e",
+      "generation_time_ms": 1051.7
+    },
+    {
+      "pages": 1,
+      "width_points": 595.28,
+      "height_points": 841.89,
+      "contains_page_number": true,
+      "text_length": 906,
+      "file": "protokol_31003.pdf",
+      "template": "zal8",
+      "template_version": "latex-c58f1bfe5f461b8e",
+      "size_bytes": 45683,
+      "sha256": "2aa87327359431ad87cbe44e8fb3c87f86897eae416dd87f21504619acfdceb4",
+      "generation_time_ms": 1099.4
+    }
+  ],
+  "total_generation_time_ms": 13440.4
+}

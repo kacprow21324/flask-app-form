@@ -75,7 +75,8 @@ wprowadzania Alembic. Nowe środowiska zawsze używają `db upgrade`.
 
 ## Etap 4: testy automatyczne
 
-Status: w trakcie (24 testy jednostkowe i integracyjne).
+Status: zrealizowany (79 testów jednostkowych i integracyjnych oraz 12 scenariuszy
+przeglądarkowe Playwright).
 
 Zakres:
 
@@ -97,7 +98,10 @@ Zrealizowane:
 - CSRF i nagłówki bezpieczeństwa;
 - zapis pliku PDF oraz metadanych archiwum;
 - migracja od pustej bazy i `db check`;
-- workflow CI w GitHub Actions.
+- workflow CI w GitHub Actions;
+- izolowane środowisko E2E uruchamiane przez Docker Compose;
+- scenariusze przeglądarkowe logowania, panelu administratora i części praktyki;
+- osobny job Playwright w GitHub Actions.
 
 Kryterium odbioru:
 
@@ -107,10 +111,26 @@ Kryterium odbioru:
 
 ## Etap 5: reguły procesu praktyk
 
-Status: w trakcie.
+Status: zrealizowany.
 
 Zrealizowane:
 
+- obsługa wielu części praktyki w jednym roku akademickim;
+- osobne miejsce, terminy, opiekunowie, godziny i status każdej części;
+- migracja istniejących praktyk do części początkowej bez utraty danych;
+- roczny postęp sumowany z aktywnych części praktyki;
+- wyliczanie oceny końcowej na serwerze według wzoru
+  `K = 0,4E + 0,1S + 0,2U + 0,3Z`;
+- walidacja kompletności ocen i wymóg zatwierdzonego dziennika;
+- zapis składników, wyniku i historii przeliczeń w MariaDB;
+- generowanie PDF wyłącznie z aktualnej, zatwierdzonej rewizji formularza;
+- wersjonowanie PDF według rewizji źródła i wersji szablonu LaTeX;
+- deduplikacja pobrań tej samej wersji oraz historia wersji w widoku studenta;
+- suma kontrolna źródła i pliku, autor, czas zatwierdzenia i licznik pobrań;
+- kompletny pakiet archiwalny ZIP: formularze, workflow, oceny, PDF i uploady;
+- kontrola integralności pakietu i plików przed archiwizacją;
+- konfigurowalna retencja, tryb tylko do odczytu po archiwizacji;
+- anonimizacja konta i usunięcie danych źródłowych dopiero po retencji;
 - jawne przypisywanie UOPZ i ZOPZ przez dziekanat/admina;
 - brak automatycznego wyboru pierwszego opiekuna przy tworzeniu praktyki;
 - widok postępu studenta: dokumenty, godziny i dni;
@@ -119,13 +139,8 @@ Zrealizowane:
 - dziekanat widzi wszystkich studentów, a opiekunowie tylko przypisanych;
 - powiadomienia i wpis audytowy po zmianie przydziału.
 
-Zakres:
-
-- obsługa kilku części praktyki w jednym roku akademickim;
-- wyliczanie oceny końcowej na serwerze;
-- generowanie wersji PDF tylko z zatwierdzonego dokumentu;
-- pobieranie istniejącej wersji bez tworzenia duplikatu;
-- archiwizacja, anonimizacja i retencja zamiast niepełnego usuwania.
+- okresowe uruchamianie zadania anonimizacji przez usługę `retention`
+  w konfiguracji produkcyjnej.
 
 Kryterium odbioru:
 
@@ -136,13 +151,27 @@ Kryterium odbioru:
 
 ## Etap 6: podział aplikacji
 
-Zakres:
+Status: zrealizowany strukturalnie.
+
+Zrealizowane:
 
 - fabryka aplikacji `create_app`;
-- Blueprinty: `auth`, `student`, `review`, `admin`, `documents`;
-- serwisy workflow, praktyk, ocen i dokumentów;
+- `app.py` ograniczony do konfiguracji i rejestracji rozszerzeń;
+- Blueprinty `auth`, `admin`, `health`, `metrics`, `main`, `documents`,
+  `forms` i `operations`;
+- zachowanie dotychczasowych adresów URL i nazw używanych przez szablony;
+- serwisy workflow, praktyk, ocen, dokumentów, retencji i obserwowalności.
+
+Zakres:
+
 - repozytoria MariaDB i MongoDB;
 - wspólne mechanizmy autoryzacji i obsługi błędów.
+
+Dalsza poprawa utrzymywalności:
+
+- fizyczny podział `core/web.py` na mniejsze moduły tras. Trasy są już
+  rozdzielone logicznie między Blueprinty, ale implementacje pozostają w jednym
+  module, aby ograniczyć ryzyko regresji przy migracji istniejących formularzy.
 
 Kryterium odbioru:
 
@@ -152,14 +181,22 @@ Kryterium odbioru:
 
 ## Etap 7: funkcje administracyjne
 
-Status: w trakcie.
+Status: zrealizowany w zakresie podstawowego panelu; dalsza rozbudowa pozostaje
+w backlogu.
 
-Zakres:
+Zrealizowane:
 
-- użytkownicy, role, aktywacja i reset hasła;
-- import studentów z CSV;
+- centralny panel administracyjny użytkowników;
+- aktywacja i dezaktywacja kont oraz reset hasła z unieważnieniem sesji;
+- atomowy import studentów z CSV UTF-8 z walidacją całego pliku;
+- wzór pliku importu;
+- raport postępu CSV według roku akademickiego;
+- przeglądarka ostatnich wpisów audytu i pakietów archiwalnych;
+
+Pozostałe:
+
 - przydziały opiekunów (zrealizowane);
-- historia dokumentów i archiwum;
+- pełne filtrowanie i stronicowanie historii dokumentów i archiwum;
 - terminy i alerty;
 - raporty CSV/XLSX;
 - przeglądarka `audit_logs`;
@@ -169,17 +206,32 @@ Zakres:
 
 ## Etap 8: produkcja i dokumentacja
 
+Status: zrealizowany w postaci gotowego pakietu wdrożeniowego.
+
+Zrealizowane:
+
+- osobny `docker-compose.prod.yml` bez publicznych portów baz;
+- użytkownik aplikacyjny MongoDB i uwierzytelnienie;
+- single-tenant Microsoft Entra ID z walidacją `tid`, `iss`, domeny i `oid`;
+- Nginx, TLS, HSTS i obsługa zaufanych nagłówków reverse proxy;
+- kontener aplikacji uruchamiany jako użytkownik bez uprawnień root;
+- backup obu baz i `/app/data` oraz automatyczny test odtworzenia;
+- liveness, readiness, Prometheus, reguły alertów i logi JSON;
+- cykliczna retencja i anonimizacja.
+
 Zakres:
 
 - bazy dostępne tylko w sieci wewnętrznej Dockera;
 - uwierzytelnienie MongoDB;
+- logowanie kontami uczelnianymi przez Microsoft Entra ID (Azure AD),
+  z ograniczeniem do skonfigurowanego tenant-a uczelni;
 - reverse proxy i HTTPS;
 - użytkownik bez uprawnień root w kontenerze aplikacji;
 - backup MariaDB, MongoDB, uploadów i wygenerowanych dokumentów;
 - okresowe testy odtwarzania backupu;
 - monitoring, logi strukturalne i alerty;
 - aktualizacja `CLAUDE.md`, README i diagramów;
-- poprawienie limitu 9660 na 960 i ujednolicenie modelu statusów.
+- ujednolicenie modelu statusów.
 
 Kryterium odbioru:
 

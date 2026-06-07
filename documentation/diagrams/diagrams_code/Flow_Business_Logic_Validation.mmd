@@ -8,9 +8,9 @@ flowchart TD
 
     E -- Nie --> E2[HTTP 400<br/>DAY_DESCRIPTION_NOT_SUBSTANTIVE]
     E -- Tak --> F[Pobierz aktualna sume godzin studenta]
-    F --> G{Czy suma po zapisie nie przekracza 9660h?}
+    F --> G{Czy suma po zapisie nie przekracza 960h?}
 
-    G -- Nie --> E3[HTTP 400<br/>TOTAL_HOURS_LIMIT_9660]
+    G -- Nie --> E3[HTTP 400<br/>TOTAL_HOURS_LIMIT_960]
     G -- Tak --> H[Zbuduj rekord wpisu<br/>status = SZKIC]
     H --> I[Zapis wpisu do JSON/Mongo]
     I --> J[Aktualizuj agregaty godzin i postep]
