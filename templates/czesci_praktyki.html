@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Części praktyki{% endblock %}
+{% block title %}Praktyki i opiekunowie{% endblock %}
 {% block content %}
 {% set status_labels = {
     'planned': 'Planowana',
@@ -10,10 +10,11 @@
 <div class="page">
     <div class="workflow-page-header">
         <div>
-            <h1>Części praktyki</h1>
+            <h1>Praktyki i opiekunowie</h1>
             <p class="subtitle">{{ student.full_name }} · nr albumu {{ student.album_number }}</p>
         </div>
-        <form method="get" class="workflow-year-form">
+        <form method="get" action="{{ url_for('praktyki') }}" class="workflow-year-form">
+            <input type="hidden" name="tab" value="czesci">
             {% if current_user.role != 'student' %}
             <input type="hidden" name="nr" value="{{ student.album_number }}">
             {% endif %}
@@ -26,6 +27,16 @@
         </form>
     </div>
 
+    <nav class="page-tabs" aria-label="Sekcje praktyk">
+        {% if current_user.role in ('dziekanat', 'admin') %}
+        <a class="page-tab" href="{{ url_for('praktyki', tab='opiekunowie', rok=selected_year) }}">Opiekunowie</a>
+        {% endif %}
+        <a class="page-tab page-tab-active"
+           href="{{ url_for('praktyki', tab='czesci', nr=student.album_number, rok=selected_year) }}">
+            Części praktyki
+        </a>
+    </nav>
+
     <div class="role-info-bar">
         Każde miejsce lub okres praktyki jest osobną częścią. Roczny postęp sumuje
         godziny i dni ze wszystkich części poza anulowanymi.
@@ -37,8 +48,8 @@
             <span>Liczba części</span>
             <strong>{{ parts|rejectattr('status', 'equalto', 'cancelled')|list|length }}</strong>
         </div>
-        <div class="workflow-stat"><span>Zrealizowane godziny</span><strong>{{ internship.total_hours }}</strong></div>
-        <div class="workflow-stat"><span>Zrealizowane dni</span><strong>{{ internship.total_days }}</strong></div>
+        <div class="workflow-stat"><span>Zrealizowane godziny</span><strong>{{ internship.total_hours or 0 }}</strong></div>
+        <div class="workflow-stat"><span>Zrealizowane dni</span><strong>{{ internship.total_days or 0 }}</strong></div>
         <div class="workflow-stat">
             <span>Zakres dat</span>
             <strong>
@@ -64,7 +75,8 @@
             </div>
 
             {% if can_manage and part.status != 'cancelled' %}
-            <form method="post" class="internship-part-form">
+            <form method="post" action="{{ url_for('praktyki', tab='czesci') }}" class="internship-part-form">
+                <input type="hidden" name="tab" value="czesci">
                 <input type="hidden" name="nr" value="{{ student.album_number }}">
                 <input type="hidden" name="academic_year" value="{{ selected_year }}">
                 <input type="hidden" name="part_id" value="{{ part.id }}">
@@ -140,7 +152,8 @@
     {% if can_manage %}
     <div class="card internship-part-create">
         <h2>Dodaj kolejną część</h2>
-        <form method="post" class="internship-part-form">
+        <form method="post" action="{{ url_for('praktyki', tab='czesci') }}" class="internship-part-form">
+            <input type="hidden" name="tab" value="czesci">
             <input type="hidden" name="nr" value="{{ student.album_number }}">
             <input type="hidden" name="academic_year" value="{{ selected_year }}">
             <input type="hidden" name="action" value="save">

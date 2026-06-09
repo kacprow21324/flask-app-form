@@ -10,7 +10,15 @@ import app as application_module
 import core.web as web_module
 from core.documents import archive_pdf
 from core.models import GeneratedDocument
-from core.models import Attachment, Internship, InternshipPart, User, db
+from core.models import (
+    Attachment,
+    DocumentWorkflow,
+    Internship,
+    InternshipPart,
+    RoleFormAccess,
+    User,
+    db,
+)
 from core.internships import current_academic_year, ensure_internship
 from werkzeug.security import generate_password_hash
 
@@ -41,6 +49,7 @@ class AccessControlTests(unittest.TestCase):
                 reviewer_label="UOPZ",
                 sort_order=1,
             ))
+            db.session.add(RoleFormAccess(role="student", form_key="zal1"))
             cls.admin_id = cls.admin.id
             db.session.add(Internship(
                 student_id=cls.student_a.id,
@@ -116,6 +125,12 @@ class AccessControlTests(unittest.TestCase):
         other = self.client.get("/student/21002")
         self.assertEqual(own.status_code, 200)
         self.assertEqual(other.status_code, 403)
+        self.assertIn("Dokumenty".encode(), own.data)
+        self.assertIn("Historia".encode(), own.data)
+        self.assertNotIn(
+            b'data-section-tab="archiwum"',
+            own.data,
+        )
 
     def test_uopz_can_open_only_assigned_student(self):
         self.assertEqual(self.login("uopz@example.test").status_code, 302)
@@ -126,7 +141,168 @@ class AccessControlTests(unittest.TestCase):
 
     def test_admin_can_open_any_student(self):
         self.assertEqual(self.login("admin@example.test").status_code, 302)
-        self.assertEqual(self.client.get("/student/21002").status_code, 200)
+        response = self.client.get("/student/21002")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'data-section-tab="archiwum"', response.data)
+        self.assertIn("Podgląd formularza".encode(), response.data)
+
+    def test_zal1_new_form_has_system_defaults(self):
+        self.assertEqual(self.login("student-a@example.test").status_code, 302)
+        response = self.client.get("/zal1")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'value="ZAL-1-21001"', response.data)
+        self.assertIn(b'name="liczba_godzin"', response.data)
+        self.assertIn(b'value="960"', response.data)
+        self.assertIn(b'name="data"', response.data)
+        self.assertLess(
+            response.data.index("Forma studiów".encode()),
+            response.data.index("Porozumienie nr".encode()),
+        )
+        self.assertIn("Podpis uczelnianego opiekuna".encode(), response.data)
+        self.assertIn("Podpis dziekanatu".encode(), response.data)
+
+    def test_zal1_save_enforces_system_values_and_normalizes_company_data(self):
+        self.assertEqual(self.login("student-a@example.test").status_code, 302)
+        token = self.csrf_for("/zal1")
+        with patch.object(
+            web_module, "_persist", return_value=("saved", 200),
+        ) as persist:
+            response = self.client.post("/zal1", data={
+                "_csrf_token": token,
+                "imie_nazwisko": "Student Test",
+                "nr_albumu": "21001",
+                "nr_porozumienia": "PODMIENIONY",
+                "miejscowosc": "elbląg",
+                "data": "2000-01-01",
+                "specjalnosc": "Testowa",
+                "rodzaj_studiow": "stacjonarne",
+                "nazwa_zakladu": "Firma Testowa",
+                "adres_zakladu": "ul. Portowa 12, Elbląg",
+                "nip_zakladu": "",
+                "reprezentant_nazwisko": "jan kowalski",
+                "reprezentant_stanowisko": "Prezes",
+                "email_zakladu": "KONTAKT@FIRMA.PL",
+                "uczelniany_opiekun": "Anna Opiekun",
+                "data_start": "2026-07-01",
+                "data_end": "2026-12-31",
+                "liczba_godzin": "960",
+            })
+        self.assertEqual(response.status_code, 200)
+        record = persist.call_args.args[2]
+        self.assertEqual(record["nr_porozumienia"], "ZAL-1-21001")
+        self.assertNotEqual(record["data"], "2000-01-01")
+        self.assertEqual(record["miejscowosc"], "Elbląg")
+        self.assertEqual(record["reprezentant_nazwisko"], "Jan Kowalski")
+        self.assertEqual(record["email_zakladu"], "kontakt@firma.pl")
+        self.assertEqual(record["liczba_godzin"], "960")
+
+    def test_html_print_preview_is_available_for_a_draft(self):
+        self.assertEqual(self.login("student-a@example.test").status_code, 302)
+        with patch.object(web_module, "get_form", return_value={
+            "nr_porozumienia": "ZAL-1-21001",
+            "nr_albumu": "21001",
+            "imie_nazwisko": "Student Test",
+            "liczba_godzin": "960",
+        }):
+            response = self.client.get("/student/21001/zal1/drukuj")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"ZAL-1-21001", response.data)
+
+    def test_dean_office_can_sign_approved_zal1(self):
+        with self.app.app_context():
+            db.session.add(DocumentWorkflow(
+                album_number="21001",
+                form_key="zal1",
+                status="approved",
+                reviewer_role="uopz",
+                approved_revision=1,
+            ))
+            db.session.commit()
+
+        self.assertEqual(self.login("dziekanat@example.test").status_code, 302)
+        token = self.csrf_for("/student/21001")
+        record = {"imie_nazwisko": "Student Test"}
+        with (
+            patch.object(web_module, "get_form", return_value=record),
+            patch.object(web_module, "save_form", return_value=2),
+        ):
+            response = self.client.post(
+                "/student/21001/zal1/podpisz-dziekanat",
+                data={"_csrf_token": token},
+            )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("dziekanat Test", record["podpis_dziekanatu"])
+        with self.app.app_context():
+            state = DocumentWorkflow.query.filter_by(
+                album_number="21001",
+                form_key="zal1",
+            ).one()
+            self.assertEqual(state.approved_revision, 2)
+            DocumentWorkflow.query.filter_by(
+                album_number="21001",
+                form_key="zal1",
+            ).delete()
+            db.session.commit()
+
+    def test_student_sidebar_uses_single_documents_entry(self):
+        self.assertEqual(self.login("student-a@example.test").status_code, 302)
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Moje dokumenty".encode(), response.data)
+        self.assertNotIn("Obieg dokumentów".encode(), response.data)
+        self.assertNotIn("Moje formularze".encode(), response.data)
+
+    def test_legacy_workflow_url_uses_dashboard_view(self):
+        self.assertEqual(self.login("uopz@example.test").status_code, 302)
+        response = self.client.get("/obieg?rok=2025/2026")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Dashboard".encode(), response.data)
+        self.assertIn(b"21001", response.data)
+        self.assertNotIn("Obieg dokumentów".encode(), response.data)
+
+    def test_canonical_practices_view_contains_both_tabs(self):
+        self.assertEqual(self.login("dziekanat@example.test").status_code, 302)
+        response = self.client.get("/praktyki?tab=opiekunowie&rok=2025/2026")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Opiekunowie".encode(), response.data)
+        self.assertIn("Części praktyki".encode(), response.data)
+
+        response = self.client.get(
+            "/praktyki?tab=czesci&nr=21001&rok=2025/2026",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Opiekunowie".encode(), response.data)
+        self.assertIn("Części praktyki".encode(), response.data)
+
+    def test_reviewer_queue_lists_only_actionable_documents(self):
+        with self.app.app_context():
+            db.session.add(DocumentWorkflow(
+                album_number="21001",
+                form_key="zal1",
+                status="pending",
+                reviewer_role="uopz",
+            ))
+            db.session.commit()
+
+        self.assertEqual(self.login("uopz@example.test").status_code, 302)
+        response = self.client.get("/do-zatwierdzenia")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"21001", response.data)
+        self.assertIn("Recenzuj".encode(), response.data)
+
+        with self.app.app_context():
+            DocumentWorkflow.query.filter_by(
+                album_number="21001",
+                form_key="zal1",
+            ).delete()
+            db.session.commit()
+
+    def test_student_cannot_open_reviewer_queue(self):
+        self.assertEqual(self.login("student-a@example.test").status_code, 302)
+        self.assertEqual(
+            self.client.get("/do-zatwierdzenia").status_code,
+            403,
+        )
 
     def test_new_internship_has_no_automatic_supervisors(self):
         with self.app.app_context():

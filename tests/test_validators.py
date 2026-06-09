@@ -24,6 +24,24 @@ class ValidatorTests(unittest.TestCase):
         self.assertTrue(validators.validate_nip("", required=False)[0])
         self.assertFalse(validators.validate_nip("", required=True)[0])
 
+    def test_company_address_requires_name_and_building_number(self):
+        self.assertTrue(validators.is_valid_address(
+            "ul. Portowa 12, Elbląg", required=True,
+        )[0])
+        self.assertFalse(validators.is_valid_address(
+            "ulica Portowa, Elbląg", required=True,
+        )[0])
+
+    def test_company_email_and_required_hours(self):
+        self.assertTrue(validators.validate_email(
+            "kontakt@firma.pl", required=True,
+        )[0])
+        self.assertFalse(validators.validate_email(
+            "kontakt@firma", required=True,
+        )[0])
+        self.assertTrue(validators.validate_required_hours("960")[0])
+        self.assertFalse(validators.validate_required_hours("240")[0])
+
     def test_dates_and_ranges(self):
         self.assertTrue(validators.is_valid_date("2026-06-06", required=True)[0])
         self.assertFalse(validators.is_valid_date("2026-02-30")[0])

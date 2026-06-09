@@ -4,21 +4,12 @@ from decimal import Decimal
 STANDARD_STEPS = (
     {
         "phase": 0,
-        "key": "zal9",
-        "nr": "9",
-        "title": "Oświadczenie instytucji o przyjęciu studenta",
-        "owner_role": "zopz",
-        "owner_label": "Opiekun zakładowy",
-        "hint": "Zakład potwierdza przyjęcie studenta i wskazuje opiekuna.",
-    },
-    {
-        "phase": 1,
         "key": "zal1",
         "nr": "1",
         "title": "Porozumienie z zakładem pracy",
         "owner_role": "student",
         "owner_label": "Student",
-        "hint": "Student przygotowuje porozumienie, a UOPZ je zatwierdza.",
+        "hint": "Student przygotowuje porozumienie i przekazuje je do obsługi uczelni.",
     },
     {
         "phase": 2,
@@ -114,6 +105,10 @@ def report_key(student):
     return "zal7a" if getattr(student, "study_mode", None) == "niestacjonarne" else "zal7"
 
 
+def form_visible_for_student(student, form_key):
+    return form_key not in {"zal7", "zal7a"} or form_key == report_key(student)
+
+
 def steps_for_student(student):
     steps = []
     selected_report = report_key(student)
@@ -205,19 +200,14 @@ def practice_result(student, statuses, internship):
 
 
 _REQUIRED_FIELDS = {
-    "zal9": (
-        ("nazwa_instytucji", "nazwa instytucji"),
-        ("termin_od", "data rozpoczęcia"),
-        ("termin_do", "data zakończenia"),
-        ("opiekun_imie_nazwisko", "dane opiekuna zakładowego"),
-        ("opiekun_email", "e-mail opiekuna zakładowego"),
-        ("upowazniont_imie_nazwisko", "osoba upoważniona"),
-    ),
     "zal1": (
         ("nazwa_zakladu", "nazwa zakładu pracy"),
         ("adres_zakladu", "adres zakładu pracy"),
+        ("reprezentant_nazwisko", "reprezentant zakładu pracy"),
+        ("email_zakladu", "e-mail zakładu pracy"),
         ("data_start", "data rozpoczęcia"),
         ("data_end", "data zakończenia"),
+        ("liczba_godzin", "liczba godzin"),
         ("specjalnosc", "specjalność"),
     ),
     "zal2": (

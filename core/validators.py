@@ -6,6 +6,7 @@ Klient (static/js/form-validate.js) odzwierciedla te same reguły dla podglądu
 Każda funkcja zwraca (ok: bool, msg: str) – msg jest pusty gdy ok=True.
 """
 from datetime import datetime
+from email.utils import parseaddr
 
 # Minimalna długość opisu wpisu dziennika (Zał. 6)
 DIARY_MIN_LEN = 100
@@ -38,6 +39,47 @@ def is_valid_album(v):
         return False, "Numer albumu może zawierać tylko cyfry."
     if not (4 <= len(v) <= 6):
         return False, "Numer albumu powinien mieć od 4 do 6 cyfr."
+    return True, ""
+
+
+def is_valid_address(v, *, required=False):
+    """Adres zakładu: czytelny tekst zawierający nazwę ulicy/miejscowości i numer."""
+    value = " ".join((v or "").strip().split())
+    if not value:
+        return (False, "Adres zakładu pracy jest wymagany.") if required else (True, "")
+    if len(value) < 8:
+        return False, "Adres zakładu pracy jest zbyt krótki."
+    if not any(char.isalpha() for char in value):
+        return False, "Adres musi zawierać nazwę ulicy lub miejscowości."
+    if not any(char.isdigit() for char in value):
+        return False, "Adres musi zawierać numer budynku."
+    return True, ""
+
+
+def validate_email(v, *, required=False):
+    """Podstawowa walidacja adresu e-mail."""
+    value = (v or "").strip()
+    if not value:
+        return (False, "Adres e-mail zakładu jest wymagany.") if required else (True, "")
+    _, parsed = parseaddr(value)
+    if (
+        parsed != value
+        or parsed.count("@") != 1
+        or "." not in parsed.rsplit("@", 1)[1]
+        or any(char.isspace() for char in parsed)
+    ):
+        return False, "Podaj poprawny adres e-mail zakładu pracy."
+    return True, ""
+
+
+def validate_required_hours(v, required_hours=960):
+    """Wymiar praktyki musi odpowiadać wartości wymaganej dla programu."""
+    try:
+        hours = int(str(v).strip())
+    except (TypeError, ValueError):
+        return False, "Liczba godzin musi być liczbą całkowitą."
+    if hours != required_hours:
+        return False, f"Wymagana liczba godzin praktyki to {required_hours}."
     return True, ""
 
 

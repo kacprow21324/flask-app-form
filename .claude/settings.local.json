@@ -56,7 +56,12 @@
       "Bash(docker-compose up *)",
       "Bash(docker-compose logs *)",
       "Bash(docker-compose ps *)",
-      "Bash(docker-compose exec *)"
+      "Bash(docker-compose exec *)",
+      "Bash(Get-ChildItem -Path C:\\\\Repozytoria\\\\flask-app-form -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(head *)",
+      "Bash(docker-compose run *)",
+      "Bash(docker-compose build *)"
     ]
   }
 }

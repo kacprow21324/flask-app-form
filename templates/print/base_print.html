@@ -16,14 +16,14 @@
         }
         .print-toolbar {
             position: fixed; top: 0; left: 0; right: 0;
-            background: #1f4ed8; color: #fff;
+            background: #0d1b3d; color: #fff;
             padding: 8px 20px;
             display: flex; gap: 14px; align-items: center;
             font-family: Arial, sans-serif; font-size: 13px;
             z-index: 9999;
         }
         .print-toolbar button {
-            background: #fff; color: #1f4ed8;
+            background: #fff; color: #0d1b3d;
             border: none; padding: 5px 14px;
             font-weight: 700; cursor: pointer; font-size: 13px;
         }
@@ -92,9 +92,12 @@
         /* Intro text */
         .p-intro { font-size: 10pt; margin-bottom: 10pt; line-height: 1.55; color: #111; }
         /* Table */
-        .p-table { width: 100%; border-collapse: collapse; margin-bottom: 10pt; font-size: 9pt; }
+        .p-table { width: 100%; border-collapse: collapse; margin-bottom: 10pt; font-size: 9pt; page-break-inside: auto; }
         .p-table th { background: #f0f0f0; font-size: 8pt; font-weight: bold; text-align: left; font-family: Arial, sans-serif; }
         .p-table th, .p-table td { border: 0.5pt solid #aaa; padding: 5pt 6pt; vertical-align: top; }
+        .p-table thead { display: table-header-group; }
+        .p-table tbody tr { page-break-inside: avoid; }
+        .p-section { page-break-inside: avoid; }
         /* Signature */
         .p-sig-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20pt; margin-top: 12pt; }
         .p-sig-box { border: 0.5pt dashed #999; padding: 8pt; min-height: 36pt; }

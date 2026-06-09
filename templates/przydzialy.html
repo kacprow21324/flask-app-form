@@ -1,16 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Przydziały opiekunów{% endblock %}
+{% block title %}Praktyki i opiekunowie{% endblock %}
 {% block content %}
 <div class="page">
     <div class="workflow-page-header">
         <div>
-            <h1>Przydziały opiekunów</h1>
+            <h1>Praktyki i opiekunowie</h1>
             <p class="subtitle">
                 Dziekanat przypisuje studentowi opiekuna uczelnianego i zakładowego
                 na dany rok akademicki.
             </p>
         </div>
-        <form method="get" class="workflow-year-form">
+        <form method="get" action="{{ url_for('praktyki') }}" class="workflow-year-form">
+            <input type="hidden" name="tab" value="opiekunowie">
             <label for="assignment-year">Rok akademicki</label>
             <select id="assignment-year" name="rok" onchange="this.form.submit()">
                 {% for year in academic_years %}
@@ -21,6 +22,11 @@
             </select>
         </form>
     </div>
+
+    <nav class="page-tabs" aria-label="Sekcje praktyk">
+        <a class="page-tab page-tab-active" href="{{ url_for('praktyki', tab='opiekunowie', rok=selected_year) }}">Opiekunowie</a>
+        <span class="page-tab page-tab-disabled">Części praktyki: wybierz studenta z tabeli</span>
+    </nav>
 
     <div class="role-info-bar">
         Opiekunowie widzą tylko studentów przypisanych do nich w tabeli praktyk.
@@ -59,7 +65,9 @@
                             <span class="wf-album">{{ student.album_number }}</span>
                         </td>
                         <td>
-                            <form id="assignment-{{ student.id }}" method="post">
+                            <form id="assignment-{{ student.id }}" method="post"
+                                  action="{{ url_for('praktyki', tab='opiekunowie') }}">
+                                <input type="hidden" name="tab" value="opiekunowie">
                                 <input type="hidden" name="student_id" value="{{ student.id }}">
                                 <input type="hidden" name="academic_year" value="{{ selected_year }}">
                             </form>
@@ -86,7 +94,7 @@
                         </td>
                         <td>
                             <a class="btn btn-sm btn-secondary"
-                               href="{{ url_for('czesci_praktyki', nr=student.album_number, rok=selected_year) }}">
+                               href="{{ url_for('praktyki', tab='czesci', nr=student.album_number, rok=selected_year) }}">
                                 Zarządzaj{% if internship %} ({{ internship.parts|length }}){% endif %}
                             </a>
                         </td>

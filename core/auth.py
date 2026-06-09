@@ -37,6 +37,7 @@ _DEBUG_ACCOUNTS = {
     "student": ("Student", "student@student.ans-elblag.pl", "SEED_STUDENT_PASSWORD"),
     "student2": ("Student 2", "student2@student.ans-elblag.pl", "SEED_STUDENT_PASSWORD"),
     "student3": ("Student 3", "student3@student.ans-elblag.pl", "SEED_STUDENT_PASSWORD"),
+    "student4": ("Student 4 (kompletny)", "student4@student.ans-elblag.pl", "SEED_STUDENT4_PASSWORD"),
     "uopz": ("UOPZ", "opiekun@ans-elblag.pl", "SEED_UOPZ_PASSWORD"),
     "zopz": ("ZOPZ", "zopz@firma.pl", "SEED_ZOPZ_PASSWORD"),
     "dziekanat": (

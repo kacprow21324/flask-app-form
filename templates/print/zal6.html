@@ -4,9 +4,10 @@
 {% block content %}
 {{ letterhead('6') }}
 <h1 class="p-title">Dziennik praktyki zawodowej</h1>
-<div class="p-section">
+<div class="p-section" style="page-break-inside:avoid">
     <div class="p-row-2">{{ field('Imię i nazwisko', data.imie_nazwisko) }}{{ field('Nr albumu', data.nr_albumu) }}</div>
-    <div class="p-row-3">{{ field('Kierunek', 'Informatyka') }}{{ field('Specjalność', data.specjalnosc) }}{{ field('Rok akademicki', data.rok_akademicki) }}</div>
+    <div class="p-row-2">{{ field('Kierunek', 'Informatyka') }}{{ field('Rok akademicki', data.rok_akademicki) }}</div>
+    {{ field('Specjalność', data.specjalnosc) }}
     <div class="p-row-2">{{ field('Miejsce praktyki', data.miejsce_praktyki) }}{{ field('Termin', (data.data_start or '…') ~ ' – ' ~ (data.data_end or '…')) }}</div>
 </div>
 <div class="p-section">
@@ -30,10 +31,10 @@
         <tr>
             <td style="text-align:center">{{ wpis.dzien }}</td>
             <td>{{ wpis.data }}</td>
-            <td style="text-align:center">{{ wpis.get('godziny', '') }}</td>
+            <td style="text-align:center">{{ wpis.get('godziny', '8') }}</td>
             <td>{{ wpis.opis }}</td>
             <td style="text-align:center">{{ wpis.efekty }}</td>
-            <td>{{ wpis.podpis or '' }}</td>
+            <td>{{ wpis.podpis }}</td>
         </tr>
         {% endfor %}
         </tbody>

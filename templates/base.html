@@ -10,52 +10,16 @@
 </head>
 <body>
 
-<header class="site-header">
-    <div class="site-header-inner">
-        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Otwórz panel">
-            <span></span><span></span><span></span>
-        </button>
-        <a class="site-brand" href="{{ url_for('index') }}">
-            <img src="{{ url_for('static', filename='images/logo-ans-poziom.png') }}"
-                 alt="ANS Elbląg" class="site-brand-logo">
-            <span class="site-brand-name">Rozliczanie Praktyk</span>
-        </a>
+<a class="skip-nav" href="#main-content">Przejdź do treści</a>
 
-        {# ── Dzwonek powiadomień ── #}
-        <div class="notif-wrap" id="notifWrap">
-            <button class="notif-btn" id="notifBtn" type="button" aria-label="Powiadomienia">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" aria-hidden="true">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                </svg>
-                {% if notifications %}<span class="notif-badge">{{ notifications|length if notifications|length <= 9 else '9+' }}</span>{% endif %}
-            </button>
-            <div class="notif-dropdown" id="notifDropdown">
-                <div class="notif-hdr">
-                    Powiadomienia
-                    {% if notifications %}<span class="notif-hdr-count">{{ notifications|length }}</span>{% endif %}
-                </div>
-                {% if notifications %}
-                    {% for n in notifications %}
-                    <a class="notif-item notif-item--{{ n.type }}" href="{{ n.url }}">
-                        <span class="notif-icon">
-                            {% if n.type == 'rejected' %}
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                            {% else %}
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            {% endif %}
-                        </span>
-                        <div class="notif-body">
-                            <div class="notif-text">{{ n.text }}</div>
-                            {% if n.detail %}<div class="notif-detail">{{ n.detail }}</div>{% endif %}
-                        </div>
-                    </a>
-                    {% endfor %}
-                {% else %}
-                    <div class="notif-empty">Brak nowych powiadomień</div>
-                {% endif %}
-            </div>
-        </div>
+<header class="site-header" role="banner">
+    <div class="site-header-inner">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Otwórz/zamknij panel boczny" aria-expanded="true" aria-controls="siteSidebar">
+            <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+        </button>
+        <a class="site-brand" href="{{ url_for('index') }}" aria-label="System Rozliczania Praktyk Zawodowych – strona główna">
+            <span class="site-brand-name">System Rozliczania Praktyk Zawodowych</span>
+        </a>
 
         {# ── Dane użytkownika ── #}
         <div class="site-user">
@@ -79,14 +43,44 @@
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-ghost btn-sm">Wyloguj</button>
             </form>
+
+            {# ── Widget dostępności ── #}
+            <div class="a11y-wrap" id="a11yWrap">
+                <button class="a11y-btn" id="a11yBtn" type="button"
+                        aria-label="Opcje dostępności" aria-expanded="false"
+                        aria-controls="a11yPanel" title="Dostępność">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                        <circle cx="12" cy="4" r="2"/>
+                        <path d="M19 9H5l2 10h10l2-10zM12 7v2M9 9l-1 7h8l-1-7"/>
+                    </svg>
+                </button>
+                <div class="a11y-panel" id="a11yPanel" role="dialog" aria-label="Opcje dostępności" hidden>
+                    <div class="a11y-row">
+                        <span class="a11y-label">Czcionka</span>
+                        <div class="a11y-font-btns" role="group" aria-label="Rozmiar czcionki">
+                            <button type="button" class="a11y-font-btn" id="a11yFontSm" aria-label="Mniejsza czcionka">A−</button>
+                            <button type="button" class="a11y-font-btn a11y-font-active" id="a11yFontMd" aria-label="Domyślna czcionka">A</button>
+                            <button type="button" class="a11y-font-btn" id="a11yFontLg" aria-label="Większa czcionka">A+</button>
+                        </div>
+                    </div>
+                    <div class="a11y-row">
+                        <span class="a11y-label">Kontrast</span>
+                        <button type="button" class="a11y-contrast-btn" id="a11yContrast" aria-pressed="false">Włącz wysoki kontrast</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </header>
 
 <div class="site-layout">
 
-    <aside class="site-sidebar" id="siteSidebar">
-        <nav class="sidebar-nav">
+    <aside class="site-sidebar" id="siteSidebar" aria-label="Nawigacja główna">
+        <div class="sidebar-logo-wrap">
+            <img src="{{ url_for('static', filename='images/logo-ans-poziom.png') }}"
+                 alt="Akademia Nauk Stosowanych w Elblągu" class="sidebar-logo-img">
+        </div>
+        <nav class="sidebar-nav" aria-label="Menu">
 
             <a href="{{ url_for('index') }}" class="sidebar-link sidebar-link-main">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
@@ -101,97 +95,62 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 Powiadomienia{% if notifications %} <span class="sidebar-notif-badge">{{ notifications|length }}</span>{% endif %}
             </a>
-            <a href="{{ url_for('obieg') }}" class="sidebar-link">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                Obieg dokumentów
-            </a>
             {% if current_user.role == 'student' %}
-            <a href="{{ url_for('czesci_praktyki') }}" class="sidebar-link">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v5H4z"/><path d="M4 14h16v5H4z"/></svg>
-                Części praktyki
+            <a href="{{ url_for('student_detail', nr_albumu=current_user.album_number) if current_user.album_number else url_for('index') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                Moje dokumenty
             </a>
-            <a href="{{ url_for('profil') }}" class="sidebar-link">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v1h20v-1c0-3.3-6.7-5-10-5z"/></svg>
-                Mój profil
-            </a>
-            {% endif %}
-
-            {# ── Formularze studenta ── #}
-            {% if current_user.role in ('student', 'admin') %}
-            <div class="sidebar-section-title">Moje formularze</div>
-            <a href="{{ url_for('zal1') }}" class="sidebar-link">
-                <span class="sidebar-nr">1</span><span>Porozumienie z zakładem</span>
-            </a>
-            <a href="{{ url_for('zal2a') }}" class="sidebar-link">
-                <span class="sidebar-nr">2a</span><span>Program i harmonogram</span>
-            </a>
-            <a href="{{ url_for('zal4b') }}" class="sidebar-link">
-                <span class="sidebar-nr">4b</span><span>Wniosek o zaliczenie</span>
-            </a>
-            <a href="{{ url_for('zal6') }}" class="sidebar-link">
-                <span class="sidebar-nr">6</span><span>Dziennik praktyki</span>
-            </a>
-            <a href="{{ url_for('zal7') }}" class="sidebar-link">
-                <span class="sidebar-nr">7</span><span>Sprawozdanie</span>
-            </a>
-            <a href="{{ url_for('zal7a') }}" class="sidebar-link">
-                <span class="sidebar-nr">7a</span><span>Sprawozdanie (niestac.)</span>
-            </a>
-            <a href="{{ url_for('zal5') }}" class="sidebar-link">
-                <span class="sidebar-nr">5</span><span>Kwestionariusz ankiety</span>
+            <a href="{{ url_for('zaliczenie') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+                Zaliczenie przez doświadczenie
             </a>
             {% endif %}
-
-            {# ── Formularze opiekuna uczelnianego (UOPZ) ── #}
             {% if current_user.role in ('uopz', 'admin') %}
-            <div class="sidebar-section-title">Opiekun uczelniany</div>
-            <a href="{{ url_for('zal2') }}" class="sidebar-link">
-                <span class="sidebar-nr">2</span><span>Program praktyki</span>
-            </a>
-            <a href="{{ url_for('zal4a') }}" class="sidebar-link">
-                <span class="sidebar-nr">4a</span><span>Ocena wniosku studenta</span>
+            <a href="{{ url_for('zaliczenie') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+                Ścieżka 4A/4B
             </a>
             {% endif %}
 
-            {# ── Formularze opiekuna zakładowego (ZOPZ) ── #}
-            {% if current_user.role in ('zopz', 'admin') %}
-            <div class="sidebar-section-title">Opiekun zakładowy</div>
-            <a href="{{ url_for('zal3') }}" class="sidebar-link">
-                <span class="sidebar-nr">3</span><span>Karta praktyki</span>
-            </a>
-            <a href="{{ url_for('zal4') }}" class="sidebar-link">
-                <span class="sidebar-nr">4</span><span>Potwierdzenie efektów</span>
-            </a>
-            <a href="{{ url_for('zal9') }}" class="sidebar-link">
-                <span class="sidebar-nr">9</span><span>Oświadczenie instytucji</span>
+            {% if current_user.role in ('uopz', 'zopz', 'dziekanat', 'admin') %}
+            <a href="{{ url_for('do_zatwierdzenia') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/><path d="M21 12a9 9 0 1 1-5.3-8.2"/></svg>
+                Do zatwierdzenia
             </a>
             {% endif %}
 
-            {# ── Formularze dziekanatu ── #}
             {% if current_user.role in ('dziekanat', 'admin') %}
-            <div class="sidebar-section-title">Dziekanat</div>
+            <div class="sidebar-section-title">Panel administracyjny</div>
             <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M8 3v18M3 9h18"/></svg>
                 <span>Administracja</span>
             </a>
-            <a href="{{ url_for('przydzialy') }}" class="sidebar-link">
+            <a href="{{ url_for('praktyki', tab='opiekunowie') }}" class="sidebar-link">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="9" cy="7" r="4"/><path d="M2 21v-2a6 6 0 0 1 6-6h2"/>
                     <circle cx="17" cy="15" r="3"/><path d="M13 22a4 4 0 0 1 8 0"/>
                 </svg>
-                <span>Przydziały opiekunów</span>
-            </a>
-            <a href="{{ url_for('zal8') }}" class="sidebar-link">
-                <span class="sidebar-nr">8</span><span>Protokół zaliczenia</span>
+                <span>Praktyki i opiekunowie</span>
             </a>
             {% endif %}
 
+            {% if current_user.role == 'student' %}
+            <a href="{{ url_for('profil') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v1h20v-1c0-3.3-6.7-5-10-5z"/></svg>
+                Mój profil
+            </a>
+            {% else %}
+            <a href="{{ url_for('profil') }}" class="sidebar-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v1h20v-1c0-3.3-6.7-5-10-5z"/></svg>
+                Profil konta
+            </a>
+            {% endif %}
         </nav>
     </aside>
     <button class="sidebar-overlay" id="sidebarOverlay" type="button"
             aria-label="Zamknij menu"></button>
 
-    <div class="site-main">
+    <main class="site-main" id="main-content" role="main" tabindex="-1">
         {% with messages = get_flashed_messages(with_categories=True) %}
             {% if messages %}
             <div class="flash-wrap">
@@ -203,7 +162,7 @@
         {% endwith %}
 
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
 </div>
 
@@ -353,6 +312,47 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 }());
+</script>
+
+<script>
+(function () {
+    var btn = document.getElementById('a11yBtn');
+    var panel = document.getElementById('a11yPanel');
+    if (!btn || !panel) return;
+
+    var FONT_STEPS = ['font-sm', 'font-md', 'font-lg'];
+    var fontIdx = parseInt(localStorage.getItem('a11yFont') || '1', 10);
+    var hcOn = localStorage.getItem('a11yHC') === '1';
+
+    function applyFont() {
+        FONT_STEPS.forEach(function (c) { document.documentElement.classList.remove(c); });
+        document.documentElement.classList.add(FONT_STEPS[fontIdx]);
+        document.querySelectorAll('.a11y-font-btn').forEach(function (b, i) {
+            b.classList.toggle('a11y-font-active', i === fontIdx);
+        });
+    }
+    function applyHC() {
+        document.documentElement.classList.toggle('high-contrast', hcOn);
+        var cb = document.getElementById('a11yContrast');
+        if (cb) { cb.setAttribute('aria-pressed', hcOn ? 'true' : 'false'); cb.textContent = hcOn ? 'Wyłącz wysoki kontrast' : 'Włącz wysoki kontrast'; }
+    }
+    applyFont(); applyHC();
+
+    btn.addEventListener('click', function () {
+        var open = !panel.hidden;
+        panel.hidden = open;
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('#a11yWrap')) { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); } });
+
+    document.getElementById('a11yFontSm').addEventListener('click', function () { fontIdx = 0; applyFont(); localStorage.setItem('a11yFont', '0'); });
+    document.getElementById('a11yFontMd').addEventListener('click', function () { fontIdx = 1; applyFont(); localStorage.setItem('a11yFont', '1'); });
+    document.getElementById('a11yFontLg').addEventListener('click', function () { fontIdx = 2; applyFont(); localStorage.setItem('a11yFont', '2'); });
+    document.getElementById('a11yContrast').addEventListener('click', function () { hcOn = !hcOn; applyHC(); localStorage.setItem('a11yHC', hcOn ? '1' : '0'); });
+})();
 </script>
 
 {% if review_mode %}

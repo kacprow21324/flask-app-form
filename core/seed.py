@@ -30,6 +30,9 @@ USERS = [
         "gender": "K",
         "is_active": 1,
         "speciality": "Administracja systemów i sieci komputerowych (ASiSK)",
+        "study_mode": "stacjonarne",
+        "semester": "6",
+        "study_year": "3",
     },
     {
         "email": "opiekun@ans-elblag.pl",
@@ -72,6 +75,9 @@ USERS = [
         "gender": "M",
         "is_active": 1,
         "speciality": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+        "study_mode": "niestacjonarne",
+        "semester": "6",
+        "study_year": "3",
     },
     {
         "email": "student3@student.ans-elblag.pl",
@@ -82,6 +88,23 @@ USERS = [
         "gender": "K",
         "is_active": 1,
         "speciality": "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)",
+        "study_mode": "stacjonarne",
+        "semester": "6",
+        "study_year": "3",
+    },
+    {
+        "email": "student4@student.ans-elblag.pl",
+        "first_name": "Michał",
+        "last_name": "Zając",
+        "role": "student",
+        "album_number": "21004",
+        "gender": "M",
+        "is_active": 1,
+        "speciality": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+        "study_mode": "stacjonarne",
+        "semester": "6",
+        "study_year": "3",
+        "_password_env": "SEED_STUDENT4_PASSWORD",
     },
 ]
 
@@ -121,7 +144,6 @@ ATTACHMENTS_DATA = [
     ("zal7",  "7",  "Sprawozdanie z praktyki zawodowej",                  None,    None,                        9),
     ("zal7a", "7a", "Sprawozdanie z praktyki (niestacjonarne)",           "zopz",  "Opiekun Zakładowy (ZOPZ)", 10),
     ("zal8",  "8",  "Protokół zaliczenia praktyki",                       None,    None,                        11),
-    ("zal9",  "9",  "Oświadczenie instytucji",                            None,    None,                        12),
 ]
 
 # role -> [form_keys]
@@ -129,7 +151,7 @@ ROLE_ACCESS_DATA = {
     'student':   ['zal1', 'zal2a', 'zal4b', 'zal5', 'zal6', 'zal7', 'zal7a'],
     # uopz ma dostęp do zal4b żeby wypełnić sekcję E (Opinia Komisji)
     'uopz':      ['zal2', 'zal4a', 'zal4b'],
-    'zopz':      ['zal3', 'zal4', 'zal9'],
+    'zopz':      ['zal3', 'zal4'],
     'dziekanat': ['zal8'],
     'admin':     ['zal1', 'zal2', 'zal2a', 'zal3', 'zal4', 'zal4a', 'zal4b',
                   'zal5', 'zal6', 'zal7', 'zal7a', 'zal8', 'zal9'],
@@ -187,9 +209,10 @@ SURVEY_OPTIONS_DATA = [
 FORM_FIELDS_DATA = {
     'zal1':  ["Imię i nazwisko", "Nr albumu", "Nr porozumienia", "Miejscowość", "Data",
               "Specjalność", "Rodzaj studiów", "Nazwa zakładu pracy", "Adres zakładu", "NIP zakładu",
-              "Reprezentant – nazwisko", "Reprezentant – stanowisko", "Uczelniany opiekun",
+              "Reprezentant – nazwisko", "Reprezentant – stanowisko", "E-mail zakładu pracy",
+              "Uczelniany opiekun",
               "Data rozpoczęcia", "Data zakończenia", "Liczba godzin",
-              "Podpis zakładowy", "Podpis uczelniany"],
+              "Podpis uczelnianego opiekuna", "Podpis dziekanatu"],
     'zal2':  ["Nr albumu", "Zakład pracy", "Data rozpoczęcia", "Data zakończenia",
               "Data uzgodnienia", "Podpis zakładowy", "Podpis uczelniany"],
     'zal2a': ["Imię i nazwisko", "Nr albumu", "Specjalność", "Miejsce praktyki",
@@ -262,11 +285,17 @@ def seed_users():
                 existing.speciality = data["speciality"]
             if data.get("gender"):
                 existing.gender = data["gender"]
+            if data.get("study_mode"):
+                existing.study_mode = data["study_mode"]
+            if data.get("semester"):
+                existing.semester = data["semester"]
+            if data.get("study_year"):
+                existing.study_year = data["study_year"]
             db.session.add(existing)
             updated += 1
             print(f"  zaktualizowano: {data['email']}  ({data['first_name']} {data['last_name']})")
         else:
-            env_name = f"SEED_{data['role'].upper()}_PASSWORD"
+            env_name = data.get("_password_env") or f"SEED_{data['role'].upper()}_PASSWORD"
             password = os.environ.get(env_name, "")
             if len(password) < 12:
                 raise RuntimeError(
@@ -281,7 +310,10 @@ def seed_users():
                 role=data["role"],
                 album_number=data.get("album_number"),
                 speciality=data.get("speciality"),
+                study_mode=data.get("study_mode", "stacjonarne"),
                 gender=data.get("gender"),
+                semester=data.get("semester"),
+                study_year=data.get("study_year"),
                 is_active=data["is_active"],
                 email_verified=1,
             )
@@ -391,15 +423,28 @@ def seed_survey():
 
 
 def seed_form_fields():
-    added = 0
+    added = updated = removed = 0
     for form_key, fields in FORM_FIELDS_DATA.items():
+        existing_rows = FormField.query.filter_by(form_key=form_key).all()
+        existing = {row.field_name: row for row in existing_rows}
+        for row in existing_rows:
+            if row.field_name not in fields:
+                db.session.delete(row)
+                removed += 1
         for idx, field_name in enumerate(fields):
-            if not FormField.query.filter_by(form_key=form_key, field_name=field_name).first():
+            row = existing.get(field_name)
+            if row is None:
                 db.session.add(FormField(form_key=form_key, sort_order=idx, field_name=field_name))
                 added += 1
+            elif row.sort_order != idx:
+                row.sort_order = idx
+                updated += 1
     db.session.commit()
-    if added:
-        print(f"Pola formularzy: dodano {added} wpisów.")
+    if added or updated or removed:
+        print(
+            f"Pola formularzy: dodano {added}, zaktualizowano {updated}, "
+            f"usunięto {removed}."
+        )
 
 
 def seed_forms():
@@ -410,6 +455,7 @@ def seed_forms():
     effects = LE.query.order_by(LE.nr).all()
     uopz = User.query.filter_by(role='uopz').first()
     zopz = User.query.filter_by(role='zopz').first()
+    dziekanat = User.query.filter_by(role='dziekanat').first()
     student = User.query.filter_by(album_number='21001').first()
 
     if not student:
@@ -423,6 +469,7 @@ def seed_forms():
     student_name = student.full_name
     uopz_name = f"dr {uopz.full_name}" if uopz else "dr Irena Malinowska"
     zopz_name = zopz.full_name if zopz else "Zbigniew Ostrowski"
+    dziekanat_name = dziekanat.full_name if dziekanat else "Dorota Kamińska"
     spec = "Administracja systemów i sieci komputerowych (ASiSK)"
     company = "Techno Systems Sp. z o.o."
     company_full = f"{company}, ul. Portowa 12, 80-001 Gdańsk"
@@ -482,17 +529,18 @@ def seed_forms():
         "zal1": {
             "_status": "approved",
             "imie_nazwisko": student_name, "nr_albumu": nr,
-            "nr_porozumienia": f"01/INF/{year}", "miejscowosc": "Elbląg",
-            "data": f"{year}-03-15", "kierunek": "Informatyka",
+            "nr_porozumienia": f"ZAL-1-{nr}", "miejscowosc": "Elbląg",
+            "data": today.isoformat(), "kierunek": "Informatyka",
             "specjalnosc": spec, "rodzaj_studiow": "stacjonarne",
             "nazwa_zakladu": company, "adres_zakladu": "ul. Portowa 12, 80-001 Gdańsk",
             "nip_zakladu": "589-212-34-56",
             "reprezentant_nazwisko": "Piotr Zieliński",
             "reprezentant_stanowisko": "Prezes Zarządu",
+            "email_zakladu": "biuro@technosystems.pl",
             "uczelniany_opiekun": uopz_name,
-            "data_start": start, "data_end": end, "liczba_godzin": "240",
-            "podpis_zakladowy": f"Piotr Zieliński, Gdańsk, {year}-03-15",
-            "podpis_uczelniany": f"{uopz_name}, Elbląg, {year}-03-15",
+            "data_start": start, "data_end": end, "liczba_godzin": "960",
+            "podpis_uczelniany": f"{uopz_name}, {today.strftime('%d.%m.%Y')}",
+            "podpis_dziekanatu": f"{dziekanat_name}, {today.strftime('%d.%m.%Y')}",
         },
         "zal2": {
             "_status": "approved",
@@ -516,7 +564,7 @@ def seed_forms():
         "zal3": {
             "_status": "pending",
             "imie_nazwisko": student_name, "nr_albumu": nr,
-            "nr_porozumienia": f"01/INF/{year}",
+            "nr_porozumienia": f"ZAL-1-{nr}",
             "data_porozumienia": f"{year}-03-15",
             "zaklad_pracy": company,
             "kierunek": "Informatyka", "specjalnosc": spec,
@@ -544,7 +592,7 @@ def seed_forms():
             "_status": "approved",
             "imie_nazwisko": student_name, "nr_albumu": nr,
             "kierunek": "Informatyka", "specjalnosc": spec,
-            "wymiar_godzin": "240",
+            "wymiar_godzin": "960",
             "potwierdzenie_opiekuna": zopz_name,
             "opinia_opiekuna": "Studentka wykazała wysokie zaangażowanie i kompetencje.",
             "efekty": efekty_all,
@@ -576,7 +624,7 @@ def seed_forms():
             "_status": "draft",
             "nr_albumu": nr, "rok_akademicki": rok_ak,
             "kierunek": "Informatyka", "forma_studiow": "stacjonarne",
-            "semestr": "6", "liczba_godzin": "240",
+            "semestr": "6", "liczba_godzin": "960",
             "pytania": pytania,
             "uwagi": "Praktyka w pełni odpowiadała moim oczekiwaniom zawodowym.",
         },
@@ -637,20 +685,6 @@ def seed_forms():
             "mini_zadania": mini_zadania,
             "ocena_e": "5", "ocena_k": "5",
         },
-        "zal9": {
-            "_status": "approved",
-            "imie_nazwisko": student_name, "nr_albumu": nr,
-            "miejscowosc": "Gdańsk", "data": f"{year}-03-15",
-            "nazwa_instytucji": company,
-            "termin_od": start, "termin_do": end,
-            "opiekun_imie_nazwisko": zopz_name,
-            "opiekun_stanowisko": "Kierownik Działu IT",
-            "opiekun_telefon": "+48 58 123 45 67",
-            "opiekun_email": "z.ostrowski@technosystems.pl",
-            "upowazniont_imie_nazwisko": "Piotr Zieliński",
-            "upowazniont_stanowisko": "Prezes Zarządu",
-            "podpis": f"Piotr Zieliński, Gdańsk, {year}-03-15",
-        },
     }
 
     os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
@@ -661,16 +695,12 @@ def seed_forms():
         all_data = {}
 
     all_data.setdefault(nr, {})
-    filled = 0
-    for key, record in forms.items():
-        if key not in all_data[nr]:
-            all_data[nr][key] = record
-            filled += 1
+    all_data[nr].update(forms)
 
     with open(DB_FILE, 'w', encoding='utf-8') as f:
         json.dump(all_data, f, indent=2, ensure_ascii=False)
 
-    print(f"Formularze: wypełniono {filled} dla studenta nr albumu {nr}.")
+    print(f"Formularze: zaktualizowano dane testowe studenta nr albumu {nr}.")
 
 
 def seed_extra_forms():
@@ -681,9 +711,11 @@ def seed_extra_forms():
     effects = LE.query.order_by(LE.nr).all()
     uopz = User.query.filter_by(role='uopz').first()
     zopz = User.query.filter_by(role='zopz').first()
+    dziekanat = User.query.filter_by(role='dziekanat').first()
 
     un = uopz.full_name if uopz else "dr Irena Malinowska"
     zn = zopz.full_name if zopz else "Zbigniew Ostrowski"
+    dn = dziekanat.full_name if dziekanat else "Dorota Kamińska"
 
     today = _d.today()
     year = today.year
@@ -702,9 +734,10 @@ def seed_extra_forms():
             "zopz_email": "z.ostrowski@datasoft.pl",
             "start": f"{year}-03-01",
             "end": f"{year}-04-30",
-            "nr_por": f"02/INF/{year}",
             "status_zal1": "approved",
             "status_zal2a": "pending",
+            "study_mode": "niestacjonarne",
+            "company_email": "kontakt@datasoft.pl",
         },
         {
             "nr": "21003",
@@ -718,9 +751,10 @@ def seed_extra_forms():
             "zopz_email": "z.ostrowski@mediscan.pl",
             "start": f"{year}-05-01",
             "end": f"{year}-06-30",
-            "nr_por": f"03/INF/{year}",
             "status_zal1": "draft",
             "status_zal2a": "draft",
+            "study_mode": "stacjonarne",
+            "company_email": "biuro@mediscan.pl",
         },
     ]
 
@@ -739,18 +773,19 @@ def seed_extra_forms():
             "zal1": {
                 "_status": s["status_zal1"],
                 "imie_nazwisko": s["name"], "nr_albumu": nr,
-                "nr_porozumienia": s["nr_por"], "miejscowosc": "Elbląg",
-                "data": f"{year}-02-20", "kierunek": "Informatyka",
-                "specjalnosc": s["spec"], "rodzaj_studiow": "stacjonarne",
+                "nr_porozumienia": f"ZAL-1-{nr}", "miejscowosc": "Elbląg",
+                "data": today.isoformat(), "kierunek": "Informatyka",
+                "specjalnosc": s["spec"], "rodzaj_studiow": s["study_mode"],
                 "nazwa_zakladu": s["company"],
                 "adres_zakladu": s["company_full"].split(", ", 1)[1] if ", " in s["company_full"] else "",
                 "nip_zakladu": "",
                 "reprezentant_nazwisko": s["repr"],
                 "reprezentant_stanowisko": s["repr_pos"],
+                "email_zakladu": s["company_email"],
                 "uczelniany_opiekun": un,
-                "data_start": s["start"], "data_end": s["end"], "liczba_godzin": "240",
-                "podpis_zakladowy": s["repr"],
-                "podpis_uczelniany": un,
+                "data_start": s["start"], "data_end": s["end"], "liczba_godzin": "960",
+                "podpis_uczelniany": un if s["status_zal1"] == "approved" else "",
+                "podpis_dziekanatu": dn if s["status_zal1"] == "approved" else "",
             },
             "zal2a": {
                 "_status": s["status_zal2a"],
@@ -769,30 +804,10 @@ def seed_extra_forms():
                 "podpis_zakladowy": zn,
                 "podpis_studenta": s["name"],
             },
-            "zal9": {
-                "_status": "draft",
-                "imie_nazwisko": s["name"], "nr_albumu": nr,
-                "miejscowosc": s["company_full"].split(",")[-1].strip().split()[-1] if "," in s["company_full"] else "Olsztyn",
-                "data": f"{year}-02-20",
-                "nazwa_instytucji": s["company"],
-                "termin_od": s["start"], "termin_do": s["end"],
-                "opiekun_imie_nazwisko": zn,
-                "opiekun_stanowisko": "Kierownik Działu IT",
-                "opiekun_telefon": s["zopz_phone"],
-                "opiekun_email": s["zopz_email"],
-                "upowazniont_imie_nazwisko": s["repr"],
-                "upowazniont_stanowisko": s["repr_pos"],
-                "podpis": f"{s['repr']}, {year}-02-20",
-            },
         }
-        filled = 0
-        for key, record in forms.items():
-            if key not in all_data[nr]:
-                all_data[nr][key] = record
-                filled += 1
-        total_filled += filled
-        if filled:
-            print(f"  Formularze: wypełniono {filled} dla studenta nr albumu {nr} ({s['name']}).")
+        all_data[nr].update(forms)
+        total_filled += len(forms)
+        print(f"  Formularze: zaktualizowano dane studenta nr albumu {nr} ({s['name']}).")
 
     with open(DB_FILE, 'w', encoding='utf-8') as f:
         json.dump(all_data, f, indent=2, ensure_ascii=False)
@@ -843,6 +858,303 @@ def seed_workflow_from_json():
         print(f"Obieg dokumentów: zaimportowano {count} stanów z JSON.")
 
 
+def sync_test_forms_to_store():
+    """Nadpisuje formularze kont demonstracyjnych aktualnymi danymi testowymi."""
+    try:
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return
+
+    test_albums = {
+        item["album_number"]
+        for item in USERS
+        if item["role"] == "student" and item.get("album_number")
+    }
+    reviewers = {item.key: item.reviewer_role for item in Attachment.query.all()}
+    updated = 0
+    for album_number in test_albums:
+        for form_key, record in data.get(album_number, {}).items():
+            if not isinstance(record, dict):
+                continue
+            status = record.get("_status", "draft")
+            revision = store.save_form(album_number, form_key, record)
+            state = DocumentWorkflow.query.filter_by(
+                album_number=album_number,
+                form_key=form_key,
+            ).first()
+            if state is None:
+                state = DocumentWorkflow(
+                    album_number=album_number,
+                    form_key=form_key,
+                )
+                db.session.add(state)
+                db.session.add(DocumentLog(
+                    album_number=album_number,
+                    form_key=form_key,
+                    action=status,
+                    actor_name="seed",
+                    actor_role="system",
+                    comment="aktualizacja danych testowych",
+                ))
+            state.status = status
+            state.reviewer_role = reviewers.get(form_key)
+            state.approved_revision = revision if status == "approved" else None
+            updated += 1
+    db.session.commit()
+    print(f"MongoDB: zaktualizowano {updated} formularzy kont testowych.")
+
+
+def seed_student4_forms():
+    """Wypełnia wszystkie formularze studenta 4 (album 21004) — 120 dni dziennika, wszystko zatwierdzone."""
+    from datetime import date as _d, timedelta
+    from core.models import LearningEffect as LE
+
+    effects = LE.query.order_by(LE.nr).all()
+    uopz = User.query.filter_by(role='uopz').first()
+    zopz = User.query.filter_by(role='zopz').first()
+    dziekanat = User.query.filter_by(role='dziekanat').first()
+    student = User.query.filter_by(album_number='21004').first()
+    if not student:
+        print("Brak konta studenta 21004 – pomijam seed_student4_forms.")
+        return
+
+    today = _d.today()
+    year = today.year
+    rok_ak = f"{year-1}/{year}" if today.month < 10 else f"{year}/{year+1}"
+    nr = "21004"
+    sn = student.full_name
+    un = f"dr {uopz.full_name}" if uopz else "dr Irena Malinowska"
+    zn = zopz.full_name if zopz else "Zbigniew Ostrowski"
+    dn = dziekanat.full_name if dziekanat else "Dorota Kamińska"
+    spec = "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)"
+    company = "NetCode Solutions Sp. z o.o."
+    caddr = "ul. Informatyczna 8, 10-062 Olsztyn"
+    company_full = f"{company}, {caddr}"
+
+    # 120 dni roboczych (pn–pt) zaczynając od 1 października poprzedniego roku
+    base = _d(year - 1 if today.month >= 10 else year - 2, 10, 1)
+    diary_dates = []
+    cur = base
+    while len(diary_dates) < 120:
+        if cur.weekday() < 5:
+            diary_dates.append(cur)
+        cur += timedelta(days=1)
+    start = diary_dates[0].isoformat()
+    end = diary_dates[-1].isoformat()
+
+    _tasks = [
+        ("Analiza wymagań systemu bazodanowego. Spotkanie z klientem, diagram ER i dokumentacja wymagań.", "1,2,5"),
+        ("Projektowanie schematu relacyjnej bazy danych MySQL. Normalizacja do 3NF, klucze i relacje.", "1,2,7"),
+        ("Implementacja modelu ORM w SQLAlchemy. Tworzenie migracji Alembic i testy spójności danych.", "2,8,9"),
+        ("Optymalizacja zapytań SQL — analiza EXPLAIN, dodawanie indeksów pokrywających.", "2,5,8"),
+        ("Implementacja REST API w FastAPI. Endpointy CRUD, walidacja Pydantic, dokumentacja Swagger.", "2,6,9"),
+        ("Tworzenie procedur składowanych i widoków w MySQL. Testy wydajności i pokrycia.", "2,7,8"),
+        ("Konfiguracja środowiska Docker: docker-compose dla bazy i backendu, wolumeny trwałe.", "2,4,9"),
+        ("Implementacja autoryzacji JWT i hashowanie haseł bcrypt. Middleware weryfikacji tokenów.", "3,4,8"),
+        ("Pisanie testów pytest: jednostkowych i integracyjnych. Pokrycie kodu powyżej 80%.", "7,9,11"),
+        ("Helpdesk: diagnoza i naprawa błędów połączeń bazodanowych, wsparcie użytkowników.", "6,8,11"),
+        ("Analiza danych sprzedażowych — raport SQL, agregaty, grupowania, wykresy Chart.js.", "1,5,7"),
+        ("Dokumentacja techniczna API i modelu danych. Diagramy UML, opisy endpointów.", "5,7,12"),
+        ("Implementacja systemu backupu MySQL. Skrypty cron, testy przywracania bazy.", "2,4,9"),
+        ("Partycjonowanie tabel i archiwizacja historycznych rekordów sprzedaży.", "2,5,8"),
+        ("Code review — uwagi do kodu SQL kolegów: optymalizacje, wzorce, bezpieczeństwo.", "7,10,11"),
+        ("Frontend React: panel raportów z filtrami, wykresy interaktywne, eksport CSV.", "2,6,9"),
+        ("Integracja z zewnętrznym API płatności Stripe. Obsługa webhooków i idempotentność.", "2,3,8"),
+        ("Wdrożenie aplikacji na serwer produkcyjny. Nginx, SSL/TLS, monitoring Prometheus.", "2,4,9"),
+        ("Analiza logów produkcyjnych — identyfikacja błędów N+1, bottlenecków zapytań.", "1,5,8"),
+        ("Szkolenie nowego stażysty z architektury systemu. Przygotowanie materiałów onboarding.", "7,12,13"),
+    ]
+    dziennik = [
+        {
+            "dzien": str(i + 1),
+            "data": diary_dates[i].isoformat(),
+            "opis": _tasks[i % len(_tasks)][0],
+            "efekty": _tasks[i % len(_tasks)][1],
+            "godziny": "8",
+            "podpis": zn,
+        }
+        for i in range(120)
+    ]
+
+    efekty_all = [{"nr": e.nr, "status": "uzyskał/a"} for e in effects]
+    efekty_plan = [{"nr": e.nr, "dzial_prace": "Dział Rozwoju Oprogramowania"} for e in effects]
+    harmonogram = [
+        {"lp": 1, "dzial": "Analiza i projektowanie bazy danych", "dni": "30"},
+        {"lp": 2, "dzial": "Implementacja API i warstwy logiki", "dni": "40"},
+        {"lp": 3, "dzial": "Testowanie i optymalizacja", "dni": "30"},
+        {"lp": 4, "dzial": "Wdrożenie i dokumentacja", "dni": "20"},
+    ]
+    ocena_efektow = [
+        {"nr": e.nr, "zasadny": "tak", "uzasadnienie": f"Efekt {e.nr} zrealizowany w trakcie praktyki w pełnym zakresie."}
+        for e in effects
+    ]
+    pytania = [{"nr": i + 1, "odpowiedz": "zdecydowanie tak"} for i in range(14)]
+    miejsca = [{"nazwa": company_full, "okres": f"{start} – {end}", "dni": "120"}]
+    mini_zadania = [
+        {"tresc": "Opisz zastosowaną architekturę bazy danych i uzasadnij wybór technologii.", "ocena": "5"},
+        {"tresc": "Omów podejście do optymalizacji zapytań i strategię indeksowania.", "ocena": "5"},
+        {"tresc": "Przedstaw wdrożone mechanizmy bezpieczeństwa i autoryzacji.", "ocena": "5"},
+    ]
+
+    forms = {
+        "zal1": {
+            "_status": "approved",
+            "imie_nazwisko": sn, "nr_albumu": nr,
+            "nr_porozumienia": f"ZAL-1-{nr}", "miejscowosc": "Elbląg",
+            "data": today.isoformat(), "kierunek": "Informatyka",
+            "specjalnosc": spec, "rodzaj_studiow": "stacjonarne",
+            "nazwa_zakladu": company, "adres_zakladu": caddr,
+            "nip_zakladu": "739-354-12-98",
+            "reprezentant_nazwisko": "Karolina Dąbrowska",
+            "reprezentant_stanowisko": "Dyrektor Zarządzający",
+            "email_zakladu": "biuro@netcode.pl",
+            "uczelniany_opiekun": un,
+            "data_start": start, "data_end": end, "liczba_godzin": "960",
+            "podpis_uczelniany": f"{un}, {today.strftime('%d.%m.%Y')}",
+            "podpis_dziekanatu": f"{dn}, {today.strftime('%d.%m.%Y')}",
+        },
+        "zal2": {
+            "_status": "approved",
+            "nr_albumu": nr, "zaklad_pracy": company_full,
+            "data_start": start, "data_end": end,
+            "data_uzgodnienia": diary_dates[0].isoformat(),
+            "podpis_zakladowy": f"Karolina Dąbrowska, {diary_dates[0].isoformat()}",
+            "podpis_uczelniany": f"{un}, {diary_dates[0].isoformat()}",
+        },
+        "zal2a": {
+            "_status": "approved",
+            "imie_nazwisko": sn, "nr_albumu": nr,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "miejsce_praktyki": company, "data_start": start, "data_end": end,
+            "efekty_plan": efekty_plan, "harmonogram": harmonogram,
+            "data_uzgodnienia": diary_dates[0].isoformat(),
+            "podpis_uczelniany": un, "podpis_zakladowy": zn, "podpis_studenta": sn,
+        },
+        "zal3": {
+            "_status": "approved",
+            "imie_nazwisko": sn, "nr_albumu": nr,
+            "nr_porozumienia": f"ZAL-1-{nr}",
+            "data_porozumienia": diary_dates[0].isoformat(),
+            "zaklad_pracy": company,
+            "kierunek": "Informatyka", "specjalnosc": spec, "rodzaj_studiow": "stacjonarne",
+            "uczelniany_opiekun": un,
+            "data_start": start, "data_end": end,
+            "zakladowy_opiekun_nazwisko": zn,
+            "zakladowy_opiekun_funkcja": "Lider Techniczny",
+            "potwierdzenie_zgloszenia": diary_dates[0].isoformat(),
+            "potwierdzenie_bhp": diary_dates[0].isoformat(),
+            "zaswiadczenie_zaklad": company_full,
+            "zaswiadczenie_okres_od": start, "zaswiadczenie_okres_do": end,
+            "zaswiadczenie_uwagi": "Student zrealizował wszystkie zaplanowane zadania z pełnym zaangażowaniem.",
+            "zaswiadczenie_podpis": f"{zn}, Olsztyn, {diary_dates[-1].isoformat()}",
+            "ocena_zakladowa_param": "5",
+            "ocena_zakladowa_opis": "Doskonała znajomość SQL i narzędzi deweloperskich.",
+            "podpis_zakladowy": f"{zn}, {diary_dates[-1].isoformat()}",
+            "ocena_uczelniana_param": "5",
+            "ocena_uczelniana_opis": "Student w pełni zrealizował program praktyki.",
+            "podpis_uczelniany": f"{un}, {diary_dates[-1].isoformat()}",
+            "ocena_sprawozdania": "5",
+            "podpis_sprawozdanie": f"{un}, {diary_dates[-1].isoformat()}",
+        },
+        "zal4": {
+            "_status": "approved",
+            "imie_nazwisko": sn, "nr_albumu": nr,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "wymiar_godzin": "960",
+            "potwierdzenie_opiekuna": zn,
+            "opinia_opiekuna": "Student wykazał doskonałe kompetencje programistyczne i bazodanowe.",
+            "efekty": efekty_all,
+        },
+        "zal5": {
+            "_status": "approved",
+            "nr_albumu": nr, "rok_akademicki": rok_ak,
+            "kierunek": "Informatyka", "forma_studiow": "stacjonarne",
+            "semestr": "6", "liczba_godzin": "960",
+            "pytania": pytania,
+            "uwagi": "Praktyka dostarczyła cennego doświadczenia zawodowego.",
+        },
+        "zal6": {
+            "_status": "approved",
+            "imie_nazwisko": sn, "nr_albumu": nr,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "rodzaj_studiow": "stacjonarne", "rok_akademicki": rok_ak,
+            "miejsce_praktyki": company,
+            "data_start": start, "data_end": end,
+            "wykaz_zalacznikow": "Zaświadczenie od pracodawcy, dokumentacja projektu",
+            "dziennik": dziennik,
+        },
+        "zal7": {
+            "_status": "approved",
+            "imie_nazwisko": sn, "nr_albumu": nr,
+            "kierunek": "Informatyka", "specjalnosc": spec,
+            "rodzaj_studiow": "stacjonarne", "rok_akademicki": rok_ak,
+            "miejsce_praktyki": company,
+            "charakterystyka": (
+                f"{company} to dynamiczna firma informatyczna z Olsztyna specjalizująca się "
+                "w tworzeniu systemów bazodanowych i aplikacji webowych dla sektora e-commerce. "
+                "Zatrudnia ponad 50 specjalistów IT, używa technologii: Python, FastAPI, MySQL, Docker, React."
+            ),
+            "opis_prac": (
+                "W trakcie praktyki realizowałem zadania z zakresu projektowania i optymalizacji baz danych "
+                "MySQL, implementacji REST API w FastAPI, konfiguracji środowisk Docker, tworzenia testów "
+                "automatycznych i wdrożeń produkcyjnych. Uczestniczyłem w code review i projektowaniu nowych "
+                "funkcjonalności systemu e-commerce."
+            ),
+            "wiedza_umiejetnosci": (
+                "Praktyka znacząco rozwinęła moje umiejętności w zakresie inżynierii danych, projektowania "
+                "skalowalnych systemów bazodanowych, optymalizacji zapytań SQL i stosowania wzorców REST API. "
+                "Poznałem metodykę Agile i narzędzia CI/CD (GitLab, Docker, Nginx)."
+            ),
+            "data": diary_dates[-1].isoformat(),
+            "podpis_studenta": sn,
+            "podpis_przelozonego": zn,
+        },
+        "zal8": {
+            "_status": "approved",
+            "imie_nazwisko": sn, "nr_albumu": nr,
+            "miejsca_praktyki": miejsca,
+            "ocena_s": "5", "data_s": diary_dates[-1].isoformat(), "podpis_s": un,
+            "ocena_u": "5", "ocena_z": "5",
+            "sklad_komisji": f"{un} (przewodnicząca), mgr Tomasz Witek, mgr Anna Kowalczyk",
+            "data_zaliczenia": diary_dates[-1].isoformat(),
+            "przewodniczacy": un,
+            "czlonek_2": "mgr Tomasz Witek",
+            "czlonek_3": "mgr Anna Kowalczyk",
+            "czlonek_4": "",
+            "mini_zadania": mini_zadania,
+            "ocena_e": "5", "ocena_k": "5",
+        },
+    }
+
+    os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+    try:
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            all_data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        all_data = {}
+
+    all_data.setdefault(nr, {})
+    all_data[nr].update(forms)
+
+    with open(DB_FILE, 'w', encoding='utf-8') as f:
+        json.dump(all_data, f, indent=2, ensure_ascii=False)
+
+    # Oblicz i zapisz ocenę końcową w tabeli Internship
+    from core.internships import get_or_create_internship
+    from core.grades import calculate_final_grade, store_final_grade
+    internship_obj = get_or_create_internship(student, rok_ak)
+    try:
+        calc = calculate_final_grade(grade_e="5", grade_s="5", grade_u="5", grade_z="5")
+        store_final_grade(internship_obj, calc)
+        db.session.commit()
+        print(f"  Ocena końcowa studenta 4: {internship_obj.grade_k}")
+    except Exception as exc:
+        print(f"  Ostrzeżenie: nie udało się ustawić oceny końcowej: {exc}")
+
+    print(f"Student 4 (nr {nr}): zaktualizowano {len(forms)} formularzy, dziennik {len(dziennik)} wpisów.")
+
+
 with app.app_context():
     seed_users()
     seed_effects()
@@ -855,8 +1167,7 @@ with app.app_context():
     seed_form_fields()
     seed_forms()
     seed_extra_forms()
-    imported = store.import_from_json(DB_FILE)
-    if imported:
-        print(f"MongoDB: zaimportowano {imported} formularzy z studenci.json.")
+    seed_student4_forms()
+    sync_test_forms_to_store()
     seed_workflow_from_json()
     print("\nGotowe.")

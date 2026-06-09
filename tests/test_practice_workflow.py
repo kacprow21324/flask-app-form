@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 from core.practice_workflow import (
     completion_errors,
+    form_visible_for_student,
     practice_result,
     report_key,
     step_states,
@@ -15,10 +16,9 @@ class PracticeWorkflowTests(unittest.TestCase):
     def setUp(self):
         self.student = SimpleNamespace(study_mode="stacjonarne")
 
-    def test_standard_path_is_linear_and_starts_with_attachment_9(self):
+    def test_standard_path_starts_with_agreement(self):
         keys = [step["key"] for step in steps_for_student(self.student)]
         self.assertEqual(keys, [
-            "zal9",
             "zal1",
             "zal2",
             "zal2a",
@@ -37,16 +37,25 @@ class PracticeWorkflowTests(unittest.TestCase):
         self.assertIn("zal7a", keys)
         self.assertNotIn("zal7", keys)
 
+    def test_report_visibility_matches_study_mode(self):
+        self.assertTrue(form_visible_for_student(self.student, "zal7"))
+        self.assertFalse(form_visible_for_student(self.student, "zal7a"))
+        nonstationary = SimpleNamespace(study_mode="niestacjonarne")
+        self.assertFalse(form_visible_for_student(nonstationary, "zal7"))
+        self.assertTrue(form_visible_for_student(nonstationary, "zal7a"))
+        self.assertTrue(form_visible_for_student(self.student, "zal4b"))
+
     def test_only_first_incomplete_step_is_unlocked(self):
-        states = step_states(self.student, {"zal9": "approved"})
+        states = step_states(self.student, {"zal1": "approved"})
         self.assertEqual(states[0]["state"], "completed")
         self.assertEqual(states[1]["state"], "current")
         self.assertEqual(states[2]["state"], "locked")
 
+        # Po usunięciu zal9 z obiegu, zal2 jest odblokowane gdy zal1 zatwierdzone
         unmet = unmet_previous_steps(self.student, "zal2", {
-            "zal9": "approved",
+            "zal1": "approved",
         })
-        self.assertEqual(unmet[0]["key"] if "key" in unmet[0] else unmet[0]["form_key"], "zal1")
+        self.assertEqual(unmet, [])
 
     def test_final_result_requires_completed_protocol_and_passing_grade(self):
         internship = SimpleNamespace(grade_k=3)
@@ -69,11 +78,6 @@ class PracticeWorkflowTests(unittest.TestCase):
         )
 
     def test_incomplete_form_cannot_finish_a_stage(self):
-        errors = completion_errors("zal9", {
-            "nazwa_instytucji": "Firma Testowa",
-        })
-        self.assertTrue(any("data rozpoczęcia" in error for error in errors))
-
         self.assertEqual(completion_errors("zal5", {
             "pytania": [
                 {"nr": number, "odpowiedz": "raczej tak"}

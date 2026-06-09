@@ -135,8 +135,8 @@ VALUES
         (SELECT id FROM users WHERE email = 'zopz@firma.pl'),
         (SELECT id FROM companies WHERE nip = '589-212-34-56'),
         (SELECT id FROM academic_years WHERE year_code = '2025/2026'),
-        'PZ/2026/001', '2026-04-01', '2026-05-31',
-        'completed', 240, 40, 240, 40,
+        'ZAL-1-21001', '2026-04-01', '2026-09-30',
+        'completed', 960, 120, 960, 120,
         5.0, 5.0, 5.0,
         'Administracja systemów i sieci komputerowych (ASiSK)'
     ),
@@ -147,8 +147,8 @@ VALUES
         (SELECT id FROM users WHERE email = 'zopz@firma.pl'),
         (SELECT id FROM companies WHERE nip = '739-100-22-33'),
         (SELECT id FROM academic_years WHERE year_code = '2025/2026'),
-        'PZ/2026/002', '2026-03-01', '2026-04-30',
-        'awaiting_review', 240, 40, 120, 15,
+        'ZAL-1-21002', '2026-03-01', '2026-08-31',
+        'awaiting_review', 960, 120, 120, 15,
         NULL, NULL, NULL,
         'Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)'
     ),
@@ -159,8 +159,8 @@ VALUES
         (SELECT id FROM users WHERE email = 'zopz@firma.pl'),
         (SELECT id FROM companies WHERE nip = '739-200-44-55'),
         (SELECT id FROM academic_years WHERE year_code = '2025/2026'),
-        'PZ/2026/003', '2026-05-01', '2026-06-30',
-        'active', 240, 40, 40, 5,
+        'ZAL-1-21003', '2026-05-01', '2026-10-31',
+        'active', 960, 120, 40, 5,
         NULL, NULL, NULL,
         'Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)'
     ),
@@ -171,8 +171,8 @@ VALUES
         (SELECT id FROM users WHERE email = 'zopz@firma.pl'),
         (SELECT id FROM companies WHERE nip = '578-000-11-22'),
         (SELECT id FROM academic_years WHERE year_code = '2025/2026'),
-        'PZ/2026/004', '2026-06-01', '2026-07-31',
-        'draft', 240, 40, 0, 0,
+        'ZAL-1-21004', '2026-06-01', '2026-11-30',
+        'draft', 960, 120, 0, 0,
         NULL, NULL, NULL,
         'Administracja systemów i sieci komputerowych (ASiSK)'
     );

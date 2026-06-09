@@ -93,7 +93,7 @@ def effects_context(profile):
             "imie_nazwisko": profile["name"],
             "nr_albumu": profile["album"],
             "specjalnosc": profile["specialty"],
-            "wymiar_godzin": "240",
+            "wymiar_godzin": "960",
             "potwierdzenie_opiekuna": (
                 f'{profile["supervisor"]}, {profile["city"]}, 2026-08-18'
             ),

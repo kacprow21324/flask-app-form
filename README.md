@@ -1,6 +1,6 @@
 <div align="center">
-    <h1>Flask App Form</h1>
-    <p><strong>System cyfrowego obiegu dokumentacji praktyk zawodowych</strong></p>
+    <h1>System Rozliczania Praktyk Zawodowych</h1>
+    <p><strong>Akademia Nauk Stosowanych w Elblągu – cyfrowy obieg dokumentacji praktyk</strong></p>
     <table>
         <thead>
             <tr>
@@ -29,6 +29,94 @@
     </table>
 
 </div>
+
+---
+
+## Stos technologiczny
+
+| Warstwa | Technologia |
+|---|---|
+| Backend | Python 3.11 · Flask 3 · SQLAlchemy 2 · Flask-Login · Flask-Migrate (Alembic) |
+| Bazy danych | MariaDB 10.11 (dane relacyjne, workflow) · MongoDB 7 (treść formularzy, rewizje) |
+| Serwer | Gunicorn (produkcja) · Flask dev server (development) |
+| Frontend | Jinja2 · Vanilla JS · CSS (własny design system) |
+| PDF | WeasyPrint (generowanie PDF z szablonów HTML) |
+| Uwierzytelnianie | Sesje Flask + bcrypt · Microsoft Entra ID (OAuth 2.0, single-tenant) |
+| Bezpieczeństwo | CSRF (double-submit cookie) · CSP · HSTS · rate limiting |
+| Monitorowanie | Prometheus (metryki) · structured logging |
+| CI/CD | GitHub Actions (testy jednostkowe + Playwright E2E) |
+| Infrastruktura | Docker · Docker Compose (dev + prod) · Nginx + TLS |
+
+---
+
+## Konfiguracja środowiska (.env)
+
+Skopiuj `.env.example` do `.env` i uzupełnij poniższe wartości:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### Wymagane zmienne
+
+| Zmienna | Opis | Przykład |
+|---|---|---|
+| `SECRET_KEY` | Klucz sesji Flask (min. 32 losowe znaki) | `openssl rand -hex 32` |
+| `MYSQL_ROOT_PASSWORD` | Hasło roota MariaDB | `StrongRoot#2025` |
+| `MYSQL_PASSWORD` | Hasło użytkownika aplikacji MariaDB | `AppPass#2025` |
+| `DATABASE_URL` | URL połączenia z MariaDB | `mysql+pymysql://ems_user:PASS@db:3306/ems?charset=utf8mb4` |
+| `MONGO_URL` | URL połączenia z MongoDB | `mongodb://mongo:27017/ems` |
+
+### Hasła kont seedowych
+
+Ustawiane przez `python -m core.seed` (minimum 12 znaków):
+
+```env
+SEED_STUDENT_PASSWORD=StudentHaslo123
+SEED_UOPZ_PASSWORD=UopzHaslo123
+SEED_ZOPZ_PASSWORD=ZopzHaslo123
+SEED_DZIEKANAT_PASSWORD=DziekanatHaslo123
+SEED_ADMIN_PASSWORD=AdminHaslo123
+```
+
+### Microsoft OAuth (opcjonalne, produkcja)
+
+```env
+MS_CLIENT_ID=00000000-0000-0000-0000-000000000000
+MS_CLIENT_SECRET=tajny_klucz
+MS_TENANT_ID=00000000-0000-0000-0000-000000000000
+MS_REDIRECT_URI=https://twoja-domena.pl/auth/microsoft/callback
+MS_ALLOWED_EMAIL_DOMAINS=ans-elblag.pl,student.ans-elblag.pl
+MS_STAFF_EMAIL_DOMAIN=ans-elblag.pl
+```
+
+### Przełączniki trybu
+
+```env
+FLASK_DEBUG=false          # true tylko lokalnie
+DEBUG_LOGIN_BUTTONS=false  # true wyłącznie gdy FLASK_DEBUG=true
+SESSION_COOKIE_SECURE=true # true gdy HTTPS
+TRUST_PROXY_HEADERS=true   # true za Nginx/load balancerem
+ENABLE_HSTS=true           # true gdy HTTPS
+JSON_LOGS=true             # true na produkcji (logi jako JSON)
+```
+
+---
+
+## Konta testowe
+
+Tworzone przez `python -m core.seed`. Hasła z `.env` (zmienne `SEED_*`):
+
+| E-mail | Rola | Nr albumu |
+|---|---|---|
+| `student@student.ans-elblag.pl` | Student | 21001 |
+| `student2@student.ans-elblag.pl` | Student | 21002 |
+| `student3@student.ans-elblag.pl` | Student | 21003 |
+| `student4@student.ans-elblag.pl` | Student (kompletne dane, 120 dni dziennika) | 21004 |
+| `opiekun@ans-elblag.pl` | UOPZ (Opiekun Uczelniany) | — |
+| `zopz@firma.pl` | ZOPZ (Opiekun Zakładowy) | — |
+| `dziekanat@ans-elblag.pl` | Dziekanat | — |
+| `admin@ans-elblag.pl` | Administrator | — |
 
 ---
 

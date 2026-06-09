@@ -23,12 +23,6 @@
                 <button class="btn btn-sm btn-secondary" type="submit">Wypełnij danymi testowymi</button>
             </form>
             {% endif %}
-            {% if not record_archived %}
-            <form method="post" action="{{ url_for('student_delete', nr_albumu=nr_albumu) }}"
-                  onsubmit="return confirm('Utworzyć kompletny pakiet archiwalny i zablokować rekord do edycji?')">
-                <button class="btn btn-danger" type="submit">Archiwizuj cały rekord</button>
-            </form>
-            {% endif %}
         </div>
         {% endif %}
 
@@ -41,6 +35,30 @@
         {% endif %}
     </div>
 
+    <nav class="page-tabs document-tabs" aria-label="Sekcje rekordu studenta">
+        <button type="button" class="page-tab page-tab-active" data-section-tab="dokumenty">Dokumenty</button>
+        <button type="button" class="page-tab" data-section-tab="historia">Historia</button>
+        {% if user_role in ('admin', 'dziekanat') %}
+        <button type="button" class="page-tab" data-section-tab="archiwum">Archiwum</button>
+        {% endif %}
+    </nav>
+
+    {% if user_role in ('admin', 'dziekanat') %}
+    <section class="tab-panel" data-section-panel="archiwum" hidden>
+    {% if not record_archived %}
+    <div class="card archive-action-card">
+        <div class="card-header">
+            <div>
+                <h2>Archiwizacja rekordu</h2>
+                <p class="subtitle">Utwórz pakiet ZIP i zablokuj dalszą edycję dokumentów.</p>
+            </div>
+            <form method="post" action="{{ url_for('student_delete', nr_albumu=nr_albumu) }}"
+                  onsubmit="return confirm('Utworzyć kompletny pakiet archiwalny i zablokować rekord do edycji?')">
+                <button class="btn btn-danger" type="submit">Archiwizuj cały rekord</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
     {% if archive_packages %}
     <div class="card archive-packages-card">
         <h2>Pakiety archiwalne</h2>
@@ -65,11 +83,29 @@
         </div>
         {% endfor %}
     </div>
+    {% else %}
+    <div class="card"><p class="empty-state">Brak pakietów archiwalnych.</p></div>
+    {% endif %}
+    </section>
     {% endif %}
 
+    <section class="tab-panel" data-section-panel="dokumenty" aria-label="Dokumenty studenta">
+    <div class="doc-search-wrap">
+        <label for="doc-search" class="visually-hidden">Szukaj dokumentu</label>
+        <input id="doc-search" type="search" class="doc-search-input"
+               placeholder="Szukaj załącznika..." autocomplete="off" aria-label="Szukaj załącznika">
+    </div>
+    {% for document_section in document_sections %}
+    <div class="document-section" data-doc-section>
+        <div class="document-section-heading">
+            <h2>{{ document_section.title }}</h2>
+            {% if document_section.description %}
+            <p>{{ document_section.description }}</p>
+            {% endif %}
+        </div>
     <div class="attachments-grid">
 
-        {% for att in attachments %}
+        {% for att in document_section.attachments %}
         {% set r = student.get(att.key) %}
         {% set state = workflow_states.get(att.key) %}
         {% set status = state.status if r and state else ('draft' if r else '') %}
@@ -103,11 +139,24 @@
                             <a href="{{ url_for(att.key ~ '_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Edytuj</a>
                         {% endif %}
 
-                        {% if status == 'approved' and state.approved_revision is not none %}
-                        <a href="{{ url_for('pobierz_pdf', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary">
-                            Pobierz zatwierdzony PDF
+                        <a href="{{ url_for('formularz_podglad', nr_albumu=nr_albumu, zal_key=att.key) }}"
+                           class="btn btn-sm btn-secondary"
+                           aria-label="Podgląd formularza {{ att.title }} – tylko do odczytu">
+                            Podgląd
                         </a>
-                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary">Podgląd wydruku</a>
+                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}"
+                           class="btn btn-sm btn-secondary"
+                           aria-label="Wydruk HTML załącznika {{ att.title }}">
+                            Wydruk
+                        </a>
+                        <a href="{{ url_for('pobierz_pdf', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary">
+                            Pobierz PDF
+                        </a>
+
+                        {% if att.key == 'zal1' and status == 'approved' and user_role in ('dziekanat', 'admin') and not r.get('podpis_dziekanatu') %}
+                        <form method="post" action="{{ url_for('podpisz_zal1_dziekanat', nr_albumu=nr_albumu) }}">
+                            <button type="submit" class="btn btn-sm btn-success">Podpisz jako dziekanat</button>
+                        </form>
                         {% endif %}
 
                         {% if can_edit %}
@@ -133,21 +182,6 @@
                         <form method="post" action="{{ url_for('zakoncz_dokument', nr_albumu=nr_albumu, zal_key=att.key) }}">
                             <button type="submit" class="btn btn-sm btn-success">Zakończ etap →</button>
                         </form>
-                        {% endif %}
-
-                        {% set versions = generated_versions.get(att.key, []) %}
-                        {% if versions %}
-                        <details class="generated-versions">
-                            <summary>Wersje PDF ({{ versions|length }})</summary>
-                            {% for version in versions %}
-                            <a href="{{ url_for('pobierz_wersje_pdf', document_id=version.id) }}">
-                                v{{ version.document_version }}
-                                · rewizja {{ version.source_revision }}
-                                · {{ version.generated_at.strftime('%d.%m.%Y %H:%M') }}
-                                {% if version.is_current %}· aktualna{% endif %}
-                            </a>
-                            {% endfor %}
-                        </details>
                         {% endif %}
 
                     {% else %}
@@ -189,49 +223,21 @@
             {% endif %}
 
             {% set approval = approval_by_key.get(att.key) %}
-            {% if r and status == 'approved' and approval %}
             {% set role_labels = {'zopz': 'Opiekun Zakładowy', 'uopz': 'Opiekun Uczelniany', 'dziekanat': 'Dziekanat', 'admin': 'Administrator'} %}
+            {% if r and status == 'approved' and approval %}
             <div class="approval-notice">
                 <span class="approval-seal">✔ ZATWIERDZONO</span>
                 <span class="approval-meta">
                     {{ approval.actor_name }}{% if approval.actor_role %} — {{ role_labels.get(approval.actor_role, approval.actor_role) }}{% endif %}{% if approval.created_at %} · {{ approval.created_at.strftime('%Y-%m-%d') }}{% endif %}
                 </span>
             </div>
-            {% endif %}
-
-            {# ── Historia obiegu per dokument ── #}
-            {% set doc_logs = logs_by_key.get(att.key, []) %}
-            {% if doc_logs %}
-            <details class="doc-log-details">
-                <summary class="doc-log-summary">Historia ({{ doc_logs|length }})</summary>
-                <div class="doc-log-timeline">
-                {% set action_cfg = {
-                    'created':   ('log-created',   'Utworzono'),
-                    'updated':   ('log-updated',    'Zaktualizowano'),
-                    'submitted': ('log-submitted',  'Wysłano do zatwierdzenia'),
-                    'approved':  ('log-approved',   'Zatwierdzono'),
-                    'rejected':  ('log-rejected',   'Odrzucono'),
-                    'deleted':   ('log-deleted',    'Usunięto'),
-                } %}
-                {% for ev in doc_logs %}
-                {% set cfg = action_cfg.get(ev.action, ('log-updated', ev.action)) %}
-                <div class="doc-log-entry">
-                    <span class="log-dot {{ cfg[0] }}"></span>
-                    <div class="log-body">
-                        <span class="log-action {{ cfg[0] }}">{{ cfg[1] }}</span>
-                        <span class="log-meta">
-                            {{ ev.actor_name or '—' }}
-                            {% if ev.actor_role %}<span class="log-role">({{ ev.actor_role }})</span>{% endif %}
-                            · {{ ev.created_at.strftime('%d.%m.%Y %H:%M') }}
-                        </span>
-                        {% if ev.comment %}
-                        <div class="log-comment">{{ ev.comment }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-                </div>
-            </details>
+            {% elif r and status == 'rejected' and state and state.rejection_comment %}
+            <div class="rejection-stamp-notice">
+                <span class="rejection-seal">✖ ODRZUCONO</span>
+                <span class="approval-meta">
+                    {{ state.rejection_by or '—' }}{% if state.updated_at %} · {{ state.updated_at.strftime('%Y-%m-%d') }}{% endif %}
+                </span>
+            </div>
             {% endif %}
 
             {% if r %}
@@ -331,7 +337,17 @@
                 <div class="detail-item"><span class="detail-label">Stanowisko</span><span class="detail-value">{{ r.get('stanowisko') or '—' }}</span></div>
                 <div class="detail-item"><span class="detail-label">Specjalność</span><span class="detail-value">{{ r.get('specjalnosc') or '—' }}</span></div>
                 <div class="detail-item"><span class="detail-label">Okres zatrudnienia</span><span class="detail-value">{{ r.get('okres_od') or '—' }} – {{ r.get('okres_do') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Data złożenia</span><span class="detail-value">{{ r.get('data') or '—' }}</span></div>
+                <div class="detail-item"><span class="detail-label">Pliki dowodów</span><span class="detail-value">{{ r.get('pliki', []) | length }} plik(ów)</span></div>
             </div>
+            {% if r.get('pliki') %}
+            <div style="padding:0 20px 8px">
+                {% for plik in r.pliki %}
+                <a href="{{ url_for('pobierz_plik_zal4b', nr_albumu=nr_albumu, file_id=plik.id) }}"
+                   class="file-link" target="_blank">{{ plik.name }} <span class="file-link-size">({{ (plik.size/1024)|round(1) }} KB)</span></a>
+                {% endfor %}
+            </div>
+            {% endif %}
 
             {# ── Zał. 5 ── #}
             {% elif att.key == 'zal5' %}
@@ -422,13 +438,98 @@
         {% endfor %}
 
     </div>
+    </div>
+    {% endfor %}
+    </section>
+
+    <section class="tab-panel" data-section-panel="historia" hidden>
+        {% set history = namespace(count=0) %}
+        {% set action_cfg = {
+            'created':   ('log-created',   'Utworzono'),
+            'updated':   ('log-updated',    'Zaktualizowano'),
+            'submitted': ('log-submitted',  'Wysłano do zatwierdzenia'),
+            'approved':  ('log-approved',   'Zatwierdzono'),
+            'signed':    ('log-approved',   'Podpisano przez dziekanat'),
+            'rejected':  ('log-rejected',   'Odrzucono'),
+            'deleted':   ('log-deleted',    'Usunięto'),
+        } %}
+        {% for att in attachments %}
+        {% set doc_logs = logs_by_key.get(att.key, []) %}
+        {% set versions = generated_versions.get(att.key, []) %}
+        {% if doc_logs or versions %}
+        {% set history.count = history.count + 1 %}
+        <div class="card document-history-card">
+            <div class="card-header">
+                <h2>Zał. {{ att.nr }} · {{ att.title }}</h2>
+            </div>
+            {% if doc_logs %}
+            <div class="doc-log-timeline" role="list" aria-label="Historia zmian">
+                {% for ev in doc_logs %}
+                {% set cfg = action_cfg.get(ev.action, ('log-updated', ev.action)) %}
+                <div class="doc-log-entry" role="listitem">
+                    <span class="log-dot-wrap {{ cfg[0] }}" aria-hidden="true">
+                        <span class="log-dot"></span>
+                    </span>
+                    <div class="log-body">
+                        <div class="log-header">
+                            <span class="log-action {{ cfg[0] }}">{{ cfg[1] }}</span>
+                            <span class="log-meta">
+                                <span class="log-role">{{ ev.actor_name or '—' }}</span>
+                                {% if ev.actor_role %} ({{ ev.actor_role }}){% endif %}
+                                · {{ ev.created_at.strftime('%d.%m.%Y %H:%M') }}
+                            </span>
+                        </div>
+                        {% if ev.comment %}<div class="log-comment">{{ ev.comment }}</div>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if versions %}
+            <div class="generated-versions history-versions">
+                <strong>Wygenerowane wersje PDF</strong>
+                {% for version in versions %}
+                <a href="{{ url_for('pobierz_wersje_pdf', document_id=version.id) }}">
+                    v{{ version.document_version }}
+                    · rewizja {{ version.source_revision }}
+                    · {{ version.generated_at.strftime('%d.%m.%Y %H:%M') }}
+                    {% if version.is_current %}· aktualna{% endif %}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% if history.count == 0 %}
+        <div class="card"><p class="empty-state">Brak historii zmian i wygenerowanych plików PDF.</p></div>
+        {% endif %}
+    </section>
 
 </div>
 <script>
-// Auto-scroll do wskazanego dokumentu po kliknięciu powiadomienia
 document.addEventListener('DOMContentLoaded', function () {
+    var tabs = Array.from(document.querySelectorAll('[data-section-tab]'));
+    var panels = Array.from(document.querySelectorAll('[data-section-panel]'));
+
+    function showSection(name) {
+        tabs.forEach(function (tab) {
+            tab.classList.toggle('page-tab-active', tab.dataset.sectionTab === name);
+        });
+        panels.forEach(function (panel) {
+            panel.hidden = panel.dataset.sectionPanel !== name;
+        });
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            showSection(tab.dataset.sectionTab);
+        });
+    });
+
     var hash = window.location.hash;
     if (hash) {
+        showSection('dokumenty');
         var el = document.querySelector(hash);
         if (el) {
             setTimeout(function () {
@@ -438,5 +539,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 });
+</script>
+<script>
+(function () {
+    var searchEl = document.getElementById('doc-search');
+    if (!searchEl) return;
+    searchEl.addEventListener('input', function () {
+        var q = this.value.toLowerCase();
+        document.querySelectorAll('[data-doc-section]').forEach(function (section) {
+            var cards = Array.from(section.querySelectorAll('.attachment-card'));
+            var any = false;
+            cards.forEach(function (card) {
+                var match = !q || card.textContent.toLowerCase().includes(q);
+                card.style.display = match ? '' : 'none';
+                if (match) any = true;
+            });
+            section.style.display = any || !q ? '' : 'none';
+        });
+    });
+})();
 </script>
 {% endblock %}

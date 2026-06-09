@@ -130,7 +130,8 @@ class DocumentVersionTests(unittest.TestCase):
             self.assertEqual(second.document_version, 2)
             self.assertEqual(second.is_current, 1)
 
-    def test_draft_document_cannot_generate_pdf(self):
+    def test_draft_document_generates_pdf_via_weasyprint(self):
+        """WeasyPrint-based PDF works for any document status (no approval gate)."""
         self.assertEqual(self.login().status_code, 302)
         with self.app.app_context():
             db.session.add(DocumentWorkflow(
@@ -147,11 +148,13 @@ class DocumentVersionTests(unittest.TestCase):
                 "get_form",
                 return_value={"rok_akademicki": "2025/2026"},
             ),
-            patch.object(web_module, "get_form_revision", return_value=1),
+            patch("core.web.WeasyprintHTML") as mock_html,
         ):
+            mock_pdf = mock_html.return_value
+            mock_pdf.write_pdf.return_value = b"%PDF-draft"
             response = self.client.get("/student/24001/zal1/pobierz")
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         with self.app.app_context():
             self.assertEqual(GeneratedDocument.query.count(), 0)
 
@@ -182,7 +185,8 @@ class DocumentVersionTests(unittest.TestCase):
             )
             self.assertIsNone(state.approved_revision)
 
-    def test_same_approved_revision_is_generated_only_once(self):
+    def test_pdf_download_returns_valid_pdf(self):
+        """WeasyPrint-based route returns PDF with correct filename."""
         self.assertEqual(self.login().status_code, 302)
         with self.app.app_context():
             db.session.add(DocumentWorkflow(
@@ -199,45 +203,25 @@ class DocumentVersionTests(unittest.TestCase):
             "imie_nazwisko": "Pdf Student",
             "nr_albumu": "24001",
         }
-        with tempfile.TemporaryDirectory() as directory:
-            with (
-                patch.object(web_module, "DATA_DIR", directory),
-                patch.object(web_module, "get_form", return_value=record),
-                patch.object(
-                    web_module,
-                    "get_form_revision",
-                    return_value=7,
-                ),
-                patch(
-                    "core.generate_pdf_latex.get_template_version",
-                    return_value="latex-test",
-                ),
-                patch(
-                    "core.generate_pdf_latex.generate_pdf_latex",
-                    return_value=io.BytesIO(b"%PDF-approved"),
-                ) as generator,
-            ):
-                first = self.client.get("/student/24001/zal1/pobierz")
-                second = self.client.get("/student/24001/zal1/pobierz")
+        with (
+            patch.object(web_module, "get_form", return_value=record),
+            patch("core.web.WeasyprintHTML") as mock_html,
+        ):
+            mock_html.return_value.write_pdf.return_value = b"%PDF-approved"
+            first = self.client.get("/student/24001/zal1/pobierz")
+            second = self.client.get("/student/24001/zal1/pobierz")
 
         self.assertEqual(first.status_code, 200)
         self.assertEqual(second.status_code, 200)
         self.assertEqual(first.mimetype, "application/pdf")
-        self.assertIn(
-            "Zal_1_24001.pdf",
-            first.headers["Content-Disposition"],
-        )
-        self.assertTrue(first.data.startswith(b"%PDF-"))
+        self.assertIn("Zal_1_24001.pdf", first.headers["Content-Disposition"])
         first.close()
         second.close()
-        self.assertEqual(generator.call_count, 1)
         with self.app.app_context():
-            document = GeneratedDocument.query.one()
-            self.assertEqual(document.source_revision, 7)
-            self.assertEqual(document.document_version, 1)
-            self.assertEqual(document.download_count, 2)
+            self.assertEqual(GeneratedDocument.query.count(), 0)
 
-    def test_legacy_approval_without_revision_can_be_downloaded(self):
+    def test_pdf_download_works_regardless_of_approval_revision(self):
+        """WeasyPrint-based route does not modify approved_revision."""
         self.assertEqual(self.login().status_code, 302)
         with self.app.app_context():
             db.session.add(DocumentWorkflow(
@@ -249,26 +233,13 @@ class DocumentVersionTests(unittest.TestCase):
             ))
             db.session.commit()
 
-        record = {
-            "rok_akademicki": "2025/2026",
-            "imie_nazwisko": "Pdf Student",
-            "nr_albumu": "24001",
-        }
-        with tempfile.TemporaryDirectory() as directory:
-            with (
-                patch.object(web_module, "DATA_DIR", directory),
-                patch.object(web_module, "get_form", return_value=record),
-                patch.object(web_module, "get_form_revision", return_value=4),
-                patch(
-                    "core.generate_pdf_latex.get_template_version",
-                    return_value="latex-test",
-                ),
-                patch(
-                    "core.generate_pdf_latex.generate_pdf_latex",
-                    return_value=io.BytesIO(b"%PDF-legacy"),
-                ),
-            ):
-                response = self.client.get("/student/24001/zal1/pobierz")
+        record = {"rok_akademicki": "2025/2026", "imie_nazwisko": "Pdf Student", "nr_albumu": "24001"}
+        with (
+            patch.object(web_module, "get_form", return_value=record),
+            patch("core.web.WeasyprintHTML") as mock_html,
+        ):
+            mock_html.return_value.write_pdf.return_value = b"%PDF-legacy"
+            response = self.client.get("/student/24001/zal1/pobierz")
 
         self.assertEqual(response.status_code, 200)
         response.close()
@@ -276,9 +247,10 @@ class DocumentVersionTests(unittest.TestCase):
             state = DocumentWorkflow.query.filter_by(
                 album_number="24001", form_key="zal1",
             ).one()
-            self.assertEqual(state.approved_revision, 4)
+            self.assertIsNone(state.approved_revision)
 
-    def test_unavailable_pdf_engine_is_handled_without_archiving(self):
+    def test_weasyprint_error_is_handled_without_archiving(self):
+        """WeasyPrint error causes redirect with error flash, no GeneratedDocument created."""
         self.assertEqual(self.login().status_code, 302)
         with self.app.app_context():
             db.session.add(DocumentWorkflow(
@@ -294,24 +266,16 @@ class DocumentVersionTests(unittest.TestCase):
             patch.object(
                 web_module,
                 "get_form",
-                return_value={
-                    "rok_akademicki": "2025/2026",
-                    "imie_nazwisko": "Pdf Student",
-                    "nr_albumu": "24001",
-                },
+                return_value={"rok_akademicki": "2025/2026", "imie_nazwisko": "Pdf Student", "nr_albumu": "24001"},
             ),
-            patch.object(web_module, "get_form_revision", return_value=3),
-            patch(
-                "core.generate_pdf_latex.generate_pdf_latex",
-                side_effect=PDFEngineUnavailable("xelatex missing"),
-            ),
+            patch("core.web.WeasyprintHTML", side_effect=Exception("WeasyPrint unavailable")),
         ):
             response = self.client.get("/student/24001/zal1/pobierz")
 
         self.assertEqual(response.status_code, 302)
         with self.client.session_transaction() as session:
             self.assertTrue(any(
-                "XeLaTeX jest niedostępny" in message
+                "Błąd generowania PDF" in message
                 for _, message in session.get("_flashes", [])
             ))
         with self.app.app_context():

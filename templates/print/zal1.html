@@ -5,19 +5,19 @@
 {% set female = data.get('gender') == 'K' %}
 {{ letterhead('1') }}
 <h1 class="p-title">Porozumienie o organizację praktyki zawodowej {{ 'studentki' if female else 'studenta' }}<br>Akademii Nauk Stosowanych w Elblągu</h1>
-<div class="p-section">
-    <p class="p-intro">Porozumienie nr <strong>{{ data.nr_porozumienia or '………' }}</strong> zawarte w <strong>{{ data.miejscowosc or '………………' }}</strong> dnia <strong>{{ data.data or '………………' }}</strong></p>
-</div>
+<p class="p-intro">Porozumienie nr <strong>{{ data.nr_porozumienia or '………' }}</strong> zawarte w <strong>{{ data.miejscowosc or '………………' }}</strong> dnia <strong>{{ data.data or '………………' }}</strong></p>
 <div class="p-section">
     <div class="p-section-label">A. Dane {{ 'studentki' if female else 'studenta' }}</div>
     <div class="p-row-2">{{ field('Imię i nazwisko', data.imie_nazwisko) }}{{ field('Nr albumu', data.nr_albumu) }}</div>
-    <div class="p-row-3">{{ field('Kierunek', 'Informatyka') }}{{ field('Specjalność', data.specjalnosc) }}{{ field('Forma studiów', data.rodzaj_studiow) }}</div>
+    <div class="p-row-2">{{ field('Kierunek', 'Informatyka') }}{{ field('Forma studiów', data.rodzaj_studiow) }}</div>
+    {{ field('Specjalność', data.specjalnosc) }}
 </div>
 <div class="p-section">
     <div class="p-section-label">B. Dane zakładu pracy</div>
     {{ field('Nazwa instytucji / zakładu pracy', data.nazwa_zakladu) }}
     <div class="p-row-2">{{ field('Adres', data.adres_zakladu) }}{{ field('NIP', data.nip_zakladu) }}</div>
     <div class="p-row-2">{{ field('Reprezentant – imię i nazwisko', data.reprezentant_nazwisko) }}{{ field('Stanowisko', data.reprezentant_stanowisko) }}</div>
+    {{ field('E-mail zakładu pracy', data.email_zakladu) }}
 </div>
 <div class="p-section">
     <div class="p-section-label">C. Termin i warunki praktyki</div>
@@ -26,6 +26,6 @@
 </div>
 <div class="p-section">
     <div class="p-section-label">D. Podpisy</div>
-    <div class="p-sig-row">{{ sig('Podpis zakładowego opiekuna (data, pieczęć)', data.podpis_zakladowy) }}{{ sig('Podpis uczelnianego opiekuna / Dyrektor IIS (data, pieczęć)', data.podpis_uczelniany) }}</div>
+    <div class="p-sig-row">{{ sig('Podpis uczelnianego opiekuna (data, pieczęć)', data.podpis_uczelniany) }}{{ sig('Podpis dziekanatu (data, pieczęć)', data.podpis_dziekanatu) }}</div>
 </div>
 {% endblock %}

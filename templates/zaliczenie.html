@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Ścieżka zaliczenia przez doświadczenie zawodowe{% endblock %}
+{% block content %}
+<div class="page">
+
+<div class="workflow-page-header">
+    <div>
+        <h1>Ścieżka zaliczenia praktyk przez doświadczenie zawodowe</h1>
+        <p class="subtitle">Zał. 4b i 4a – alternatywna ścieżka dla studentów z doświadczeniem zawodowym</p>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:20px">
+    <div style="padding:18px 24px">
+        <p style="margin:0 0 10px">Student zatrudniony lub pracujący na umowę cywilnoprawną może ubiegać się o zaliczenie efektów uczenia się przewidzianych dla praktyki zawodowej na podstawie udokumentowanego doświadczenia zawodowego.</p>
+        <ol style="margin:0;padding-left:22px;line-height:1.8">
+            <li><strong>Zał. 4b</strong> – Student składa wniosek z uzasadnieniem i dowodami realizacji efektów.</li>
+            <li><strong>Zał. 4a</strong> – Opiekun uczelniany (UOPZ) sporządza merytoryczną ocenę wniosku.</li>
+        </ol>
+    </div>
+</div>
+
+{% if role == 'student' %}
+
+{# ══ WIDOK STUDENTA ══ #}
+<div class="card">
+    <div class="card-header">
+        <h2>Twoje dokumenty ścieżki 4A/4B</h2>
+    </div>
+
+    {# -- Zał. 4b -- #}
+    <div class="workflow-list">
+        <div class="workflow-step wf-step-{{ 'completed' if zal4b_status == 'approved' else ('current' if not zal4b_status or zal4b_status in ('draft','rejected') else 'current') }}">
+            <div class="wf-indicator">
+                {% if zal4b_status == 'approved' %}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                {% else %}1{% endif %}
+            </div>
+            <div class="wf-body">
+                <div class="wf-meta">
+                    <span class="wf-nr">Zał. 4b</span>
+                </div>
+                <div class="wf-title">Wniosek o zaliczenie na podstawie doświadczenia zawodowego</div>
+                <div class="wf-hint">Wypełniasz ty – opisujesz doświadczenie i załączasz dowody.</div>
+            </div>
+            <div class="wf-actions">
+                {% if zal4b_status %}
+                    {% set sl = status_labels.get(zal4b_status, ('Złożono', 'status-draft')) %}
+                    <span class="status-badge {{ sl[1] }}">{{ sl[0] }}</span>
+                    {% if nr_albumu %}
+                    <a href="{{ url_for('zal4b_edit', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Edytuj</a>
+                    {% endif %}
+                {% elif nr_albumu %}
+                    <a href="{{ url_for('zal4b') }}" class="btn btn-sm">Wypełnij wniosek →</a>
+                {% else %}
+                    <span class="status-badge status-draft">Brak nr albumu</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# -- Zał. 4a -- #}
+        <div class="workflow-step wf-step-{{ 'completed' if zal4a_status == 'approved' else ('current' if zal4b_status else 'locked') }}">
+            <div class="wf-indicator">
+                {% if zal4a_status == 'approved' %}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                {% else %}2{% endif %}
+            </div>
+            <div class="wf-body">
+                <div class="wf-meta">
+                    <span class="wf-nr">Zał. 4a</span>
+                </div>
+                <div class="wf-title">Merytoryczna ocena wniosku</div>
+                <div class="wf-hint">Wypełnia opiekun uczelniany (UOPZ) po złożeniu wniosku przez Ciebie.</div>
+                <div class="wf-owner">Wypełnia: <strong>Opiekun Uczelniany (UOPZ)</strong></div>
+            </div>
+            <div class="wf-actions">
+                {% if zal4a_status %}
+                    {% set sl = status_labels.get(zal4a_status, ('Złożono', 'status-draft')) %}
+                    <span class="status-badge {{ sl[1] }}">{{ sl[0] }}</span>
+                    {% if nr_albumu %}
+                    <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-zal4a" class="btn btn-sm btn-secondary">Podgląd</a>
+                    {% endif %}
+                {% else %}
+                    <span class="status-badge status-pending">Oczekuje na UOPZ</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+
+{# ══ WIDOK PRACOWNICZY ══ #}
+<div class="card">
+    <div class="card-header">
+        <h2>Studenci – wnioski o zaliczenie przez doświadczenie</h2>
+        <input id="search" type="search" class="search-input"
+               placeholder="Szukaj po nazwisku lub nr albumu…" autocomplete="off"
+               style="max-width:260px">
+    </div>
+    {% if students %}
+    <div class="table-wrap">
+        <table class="table" id="students-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Nr albumu</th>
+                    <th style="text-align:center">Zał. 4b (Wniosek)</th>
+                    <th style="text-align:center">Zał. 4a (Ocena)</th>
+                    <th class="col-actions">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                {% if s.zal4b_status or s.zal4a_status or role == 'admin' %}
+                <tr class="student-row">
+                    <td><strong>{{ s.imie_nazwisko or '—' }}</strong></td>
+                    <td>{{ s.nr_albumu }}</td>
+                    <td style="text-align:center">
+                        {% if s.zal4b_status %}
+                            {% set sl = status_labels.get(s.zal4b_status, ('Złożono', 'status-draft')) %}
+                            <span class="status-badge {{ sl[1] }}">{{ sl[0] }}</span>
+                        {% else %}
+                            <span style="color:var(--muted)">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align:center">
+                        {% if s.zal4a_status %}
+                            {% set sl = status_labels.get(s.zal4a_status, ('Złożono', 'status-draft')) %}
+                            <span class="status-badge {{ sl[1] }}">{{ sl[0] }}</span>
+                        {% else %}
+                            <span style="color:var(--muted)">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <a href="{{ url_for('student_detail', nr_albumu=s.nr_albumu) }}" class="btn btn-sm">Dokumenty</a>
+                            {% if role in ('uopz', 'admin') and s.zal4b_status in ('pending', 'draft') %}
+                            <a href="{{ url_for('zal4a') }}?nr={{ s.nr_albumu }}" class="btn btn-sm btn-secondary">Oceń 4a</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-state">Brak studentów z wnioskami o zaliczenie przez doświadczenie.</p>
+    {% endif %}
+</div>
+
+{% endif %}
+</div>
+
+<script>
+(function () {
+    var rows = Array.from(document.querySelectorAll(".student-row"));
+    var searchEl = document.getElementById("search");
+    if (!searchEl) return;
+    searchEl.addEventListener("input", function () {
+        var q = this.value.toLowerCase();
+        rows.forEach(function (row) {
+            row.style.display = !q || row.textContent.toLowerCase().includes(q) ? "" : "none";
+        });
+    });
+})();
+</script>
+{% endblock %}

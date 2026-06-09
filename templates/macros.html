@@ -1,5 +1,22 @@
 {# Reusable macros for form templates #}
 
+{% macro rodo_clause(form_name='formularza') %}
+<details class="rodo-clause">
+    <summary class="rodo-summary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Klauzula informacyjna RODO – informacja o przetwarzaniu danych osobowych
+    </summary>
+    <div class="rodo-body">
+        <p><strong>Administrator danych:</strong> Akademia Nauk Stosowanych w Elblągu, ul. Wojska Polskiego 1, 82-300 Elbląg.</p>
+        <p><strong>Cel i podstawa przetwarzania:</strong> Dane zawarte w {{ form_name }} są przetwarzane w celu organizacji, dokumentowania i rozliczania praktyk zawodowych studentów, na podstawie art. 6 ust. 1 lit. c RODO (obowiązek prawny wynikający z ustawy Prawo o szkolnictwie wyższym i nauce) oraz art. 6 ust. 1 lit. e RODO (zadanie realizowane w interesie publicznym).</p>
+        <p><strong>Odbiorcy danych:</strong> Dane mogą być udostępniane podmiotom sprawującym nadzór nad uczelnią, organom uprawnionym z mocy prawa oraz zakładom pracy przyjmującym studentów na praktyki w zakresie niezbędnym do zawarcia i realizacji porozumień.</p>
+        <p><strong>Okres przechowywania:</strong> Dane przechowywane są przez okres wynikający z przepisów prawa archiwalnego, nie dłużej niż 10 lat od zakończenia cyklu kształcenia.</p>
+        <p><strong>Prawa osoby, której dane dotyczą:</strong> Prawo dostępu, sprostowania, usunięcia, ograniczenia przetwarzania, wniesienia sprzeciwu oraz prawo do wniesienia skargi do Prezesa UODO (ul. Stawki 2, 00-193 Warszawa).</p>
+        <p><strong>Kontakt z Inspektorem Ochrony Danych:</strong> iod@ans-elblag.pl</p>
+    </div>
+</details>
+{% endmacro %}
+
 {% macro sig_stamp(value, label) %}
 <div class="sig-box">
     <label>{{ label }}</label>

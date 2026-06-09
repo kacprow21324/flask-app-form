@@ -120,22 +120,18 @@ class ChromiumUserInterfaceTests(BrowserTestCase):
         self._screenshot("01-login-chromium.png")
         self._assert_no_browser_errors()
 
-    def test_02_admin_can_open_all_form_views(self):
+    def test_02_admin_can_open_all_documents_from_student_view(self):
         self._debug_login("Admin")
-        links = self.page.locator('.sidebar-link[href^="/zal"]')
-        form_urls = sorted(set(
-            links.nth(index).get_attribute("href")
-            for index in range(links.count())
-        ))
-        self.assertGreaterEqual(len(form_urls), 12)
-
-        for path in form_urls:
-            response = self.page.goto(BASE_URL + path)
-            self.assertIsNotNone(response)
-            self.assertLess(response.status, 400, path)
-            self.assertTrue(self.page.locator(".page-form").is_visible(), path)
-
-        self._screenshot("02-all-forms-last-view.png")
+        response = self.page.goto(f"{BASE_URL}/student/21001")
+        self.assertIsNotNone(response)
+        self.assertLess(response.status, 400)
+        self.assertGreaterEqual(self.page.locator(".attachment-card").count(), 12)
+        self.assertTrue(
+            self.page.get_by_role(
+                "button", name="Dokumenty", exact=True,
+            ).is_visible()
+        )
+        self._screenshot("02-all-documents-view.png")
         self._assert_no_browser_errors()
 
     def test_03_admin_rest_panel_runs_get_post_put_delete(self):
@@ -254,6 +250,16 @@ class ChromiumUserInterfaceTests(BrowserTestCase):
         self._debug_login("Student")
         self.page.goto(f"{BASE_URL}/zal1")
 
+        self.assertEqual(
+            self.page.locator('[name="nr_porozumienia"]').input_value(),
+            "ZAL-1-21001",
+        )
+        self.assertTrue(self.page.locator('[name="data"]').input_value())
+        self.assertEqual(
+            self.page.locator('[name="liczba_godzin"]').input_value(),
+            "960",
+        )
+
         name = self.page.locator('[name="imie_nazwisko"]')
         name.fill("")
         name.blur()
@@ -280,6 +286,29 @@ class ChromiumUserInterfaceTests(BrowserTestCase):
                 ".vmsg-err", has_text="NIP to 10 cyfr."
             ).is_visible()
         )
+
+        address = self.page.locator('[name="adres_zakladu"]')
+        address.fill("ulica Portowa")
+        address.blur()
+        self.assertTrue(
+            self.page.locator(
+                ".vmsg-err", has_text="Adres musi zawierać numer budynku."
+            ).is_visible()
+        )
+
+        representative = self.page.locator('[name="reprezentant_nazwisko"]')
+        representative.fill("Jan")
+        representative.blur()
+        self.assertTrue(
+            self.page.locator(
+                ".vmsg-err", has_text="Podaj imię i nazwisko"
+            ).is_visible()
+        )
+
+        city = self.page.locator('[name="miejscowosc"]')
+        city.fill("elbląg")
+        city.blur()
+        self.assertEqual(city.input_value(), "Elbląg")
 
         self.page.locator('[name="data_start"]').fill("2026-08-10")
         self.page.locator('[name="data_end"]').fill("2026-08-01")
@@ -327,7 +356,9 @@ class ChromiumUserInterfaceTests(BrowserTestCase):
 
     def test_07_admin_can_add_and_edit_internship_part(self):
         self._debug_login("Admin")
-        self.page.goto(f"{BASE_URL}/czesci-praktyki?nr=21001")
+        self.page.goto(
+            f"{BASE_URL}/praktyki?tab=czesci&nr=21001",
+        )
         create_form = self.page.locator(".internship-part-create form")
         create_form.locator('[name="name"]').fill("Część testowa E2E")
         create_form.locator('[name="company_name"]').fill("Firma E2E")
@@ -443,12 +474,12 @@ class FirefoxCompatibilityTests(BrowserTestCase):
         ).click()
         self.page.wait_for_url(f"{BASE_URL}/")
         self.page.get_by_role(
-            "link", name="Części praktyki", exact=True,
+            "link", name="Moje dokumenty", exact=True,
         ).click()
-        self.page.wait_for_url(f"{BASE_URL}/czesci-praktyki")
+        self.page.wait_for_url(f"{BASE_URL}/student/21001")
         self.assertTrue(
             self.page.get_by_role(
-                "heading", name="Części praktyki", exact=True,
+                "button", name="Dokumenty", exact=True,
             ).is_visible()
         )
         self._screenshot("12-firefox-student-view.png")

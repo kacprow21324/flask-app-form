@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Mój profil{% endblock %}
+{% block title %}{% if current_user.role == 'student' %}Mój profil{% else %}Profil konta{% endif %}{% endblock %}
 {% block content %}
-<div class="page" style="max-width:760px">
-    <h1>Mój profil</h1>
+<div class="page" style="max-width:900px">
+    <h1>{% if current_user.role == 'student' %}Mój profil{% else %}Profil konta{% endif %}</h1>
 
     <div class="doc-card" style="padding:24px 28px">
 
@@ -11,25 +11,32 @@
             <div class="form-row-2">
                 <div class="field-group">
                     <label>Imię i nazwisko</label>
-                    <input type="text" value="{{ current_user.full_name }}" readonly>
+                    <input type="text" value="{{ current_user.full_name }}" readonly aria-readonly="true">
                 </div>
                 <div class="field-group">
                     <label>E-mail</label>
-                    <input type="text" value="{{ current_user.email }}" readonly>
+                    <input type="text" value="{{ current_user.email }}" readonly aria-readonly="true">
                 </div>
             </div>
             {% if current_user.album_number %}
             <div class="field-group">
                 <label>Numer albumu</label>
-                <input type="text" value="{{ current_user.album_number }}" readonly>
+                <input type="text" value="{{ current_user.album_number }}" readonly aria-readonly="true">
             </div>
             {% endif %}
+            <div class="field-group" style="margin-top:10px">
+                <label>Rola</label>
+                <input type="text" value="{% if current_user.role == 'student' %}Student{% elif current_user.role == 'uopz' %}Opiekun Uczelniany (UOPZ){% elif current_user.role == 'zopz' %}Opiekun Zakładowy (ZOPZ){% elif current_user.role == 'dziekanat' %}Dziekanat{% elif current_user.role == 'admin' %}Administrator{% else %}{{ current_user.role }}{% endif %}" readonly aria-readonly="true">
+            </div>
         </div>
 
+        {% if current_user.role == 'student' %}
+        {# ── Pełny profil studenta ── #}
         <div class="profile-section" style="margin-top:20px">
             <div class="profile-section-title">Dane akademickie</div>
             <p style="margin-bottom:14px">Uzupełnij dane, które będą automatycznie wstawiane do formularzy.</p>
             <form method="post" action="{{ url_for('profil') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <div class="field-group">
                     <label for="speciality">Specjalność</label>
                     <select id="speciality" name="speciality">
@@ -65,7 +72,7 @@
 
                 <div class="field-group" style="margin-top:14px">
                     <label>Rodzaj studiów</label>
-                    <div class="radio-group">
+                    <div class="radio-group" role="radiogroup" aria-label="Rodzaj studiów">
                         <label class="radio">
                             <input type="radio" name="study_mode" value="stacjonarne"
                                    {% if not current_user.study_mode or current_user.study_mode == 'stacjonarne' %}checked{% endif %}>
@@ -77,10 +84,9 @@
                             Niestacjonarne
                         </label>
                     </div>
-                    <span class="field-hint">Będzie automatycznie zaznaczany w formularzach.</span>
                 </div>
                 <div class="field-group" style="margin-top:14px">
-                    <label for="gender">Płeć używana do odmiany treści dokumentów</label>
+                    <label for="gender">Płeć (do odmiany treści dokumentów)</label>
                     <select id="gender" name="gender" required>
                         <option value="K" {% if current_user.gender == 'K' %}selected{% endif %}>Kobieta</option>
                         <option value="M" {% if current_user.gender != 'K' %}selected{% endif %}>Mężczyzna</option>
@@ -92,6 +98,28 @@
                 </div>
             </form>
         </div>
+
+        {% else %}
+        {# ── Okrojony profil dla pracowników ── #}
+        <div class="profile-section" style="margin-top:20px">
+            <div class="profile-section-title">Płeć (do odmiany treści)</div>
+            <form method="post" action="{{ url_for('profil') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <div class="field-group">
+                    <label for="gender">Płeć</label>
+                    <select id="gender" name="gender">
+                        <option value="K" {% if current_user.gender == 'K' %}selected{% endif %}>Kobieta</option>
+                        <option value="M" {% if current_user.gender != 'K' %}selected{% endif %}>Mężczyzna</option>
+                    </select>
+                </div>
+                <div class="form-actions" style="margin-top:16px">
+                    <button class="btn" type="submit">Zapisz</button>
+                    <a class="btn btn-secondary" href="{{ url_for('index') }}">Anuluj</a>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
     </div>
 </div>
 {% endblock %}

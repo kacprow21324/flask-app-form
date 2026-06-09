@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Do zatwierdzenia{% endblock %}
+{% block content %}
+<div class="page">
+    <div class="page-top">
+        <div>
+            <h1>Do zatwierdzenia</h1>
+            <p class="subtitle">Dokumenty oczekujące na Twoją decyzję.</p>
+        </div>
+        {% if pending_reviews %}
+        <span class="status-badge status-pending">{{ pending_reviews|length }}</span>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        {% if pending_reviews %}
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Dokument</th>
+                        <th>Oczekuje od</th>
+                        <th class="col-actions">Akcja</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in pending_reviews %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.student_name }}</strong>
+                            <span class="wf-album">{{ item.nr_albumu }}</span>
+                        </td>
+                        <td>
+                            <strong>Zał. {{ item.att.nr }}</strong>
+                            <span class="text-muted d-block">{{ item.att.title }}</span>
+                        </td>
+                        <td>
+                            {{ item.updated_at.strftime('%d.%m.%Y %H:%M') if item.updated_at else '—' }}
+                        </td>
+                        <td>
+                            <a class="btn btn-sm"
+                               href="{{ url_for('formularz_recenzuj', nr_albumu=item.nr_albumu, zal_key=item.zal_key) }}">
+                                Recenzuj
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty-state">Brak dokumentów oczekujących na Twoją decyzję.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -8,10 +8,6 @@
 \doctitle{POROZUMIENIE O ORGANIZACJĘ PRAKTYKI ZAWODOWEJ ((* if female *))STUDENTKI((* else *))STUDENTA((* endif *))\\
 AKADEMII NAUK STOSOWANYCH W ELBLĄGU}
 
-\vspace{4pt}
-Porozumienie nr \textbf{(( data.nr_porozumienia | le ))} zawarte w
-\textbf{(( data.miejscowosc | le ))} dnia \textbf{(( data.data | le ))}
-
 \sectionrule
 \sectionlabel{A. Dane ((* if female *))studentki((* else *))studenta((* endif *))}
 
@@ -32,6 +28,10 @@ Porozumienie nr \textbf{(( data.nr_porozumienia | le ))} zawarte w
 \begin{minipage}[t]{\threecolW}
 \pfield{Forma studiów}{(( data.rodzaj_studiow | le ))}
 \end{minipage}
+
+\vspace{6pt}
+Porozumienie nr \textbf{(( data.nr_porozumienia | le ))} zawarte w
+\textbf{(( data.miejscowosc | le ))} dnia \textbf{(( data.data | le ))}
 
 \sectionrule
 \sectionlabel{B. Dane zakładu pracy}
@@ -54,6 +54,9 @@ Porozumienie nr \textbf{(( data.nr_porozumienia | le ))} zawarte w
 \pfield{Stanowisko}{(( data.reprezentant_stanowisko | le ))}
 \end{minipage}
 
+\vspace{4pt}
+\pfield{E-mail zakładu pracy}{(( data.email_zakladu | le ))}
+
 \sectionrule
 \sectionlabel{C. Termin i warunki praktyki}
 
@@ -75,10 +78,10 @@ Porozumienie nr \textbf{(( data.nr_porozumienia | le ))} zawarte w
 
 \vspace{6pt}
 \begin{minipage}[t]{\twocolA}
-\psig{Podpis zakładowego opiekuna (data, pieczęć)}{(( data.podpis_zakladowy | le ))}
+\psig{Podpis uczelnianego opiekuna (data, pieczęć)}{(( data.podpis_uczelniany | le ))}
 \end{minipage}\hfill
 \begin{minipage}[t]{\twocolB}
-\psig{Podpis uczelnianego opiekuna / Dyrektor IIS (data, pieczęć)}{(( data.podpis_uczelniany | le ))}
+\psig{Podpis dziekanatu (data, pieczęć)}{(( data.podpis_dziekanatu | le ))}
 \end{minipage}
 
 \end{document}

@@ -4,9 +4,9 @@
       "_status": "approved",
       "imie_nazwisko": "Aleksandra Kowalska",
       "nr_albumu": "21001",
-      "nr_porozumienia": "01/INF/2026",
+      "nr_porozumienia": "ZAL-1-21001",
       "miejscowosc": "Elbląg",
-      "data": "2026-03-15",
+      "data": "2026-06-09",
       "kierunek": "Informatyka",
       "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
       "rodzaj_studiow": "stacjonarne",
@@ -15,12 +15,13 @@
       "nip_zakladu": "589-212-34-56",
       "reprezentant_nazwisko": "Piotr Zieliński",
       "reprezentant_stanowisko": "Prezes Zarządu",
+      "email_zakladu": "biuro@technosystems.pl",
       "uczelniany_opiekun": "dr Irena Malinowska",
       "data_start": "2026-04-01",
       "data_end": "2026-05-31",
-      "liczba_godzin": "240",
-      "podpis_zakladowy": "Piotr Zieliński, Gdańsk, 2026-03-15",
-      "podpis_uczelniany": "dr Irena Malinowska, Elbląg, 2026-03-15"
+      "liczba_godzin": "960",
+      "podpis_uczelniany": "dr Irena Malinowska, 09.06.2026",
+      "podpis_dziekanatu": "Dorota Kamińska, 09.06.2026"
     },
     "zal2": {
       "_status": "approved",
@@ -126,7 +127,7 @@
       "_status": "pending",
       "imie_nazwisko": "Aleksandra Kowalska",
       "nr_albumu": "21001",
-      "nr_porozumienia": "01/INF/2026",
+      "nr_porozumienia": "ZAL-1-21001",
       "data_porozumienia": "2026-03-15",
       "zaklad_pracy": "Techno Systems Sp. z o.o.",
       "kierunek": "Informatyka",
@@ -145,10 +146,10 @@
       "zaswiadczenie_uwagi": "Studentka zrealizowała wszystkie zaplanowane zadania.",
       "zaswiadczenie_podpis": "Zbigniew Ostrowski, Gdańsk, 2026-06-01",
       "ocena_zakladowa_param": "5",
-      "ocena_zakladowa_opis": "Studentka wykazała dużą inicjatywę i kompetencje techniczne. Sprawnie realizowała zadania z zakresu administracji sieciowej.",
+      "ocena_zakladowa_opis": "Studentka wykazała dużą inicjatywę i kompetencje techniczne.",
       "podpis_zakladowy": "Zbigniew Ostrowski, 2026-06-01",
       "ocena_uczelniana_param": "5",
-      "ocena_uczelniana_opis": "Studentka aktywnie uczestniczyła w praktyce. Dokumentacja kompletna i zgodna z wymaganiami.",
+      "ocena_uczelniana_opis": "Studentka aktywnie uczestniczyła w praktyce.",
       "podpis_uczelniany": "dr Irena Malinowska, 2026-06-05",
       "ocena_sprawozdania": "5",
       "podpis_sprawozdanie": "dr Irena Malinowska, 2026-06-10"
@@ -159,9 +160,9 @@
       "nr_albumu": "21001",
       "kierunek": "Informatyka",
       "specjalnosc": "Administracja systemów i sieci komputerowych (ASiSK)",
-      "wymiar_godzin": "240",
+      "wymiar_godzin": "960",
       "potwierdzenie_opiekuna": "Zbigniew Ostrowski",
-      "opinia_opiekuna": "Studentka wykazała wysokie zaangażowanie i kompetencje. Polecam zaliczenie wszystkich efektów.",
+      "opinia_opiekuna": "Studentka wykazała wysokie zaangażowanie i kompetencje.",
       "efekty": [
         {
           "nr": 1,
@@ -290,7 +291,7 @@
         }
       ],
       "rekomendacja": "Zaliczam efekty uczenia się wskazane we wniosku studenta.",
-      "uwagi": "Studentka przedłożyła kompletną dokumentację potwierdzającą realizację efektów.",
+      "uwagi": "Studentka przedłożyła kompletną dokumentację.",
       "data_oceny": "2026-03-12",
       "podpis_uopz": "dr Irena Malinowska"
     },
@@ -383,7 +384,7 @@
       "kierunek": "Informatyka",
       "forma_studiow": "stacjonarne",
       "semestr": "6",
-      "liczba_godzin": "240",
+      "liczba_godzin": "960",
       "pytania": [
         {
           "nr": 1,
@@ -445,6 +446,7 @@
       "uwagi": "Praktyka w pełni odpowiadała moim oczekiwaniom zawodowym."
     },
     "zal6": {
+      "_status": "pending",
       "imie_nazwisko": "Aleksandra Kowalska",
       "nr_albumu": "21001",
       "kierunek": "Informatyka",
@@ -455,13 +457,82 @@
       "data_start": "2026-04-01",
       "data_end": "2026-05-31",
       "wykaz_zalacznikow": "Zaświadczenie od pracodawcy",
-      "dziennik": [],
-      "pliki": [],
-      "_status": "draft"
+      "dziennik": [
+        {
+          "dzien": "1",
+          "data": "2026-04-01",
+          "opis": "Zapoznanie z infrastrukturą sieciową firmy. Przegląd dokumentacji topologii LAN/WAN oraz schemat adresacji IP.",
+          "efekty": "1,2,4",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "2",
+          "data": "2026-04-02",
+          "opis": "Konfiguracja przełączników Cisco Catalyst 2960: tworzenie VLAN-ów dla działów, konfiguracja trunk portów.",
+          "efekty": "1,2,5",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "3",
+          "data": "2026-04-03",
+          "opis": "Konfiguracja routera brzegowego, ustawienie NAT i ACL. Dokumentacja zmian w rejestrze konfiguracji.",
+          "efekty": "1,2,7",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "4",
+          "data": "2026-04-04",
+          "opis": "Administracja Active Directory: zakładanie kont użytkowników, przypisywanie do grup, resetowanie haseł.",
+          "efekty": "2,6,10",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "5",
+          "data": "2026-04-05",
+          "opis": "Wdrożenie polityk GPO: blokada USB, wymuszenie hasła, mapowanie dysków sieciowych dla działów.",
+          "efekty": "2,3,6",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "6",
+          "data": "2026-04-06",
+          "opis": "Instalacja i konfiguracja serwera WSUS. Zaplanowanie harmonogramu aktualizacji dla stacji roboczych.",
+          "efekty": "2,5,9",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "7",
+          "data": "2026-04-07",
+          "opis": "Konfiguracja systemu monitoringu Zabbix: dodawanie hostów, ustawienie progów alertów, testy powiadomień.",
+          "efekty": "2,5,8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "8",
+          "data": "2026-04-08",
+          "opis": "Helpdesk: diagnoza awarii stacji roboczej (uszkodzony dysk), wymiana, reinstalacja systemu i migracja danych.",
+          "efekty": "6,8,11",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "9",
+          "data": "2026-04-09",
+          "opis": "Analiza logów systemowych serwera plików. Identyfikacja i usunięcie konta z podejrzaną aktywnością.",
+          "efekty": "3,7,8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "10",
+          "data": "2026-04-10",
+          "opis": "Tworzenie dokumentacji technicznej: schematy sieci, procedury odtwarzania backupu, opis konfiguracji VPN.",
+          "efekty": "5,7,12",
+          "podpis": "Zbigniew Ostrowski"
+        }
+      ]
     },
     "zal7": {
       "_status": "rejected",
-      "_rejection_comment": "Sprawozdanie wymaga rozbudowania sekcji opisu wykonanych prac. Proszę o uzupełnienie informacji dotyczących stosowanych technologii sieciowych i konkretnych zadań realizowanych w każdym tygodniu praktyki.",
+      "_rejection_comment": "Sprawozdanie wymaga rozbudowania sekcji opisu wykonanych prac.",
       "_rejection_by": "dr Irena Malinowska",
       "_field_comments": [
         {
@@ -480,15 +551,15 @@
       "rodzaj_studiow": "stacjonarne",
       "rok_akademicki": "2025/2026",
       "miejsce_praktyki": "Techno Systems Sp. z o.o.",
-      "charakterystyka": "Techno Systems Sp. z o.o. jest firmą informatyczną z Gdańska specjalizującą się w rozwiązaniach sieciowych i systemowych dla sektora MŚP. Zatrudnia 45 pracowników.",
-      "opis_prac": "Konfiguracja sieci LAN/WAN, administracja serwerami Linux/Windows Server, tworzenie dokumentacji technicznej, monitoring infrastruktury i helpdesk.",
-      "wiedza_umiejetnosci": "Zastosowałam wiedzę z administracji sieciowej i bezpieczeństwa IT. Nauczyłam się konfigurowania sprzętu Cisco i zarządzania serwerami produkcyjnymi.",
+      "charakterystyka": "Techno Systems Sp. z o.o. jest firmą informatyczną z Gdańska.",
+      "opis_prac": "Konfiguracja sieci LAN/WAN, administracja serwerami.",
+      "wiedza_umiejetnosci": "Zastosowałam wiedzę z administracji sieciowej.",
       "data": "2026-06-01",
       "podpis_studenta": "Aleksandra Kowalska",
       "podpis_przelozonego": ""
     },
     "zal7a": {
-      "_status": "pending",
+      "_status": "draft",
       "imie_nazwisko": "Aleksandra Kowalska",
       "nr_albumu": "21001",
       "kierunek": "Informatyka",
@@ -565,23 +636,24 @@
       "_status": "approved",
       "imie_nazwisko": "Marek Nowak",
       "nr_albumu": "21002",
-      "nr_porozumienia": "02/INF/2026",
+      "nr_porozumienia": "ZAL-1-21002",
       "miejscowosc": "Elbląg",
-      "data": "2026-02-20",
+      "data": "2026-06-09",
       "kierunek": "Informatyka",
       "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
-      "rodzaj_studiow": "stacjonarne",
+      "rodzaj_studiow": "niestacjonarne",
       "nazwa_zakladu": "DataSoft Sp. z o.o.",
       "adres_zakladu": "ul. Technologiczna 5, 10-062 Olsztyn",
       "nip_zakladu": "",
       "reprezentant_nazwisko": "Anna Kowalczyk",
       "reprezentant_stanowisko": "Dyrektor Techniczny",
+      "email_zakladu": "kontakt@datasoft.pl",
       "uczelniany_opiekun": "Irena Malinowska",
       "data_start": "2026-03-01",
       "data_end": "2026-04-30",
-      "liczba_godzin": "240",
-      "podpis_zakladowy": "Anna Kowalczyk",
-      "podpis_uczelniany": "Irena Malinowska"
+      "liczba_godzin": "960",
+      "podpis_uczelniany": "Irena Malinowska",
+      "podpis_dziekanatu": "Dorota Kamińska"
     },
     "zal2a": {
       "_status": "pending",
@@ -691,9 +763,9 @@
       "_status": "draft",
       "imie_nazwisko": "Katarzyna Wróbel",
       "nr_albumu": "21003",
-      "nr_porozumienia": "03/INF/2026",
+      "nr_porozumienia": "ZAL-1-21003",
       "miejscowosc": "Elbląg",
-      "data": "2026-02-20",
+      "data": "2026-06-09",
       "kierunek": "Informatyka",
       "specjalnosc": "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)",
       "rodzaj_studiow": "stacjonarne",
@@ -702,12 +774,13 @@
       "nip_zakladu": "",
       "reprezentant_nazwisko": "Tomasz Jabłoński",
       "reprezentant_stanowisko": "Kierownik Projektu",
+      "email_zakladu": "biuro@mediscan.pl",
       "uczelniany_opiekun": "Irena Malinowska",
       "data_start": "2026-05-01",
       "data_end": "2026-06-30",
-      "liczba_godzin": "240",
-      "podpis_zakladowy": "Tomasz Jabłoński",
-      "podpis_uczelniany": "Irena Malinowska"
+      "liczba_godzin": "960",
+      "podpis_uczelniany": "",
+      "podpis_dziekanatu": ""
     },
     "zal2a": {
       "_status": "draft",
@@ -810,6 +883,1324 @@
       "upowazniont_imie_nazwisko": "Tomasz Jabłoński",
       "upowazniont_stanowisko": "Kierownik Projektu",
       "podpis": "Tomasz Jabłoński, 2026-02-20"
+    }
+  },
+  "21004": {
+    "zal1": {
+      "_status": "approved",
+      "imie_nazwisko": "Michał Zając",
+      "nr_albumu": "21004",
+      "nr_porozumienia": "ZAL-1-21004",
+      "miejscowosc": "Elbląg",
+      "data": "2026-06-09",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "rodzaj_studiow": "stacjonarne",
+      "nazwa_zakladu": "NetCode Solutions Sp. z o.o.",
+      "adres_zakladu": "ul. Informatyczna 8, 10-062 Olsztyn",
+      "nip_zakladu": "739-354-12-98",
+      "reprezentant_nazwisko": "Karolina Dąbrowska",
+      "reprezentant_stanowisko": "Dyrektor Zarządzający",
+      "email_zakladu": "biuro@netcode.pl",
+      "uczelniany_opiekun": "dr Irena Malinowska",
+      "data_start": "2024-10-01",
+      "data_end": "2025-03-17",
+      "liczba_godzin": "960",
+      "podpis_uczelniany": "dr Irena Malinowska, 09.06.2026",
+      "podpis_dziekanatu": "Dorota Kamińska, 09.06.2026"
+    },
+    "zal2": {
+      "_status": "approved",
+      "nr_albumu": "21004",
+      "zaklad_pracy": "NetCode Solutions Sp. z o.o., ul. Informatyczna 8, 10-062 Olsztyn",
+      "data_start": "2024-10-01",
+      "data_end": "2025-03-17",
+      "data_uzgodnienia": "2024-10-01",
+      "podpis_zakladowy": "Karolina Dąbrowska, 2024-10-01",
+      "podpis_uczelniany": "dr Irena Malinowska, 2024-10-01"
+    },
+    "zal2a": {
+      "_status": "approved",
+      "imie_nazwisko": "Michał Zając",
+      "nr_albumu": "21004",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "miejsce_praktyki": "NetCode Solutions Sp. z o.o.",
+      "data_start": "2024-10-01",
+      "data_end": "2025-03-17",
+      "efekty_plan": [
+        {
+          "nr": 1,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 2,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 3,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 4,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 5,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 6,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 7,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 8,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 9,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 10,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 11,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 12,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        },
+        {
+          "nr": 13,
+          "dzial_prace": "Dział Rozwoju Oprogramowania"
+        }
+      ],
+      "harmonogram": [
+        {
+          "lp": 1,
+          "dzial": "Analiza i projektowanie bazy danych",
+          "dni": "30"
+        },
+        {
+          "lp": 2,
+          "dzial": "Implementacja API i warstwy logiki",
+          "dni": "40"
+        },
+        {
+          "lp": 3,
+          "dzial": "Testowanie i optymalizacja",
+          "dni": "30"
+        },
+        {
+          "lp": 4,
+          "dzial": "Wdrożenie i dokumentacja",
+          "dni": "20"
+        }
+      ],
+      "data_uzgodnienia": "2024-10-01",
+      "podpis_uczelniany": "dr Irena Malinowska",
+      "podpis_zakladowy": "Zbigniew Ostrowski",
+      "podpis_studenta": "Michał Zając"
+    },
+    "zal3": {
+      "_status": "approved",
+      "imie_nazwisko": "Michał Zając",
+      "nr_albumu": "21004",
+      "nr_porozumienia": "ZAL-1-21004",
+      "data_porozumienia": "2024-10-01",
+      "zaklad_pracy": "NetCode Solutions Sp. z o.o.",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "rodzaj_studiow": "stacjonarne",
+      "uczelniany_opiekun": "dr Irena Malinowska",
+      "data_start": "2024-10-01",
+      "data_end": "2025-03-17",
+      "zakladowy_opiekun_nazwisko": "Zbigniew Ostrowski",
+      "zakladowy_opiekun_funkcja": "Lider Techniczny",
+      "potwierdzenie_zgloszenia": "2024-10-01",
+      "potwierdzenie_bhp": "2024-10-01",
+      "zaswiadczenie_zaklad": "NetCode Solutions Sp. z o.o., ul. Informatyczna 8, 10-062 Olsztyn",
+      "zaswiadczenie_okres_od": "2024-10-01",
+      "zaswiadczenie_okres_do": "2025-03-17",
+      "zaswiadczenie_uwagi": "Student zrealizował wszystkie zaplanowane zadania z pełnym zaangażowaniem.",
+      "zaswiadczenie_podpis": "Zbigniew Ostrowski, Olsztyn, 2025-03-17",
+      "ocena_zakladowa_param": "5",
+      "ocena_zakladowa_opis": "Doskonała znajomość SQL i narzędzi deweloperskich.",
+      "podpis_zakladowy": "Zbigniew Ostrowski, 2025-03-17",
+      "ocena_uczelniana_param": "5",
+      "ocena_uczelniana_opis": "Student w pełni zrealizował program praktyki.",
+      "podpis_uczelniany": "dr Irena Malinowska, 2025-03-17",
+      "ocena_sprawozdania": "5",
+      "podpis_sprawozdanie": "dr Irena Malinowska, 2025-03-17"
+    },
+    "zal4": {
+      "_status": "approved",
+      "imie_nazwisko": "Michał Zając",
+      "nr_albumu": "21004",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "wymiar_godzin": "960",
+      "potwierdzenie_opiekuna": "Zbigniew Ostrowski",
+      "opinia_opiekuna": "Student wykazał doskonałe kompetencje programistyczne i bazodanowe.",
+      "efekty": [
+        {
+          "nr": 1,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 2,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 3,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 4,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 5,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 6,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 7,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 8,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 9,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 10,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 11,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 12,
+          "status": "uzyskał/a"
+        },
+        {
+          "nr": 13,
+          "status": "uzyskał/a"
+        }
+      ]
+    },
+    "zal5": {
+      "_status": "approved",
+      "nr_albumu": "21004",
+      "rok_akademicki": "2025/2026",
+      "kierunek": "Informatyka",
+      "forma_studiow": "stacjonarne",
+      "semestr": "6",
+      "liczba_godzin": "960",
+      "pytania": [
+        {
+          "nr": 1,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 2,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 3,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 4,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 5,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 6,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 7,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 8,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 9,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 10,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 11,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 12,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 13,
+          "odpowiedz": "zdecydowanie tak"
+        },
+        {
+          "nr": 14,
+          "odpowiedz": "zdecydowanie tak"
+        }
+      ],
+      "uwagi": "Praktyka dostarczyła cennego doświadczenia zawodowego."
+    },
+    "zal6": {
+      "_status": "approved",
+      "imie_nazwisko": "Michał Zając",
+      "nr_albumu": "21004",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "rodzaj_studiow": "stacjonarne",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "NetCode Solutions Sp. z o.o.",
+      "data_start": "2024-10-01",
+      "data_end": "2025-03-17",
+      "wykaz_zalacznikow": "Zaświadczenie od pracodawcy, dokumentacja projektu",
+      "dziennik": [
+        {
+          "dzien": "1",
+          "data": "2024-10-01",
+          "opis": "Analiza wymagań systemu bazodanowego. Spotkanie z klientem, diagram ER i dokumentacja wymagań.",
+          "efekty": "1,2,5",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "2",
+          "data": "2024-10-02",
+          "opis": "Projektowanie schematu relacyjnej bazy danych MySQL. Normalizacja do 3NF, klucze i relacje.",
+          "efekty": "1,2,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "3",
+          "data": "2024-10-03",
+          "opis": "Implementacja modelu ORM w SQLAlchemy. Tworzenie migracji Alembic i testy spójności danych.",
+          "efekty": "2,8,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "4",
+          "data": "2024-10-04",
+          "opis": "Optymalizacja zapytań SQL — analiza EXPLAIN, dodawanie indeksów pokrywających.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "5",
+          "data": "2024-10-07",
+          "opis": "Implementacja REST API w FastAPI. Endpointy CRUD, walidacja Pydantic, dokumentacja Swagger.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "6",
+          "data": "2024-10-08",
+          "opis": "Tworzenie procedur składowanych i widoków w MySQL. Testy wydajności i pokrycia.",
+          "efekty": "2,7,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "7",
+          "data": "2024-10-09",
+          "opis": "Konfiguracja środowiska Docker: docker-compose dla bazy i backendu, wolumeny trwałe.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "8",
+          "data": "2024-10-10",
+          "opis": "Implementacja autoryzacji JWT i hashowanie haseł bcrypt. Middleware weryfikacji tokenów.",
+          "efekty": "3,4,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "9",
+          "data": "2024-10-11",
+          "opis": "Pisanie testów pytest: jednostkowych i integracyjnych. Pokrycie kodu powyżej 80%.",
+          "efekty": "7,9,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "10",
+          "data": "2024-10-14",
+          "opis": "Helpdesk: diagnoza i naprawa błędów połączeń bazodanowych, wsparcie użytkowników.",
+          "efekty": "6,8,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "11",
+          "data": "2024-10-15",
+          "opis": "Analiza danych sprzedażowych — raport SQL, agregaty, grupowania, wykresy Chart.js.",
+          "efekty": "1,5,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "12",
+          "data": "2024-10-16",
+          "opis": "Dokumentacja techniczna API i modelu danych. Diagramy UML, opisy endpointów.",
+          "efekty": "5,7,12",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "13",
+          "data": "2024-10-17",
+          "opis": "Implementacja systemu backupu MySQL. Skrypty cron, testy przywracania bazy.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "14",
+          "data": "2024-10-18",
+          "opis": "Partycjonowanie tabel i archiwizacja historycznych rekordów sprzedaży.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "15",
+          "data": "2024-10-21",
+          "opis": "Code review — uwagi do kodu SQL kolegów: optymalizacje, wzorce, bezpieczeństwo.",
+          "efekty": "7,10,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "16",
+          "data": "2024-10-22",
+          "opis": "Frontend React: panel raportów z filtrami, wykresy interaktywne, eksport CSV.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "17",
+          "data": "2024-10-23",
+          "opis": "Integracja z zewnętrznym API płatności Stripe. Obsługa webhooków i idempotentność.",
+          "efekty": "2,3,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "18",
+          "data": "2024-10-24",
+          "opis": "Wdrożenie aplikacji na serwer produkcyjny. Nginx, SSL/TLS, monitoring Prometheus.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "19",
+          "data": "2024-10-25",
+          "opis": "Analiza logów produkcyjnych — identyfikacja błędów N+1, bottlenecków zapytań.",
+          "efekty": "1,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "20",
+          "data": "2024-10-28",
+          "opis": "Szkolenie nowego stażysty z architektury systemu. Przygotowanie materiałów onboarding.",
+          "efekty": "7,12,13",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "21",
+          "data": "2024-10-29",
+          "opis": "Analiza wymagań systemu bazodanowego. Spotkanie z klientem, diagram ER i dokumentacja wymagań.",
+          "efekty": "1,2,5",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "22",
+          "data": "2024-10-30",
+          "opis": "Projektowanie schematu relacyjnej bazy danych MySQL. Normalizacja do 3NF, klucze i relacje.",
+          "efekty": "1,2,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "23",
+          "data": "2024-10-31",
+          "opis": "Implementacja modelu ORM w SQLAlchemy. Tworzenie migracji Alembic i testy spójności danych.",
+          "efekty": "2,8,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "24",
+          "data": "2024-11-01",
+          "opis": "Optymalizacja zapytań SQL — analiza EXPLAIN, dodawanie indeksów pokrywających.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "25",
+          "data": "2024-11-04",
+          "opis": "Implementacja REST API w FastAPI. Endpointy CRUD, walidacja Pydantic, dokumentacja Swagger.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "26",
+          "data": "2024-11-05",
+          "opis": "Tworzenie procedur składowanych i widoków w MySQL. Testy wydajności i pokrycia.",
+          "efekty": "2,7,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "27",
+          "data": "2024-11-06",
+          "opis": "Konfiguracja środowiska Docker: docker-compose dla bazy i backendu, wolumeny trwałe.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "28",
+          "data": "2024-11-07",
+          "opis": "Implementacja autoryzacji JWT i hashowanie haseł bcrypt. Middleware weryfikacji tokenów.",
+          "efekty": "3,4,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "29",
+          "data": "2024-11-08",
+          "opis": "Pisanie testów pytest: jednostkowych i integracyjnych. Pokrycie kodu powyżej 80%.",
+          "efekty": "7,9,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "30",
+          "data": "2024-11-11",
+          "opis": "Helpdesk: diagnoza i naprawa błędów połączeń bazodanowych, wsparcie użytkowników.",
+          "efekty": "6,8,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "31",
+          "data": "2024-11-12",
+          "opis": "Analiza danych sprzedażowych — raport SQL, agregaty, grupowania, wykresy Chart.js.",
+          "efekty": "1,5,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "32",
+          "data": "2024-11-13",
+          "opis": "Dokumentacja techniczna API i modelu danych. Diagramy UML, opisy endpointów.",
+          "efekty": "5,7,12",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "33",
+          "data": "2024-11-14",
+          "opis": "Implementacja systemu backupu MySQL. Skrypty cron, testy przywracania bazy.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "34",
+          "data": "2024-11-15",
+          "opis": "Partycjonowanie tabel i archiwizacja historycznych rekordów sprzedaży.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "35",
+          "data": "2024-11-18",
+          "opis": "Code review — uwagi do kodu SQL kolegów: optymalizacje, wzorce, bezpieczeństwo.",
+          "efekty": "7,10,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "36",
+          "data": "2024-11-19",
+          "opis": "Frontend React: panel raportów z filtrami, wykresy interaktywne, eksport CSV.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "37",
+          "data": "2024-11-20",
+          "opis": "Integracja z zewnętrznym API płatności Stripe. Obsługa webhooków i idempotentność.",
+          "efekty": "2,3,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "38",
+          "data": "2024-11-21",
+          "opis": "Wdrożenie aplikacji na serwer produkcyjny. Nginx, SSL/TLS, monitoring Prometheus.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "39",
+          "data": "2024-11-22",
+          "opis": "Analiza logów produkcyjnych — identyfikacja błędów N+1, bottlenecków zapytań.",
+          "efekty": "1,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "40",
+          "data": "2024-11-25",
+          "opis": "Szkolenie nowego stażysty z architektury systemu. Przygotowanie materiałów onboarding.",
+          "efekty": "7,12,13",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "41",
+          "data": "2024-11-26",
+          "opis": "Analiza wymagań systemu bazodanowego. Spotkanie z klientem, diagram ER i dokumentacja wymagań.",
+          "efekty": "1,2,5",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "42",
+          "data": "2024-11-27",
+          "opis": "Projektowanie schematu relacyjnej bazy danych MySQL. Normalizacja do 3NF, klucze i relacje.",
+          "efekty": "1,2,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "43",
+          "data": "2024-11-28",
+          "opis": "Implementacja modelu ORM w SQLAlchemy. Tworzenie migracji Alembic i testy spójności danych.",
+          "efekty": "2,8,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "44",
+          "data": "2024-11-29",
+          "opis": "Optymalizacja zapytań SQL — analiza EXPLAIN, dodawanie indeksów pokrywających.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "45",
+          "data": "2024-12-02",
+          "opis": "Implementacja REST API w FastAPI. Endpointy CRUD, walidacja Pydantic, dokumentacja Swagger.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "46",
+          "data": "2024-12-03",
+          "opis": "Tworzenie procedur składowanych i widoków w MySQL. Testy wydajności i pokrycia.",
+          "efekty": "2,7,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "47",
+          "data": "2024-12-04",
+          "opis": "Konfiguracja środowiska Docker: docker-compose dla bazy i backendu, wolumeny trwałe.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "48",
+          "data": "2024-12-05",
+          "opis": "Implementacja autoryzacji JWT i hashowanie haseł bcrypt. Middleware weryfikacji tokenów.",
+          "efekty": "3,4,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "49",
+          "data": "2024-12-06",
+          "opis": "Pisanie testów pytest: jednostkowych i integracyjnych. Pokrycie kodu powyżej 80%.",
+          "efekty": "7,9,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "50",
+          "data": "2024-12-09",
+          "opis": "Helpdesk: diagnoza i naprawa błędów połączeń bazodanowych, wsparcie użytkowników.",
+          "efekty": "6,8,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "51",
+          "data": "2024-12-10",
+          "opis": "Analiza danych sprzedażowych — raport SQL, agregaty, grupowania, wykresy Chart.js.",
+          "efekty": "1,5,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "52",
+          "data": "2024-12-11",
+          "opis": "Dokumentacja techniczna API i modelu danych. Diagramy UML, opisy endpointów.",
+          "efekty": "5,7,12",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "53",
+          "data": "2024-12-12",
+          "opis": "Implementacja systemu backupu MySQL. Skrypty cron, testy przywracania bazy.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "54",
+          "data": "2024-12-13",
+          "opis": "Partycjonowanie tabel i archiwizacja historycznych rekordów sprzedaży.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "55",
+          "data": "2024-12-16",
+          "opis": "Code review — uwagi do kodu SQL kolegów: optymalizacje, wzorce, bezpieczeństwo.",
+          "efekty": "7,10,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "56",
+          "data": "2024-12-17",
+          "opis": "Frontend React: panel raportów z filtrami, wykresy interaktywne, eksport CSV.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "57",
+          "data": "2024-12-18",
+          "opis": "Integracja z zewnętrznym API płatności Stripe. Obsługa webhooków i idempotentność.",
+          "efekty": "2,3,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "58",
+          "data": "2024-12-19",
+          "opis": "Wdrożenie aplikacji na serwer produkcyjny. Nginx, SSL/TLS, monitoring Prometheus.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "59",
+          "data": "2024-12-20",
+          "opis": "Analiza logów produkcyjnych — identyfikacja błędów N+1, bottlenecków zapytań.",
+          "efekty": "1,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "60",
+          "data": "2024-12-23",
+          "opis": "Szkolenie nowego stażysty z architektury systemu. Przygotowanie materiałów onboarding.",
+          "efekty": "7,12,13",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "61",
+          "data": "2024-12-24",
+          "opis": "Analiza wymagań systemu bazodanowego. Spotkanie z klientem, diagram ER i dokumentacja wymagań.",
+          "efekty": "1,2,5",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "62",
+          "data": "2024-12-25",
+          "opis": "Projektowanie schematu relacyjnej bazy danych MySQL. Normalizacja do 3NF, klucze i relacje.",
+          "efekty": "1,2,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "63",
+          "data": "2024-12-26",
+          "opis": "Implementacja modelu ORM w SQLAlchemy. Tworzenie migracji Alembic i testy spójności danych.",
+          "efekty": "2,8,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "64",
+          "data": "2024-12-27",
+          "opis": "Optymalizacja zapytań SQL — analiza EXPLAIN, dodawanie indeksów pokrywających.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "65",
+          "data": "2024-12-30",
+          "opis": "Implementacja REST API w FastAPI. Endpointy CRUD, walidacja Pydantic, dokumentacja Swagger.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "66",
+          "data": "2024-12-31",
+          "opis": "Tworzenie procedur składowanych i widoków w MySQL. Testy wydajności i pokrycia.",
+          "efekty": "2,7,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "67",
+          "data": "2025-01-01",
+          "opis": "Konfiguracja środowiska Docker: docker-compose dla bazy i backendu, wolumeny trwałe.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "68",
+          "data": "2025-01-02",
+          "opis": "Implementacja autoryzacji JWT i hashowanie haseł bcrypt. Middleware weryfikacji tokenów.",
+          "efekty": "3,4,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "69",
+          "data": "2025-01-03",
+          "opis": "Pisanie testów pytest: jednostkowych i integracyjnych. Pokrycie kodu powyżej 80%.",
+          "efekty": "7,9,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "70",
+          "data": "2025-01-06",
+          "opis": "Helpdesk: diagnoza i naprawa błędów połączeń bazodanowych, wsparcie użytkowników.",
+          "efekty": "6,8,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "71",
+          "data": "2025-01-07",
+          "opis": "Analiza danych sprzedażowych — raport SQL, agregaty, grupowania, wykresy Chart.js.",
+          "efekty": "1,5,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "72",
+          "data": "2025-01-08",
+          "opis": "Dokumentacja techniczna API i modelu danych. Diagramy UML, opisy endpointów.",
+          "efekty": "5,7,12",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "73",
+          "data": "2025-01-09",
+          "opis": "Implementacja systemu backupu MySQL. Skrypty cron, testy przywracania bazy.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "74",
+          "data": "2025-01-10",
+          "opis": "Partycjonowanie tabel i archiwizacja historycznych rekordów sprzedaży.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "75",
+          "data": "2025-01-13",
+          "opis": "Code review — uwagi do kodu SQL kolegów: optymalizacje, wzorce, bezpieczeństwo.",
+          "efekty": "7,10,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "76",
+          "data": "2025-01-14",
+          "opis": "Frontend React: panel raportów z filtrami, wykresy interaktywne, eksport CSV.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "77",
+          "data": "2025-01-15",
+          "opis": "Integracja z zewnętrznym API płatności Stripe. Obsługa webhooków i idempotentność.",
+          "efekty": "2,3,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "78",
+          "data": "2025-01-16",
+          "opis": "Wdrożenie aplikacji na serwer produkcyjny. Nginx, SSL/TLS, monitoring Prometheus.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "79",
+          "data": "2025-01-17",
+          "opis": "Analiza logów produkcyjnych — identyfikacja błędów N+1, bottlenecków zapytań.",
+          "efekty": "1,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "80",
+          "data": "2025-01-20",
+          "opis": "Szkolenie nowego stażysty z architektury systemu. Przygotowanie materiałów onboarding.",
+          "efekty": "7,12,13",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "81",
+          "data": "2025-01-21",
+          "opis": "Analiza wymagań systemu bazodanowego. Spotkanie z klientem, diagram ER i dokumentacja wymagań.",
+          "efekty": "1,2,5",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "82",
+          "data": "2025-01-22",
+          "opis": "Projektowanie schematu relacyjnej bazy danych MySQL. Normalizacja do 3NF, klucze i relacje.",
+          "efekty": "1,2,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "83",
+          "data": "2025-01-23",
+          "opis": "Implementacja modelu ORM w SQLAlchemy. Tworzenie migracji Alembic i testy spójności danych.",
+          "efekty": "2,8,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "84",
+          "data": "2025-01-24",
+          "opis": "Optymalizacja zapytań SQL — analiza EXPLAIN, dodawanie indeksów pokrywających.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "85",
+          "data": "2025-01-27",
+          "opis": "Implementacja REST API w FastAPI. Endpointy CRUD, walidacja Pydantic, dokumentacja Swagger.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "86",
+          "data": "2025-01-28",
+          "opis": "Tworzenie procedur składowanych i widoków w MySQL. Testy wydajności i pokrycia.",
+          "efekty": "2,7,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "87",
+          "data": "2025-01-29",
+          "opis": "Konfiguracja środowiska Docker: docker-compose dla bazy i backendu, wolumeny trwałe.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "88",
+          "data": "2025-01-30",
+          "opis": "Implementacja autoryzacji JWT i hashowanie haseł bcrypt. Middleware weryfikacji tokenów.",
+          "efekty": "3,4,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "89",
+          "data": "2025-01-31",
+          "opis": "Pisanie testów pytest: jednostkowych i integracyjnych. Pokrycie kodu powyżej 80%.",
+          "efekty": "7,9,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "90",
+          "data": "2025-02-03",
+          "opis": "Helpdesk: diagnoza i naprawa błędów połączeń bazodanowych, wsparcie użytkowników.",
+          "efekty": "6,8,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "91",
+          "data": "2025-02-04",
+          "opis": "Analiza danych sprzedażowych — raport SQL, agregaty, grupowania, wykresy Chart.js.",
+          "efekty": "1,5,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "92",
+          "data": "2025-02-05",
+          "opis": "Dokumentacja techniczna API i modelu danych. Diagramy UML, opisy endpointów.",
+          "efekty": "5,7,12",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "93",
+          "data": "2025-02-06",
+          "opis": "Implementacja systemu backupu MySQL. Skrypty cron, testy przywracania bazy.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "94",
+          "data": "2025-02-07",
+          "opis": "Partycjonowanie tabel i archiwizacja historycznych rekordów sprzedaży.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "95",
+          "data": "2025-02-10",
+          "opis": "Code review — uwagi do kodu SQL kolegów: optymalizacje, wzorce, bezpieczeństwo.",
+          "efekty": "7,10,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "96",
+          "data": "2025-02-11",
+          "opis": "Frontend React: panel raportów z filtrami, wykresy interaktywne, eksport CSV.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "97",
+          "data": "2025-02-12",
+          "opis": "Integracja z zewnętrznym API płatności Stripe. Obsługa webhooków i idempotentność.",
+          "efekty": "2,3,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "98",
+          "data": "2025-02-13",
+          "opis": "Wdrożenie aplikacji na serwer produkcyjny. Nginx, SSL/TLS, monitoring Prometheus.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "99",
+          "data": "2025-02-14",
+          "opis": "Analiza logów produkcyjnych — identyfikacja błędów N+1, bottlenecków zapytań.",
+          "efekty": "1,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "100",
+          "data": "2025-02-17",
+          "opis": "Szkolenie nowego stażysty z architektury systemu. Przygotowanie materiałów onboarding.",
+          "efekty": "7,12,13",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "101",
+          "data": "2025-02-18",
+          "opis": "Analiza wymagań systemu bazodanowego. Spotkanie z klientem, diagram ER i dokumentacja wymagań.",
+          "efekty": "1,2,5",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "102",
+          "data": "2025-02-19",
+          "opis": "Projektowanie schematu relacyjnej bazy danych MySQL. Normalizacja do 3NF, klucze i relacje.",
+          "efekty": "1,2,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "103",
+          "data": "2025-02-20",
+          "opis": "Implementacja modelu ORM w SQLAlchemy. Tworzenie migracji Alembic i testy spójności danych.",
+          "efekty": "2,8,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "104",
+          "data": "2025-02-21",
+          "opis": "Optymalizacja zapytań SQL — analiza EXPLAIN, dodawanie indeksów pokrywających.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "105",
+          "data": "2025-02-24",
+          "opis": "Implementacja REST API w FastAPI. Endpointy CRUD, walidacja Pydantic, dokumentacja Swagger.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "106",
+          "data": "2025-02-25",
+          "opis": "Tworzenie procedur składowanych i widoków w MySQL. Testy wydajności i pokrycia.",
+          "efekty": "2,7,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "107",
+          "data": "2025-02-26",
+          "opis": "Konfiguracja środowiska Docker: docker-compose dla bazy i backendu, wolumeny trwałe.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "108",
+          "data": "2025-02-27",
+          "opis": "Implementacja autoryzacji JWT i hashowanie haseł bcrypt. Middleware weryfikacji tokenów.",
+          "efekty": "3,4,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "109",
+          "data": "2025-02-28",
+          "opis": "Pisanie testów pytest: jednostkowych i integracyjnych. Pokrycie kodu powyżej 80%.",
+          "efekty": "7,9,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "110",
+          "data": "2025-03-03",
+          "opis": "Helpdesk: diagnoza i naprawa błędów połączeń bazodanowych, wsparcie użytkowników.",
+          "efekty": "6,8,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "111",
+          "data": "2025-03-04",
+          "opis": "Analiza danych sprzedażowych — raport SQL, agregaty, grupowania, wykresy Chart.js.",
+          "efekty": "1,5,7",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "112",
+          "data": "2025-03-05",
+          "opis": "Dokumentacja techniczna API i modelu danych. Diagramy UML, opisy endpointów.",
+          "efekty": "5,7,12",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "113",
+          "data": "2025-03-06",
+          "opis": "Implementacja systemu backupu MySQL. Skrypty cron, testy przywracania bazy.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "114",
+          "data": "2025-03-07",
+          "opis": "Partycjonowanie tabel i archiwizacja historycznych rekordów sprzedaży.",
+          "efekty": "2,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "115",
+          "data": "2025-03-10",
+          "opis": "Code review — uwagi do kodu SQL kolegów: optymalizacje, wzorce, bezpieczeństwo.",
+          "efekty": "7,10,11",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "116",
+          "data": "2025-03-11",
+          "opis": "Frontend React: panel raportów z filtrami, wykresy interaktywne, eksport CSV.",
+          "efekty": "2,6,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "117",
+          "data": "2025-03-12",
+          "opis": "Integracja z zewnętrznym API płatności Stripe. Obsługa webhooków i idempotentność.",
+          "efekty": "2,3,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "118",
+          "data": "2025-03-13",
+          "opis": "Wdrożenie aplikacji na serwer produkcyjny. Nginx, SSL/TLS, monitoring Prometheus.",
+          "efekty": "2,4,9",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "119",
+          "data": "2025-03-14",
+          "opis": "Analiza logów produkcyjnych — identyfikacja błędów N+1, bottlenecków zapytań.",
+          "efekty": "1,5,8",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        },
+        {
+          "dzien": "120",
+          "data": "2025-03-17",
+          "opis": "Szkolenie nowego stażysty z architektury systemu. Przygotowanie materiałów onboarding.",
+          "efekty": "7,12,13",
+          "godziny": "8",
+          "podpis": "Zbigniew Ostrowski"
+        }
+      ]
+    },
+    "zal7": {
+      "_status": "approved",
+      "imie_nazwisko": "Michał Zając",
+      "nr_albumu": "21004",
+      "kierunek": "Informatyka",
+      "specjalnosc": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
+      "rodzaj_studiow": "stacjonarne",
+      "rok_akademicki": "2025/2026",
+      "miejsce_praktyki": "NetCode Solutions Sp. z o.o.",
+      "charakterystyka": "NetCode Solutions Sp. z o.o. to dynamiczna firma informatyczna z Olsztyna specjalizująca się w tworzeniu systemów bazodanowych i aplikacji webowych dla sektora e-commerce. Zatrudnia ponad 50 specjalistów IT, używa technologii: Python, FastAPI, MySQL, Docker, React.",
+      "opis_prac": "W trakcie praktyki realizowałem zadania z zakresu projektowania i optymalizacji baz danych MySQL, implementacji REST API w FastAPI, konfiguracji środowisk Docker, tworzenia testów automatycznych i wdrożeń produkcyjnych. Uczestniczyłem w code review i projektowaniu nowych funkcjonalności systemu e-commerce.",
+      "wiedza_umiejetnosci": "Praktyka znacząco rozwinęła moje umiejętności w zakresie inżynierii danych, projektowania skalowalnych systemów bazodanowych, optymalizacji zapytań SQL i stosowania wzorców REST API. Poznałem metodykę Agile i narzędzia CI/CD (GitLab, Docker, Nginx).",
+      "data": "2025-03-17",
+      "podpis_studenta": "Michał Zając",
+      "podpis_przelozonego": "Zbigniew Ostrowski"
+    },
+    "zal8": {
+      "_status": "approved",
+      "imie_nazwisko": "Michał Zając",
+      "nr_albumu": "21004",
+      "miejsca_praktyki": [
+        {
+          "nazwa": "NetCode Solutions Sp. z o.o., ul. Informatyczna 8, 10-062 Olsztyn",
+          "okres": "2024-10-01 – 2025-03-17",
+          "dni": "120"
+        }
+      ],
+      "ocena_s": "5",
+      "data_s": "2025-03-17",
+      "podpis_s": "dr Irena Malinowska",
+      "ocena_u": "5",
+      "ocena_z": "5",
+      "sklad_komisji": "dr Irena Malinowska (przewodnicząca), mgr Tomasz Witek, mgr Anna Kowalczyk",
+      "data_zaliczenia": "2025-03-17",
+      "przewodniczacy": "dr Irena Malinowska",
+      "czlonek_2": "mgr Tomasz Witek",
+      "czlonek_3": "mgr Anna Kowalczyk",
+      "czlonek_4": "",
+      "mini_zadania": [
+        {
+          "tresc": "Opisz zastosowaną architekturę bazy danych i uzasadnij wybór technologii.",
+          "ocena": "5"
+        },
+        {
+          "tresc": "Omów podejście do optymalizacji zapytań i strategię indeksowania.",
+          "ocena": "5"
+        },
+        {
+          "tresc": "Przedstaw wdrożone mechanizmy bezpieczeństwa i autoryzacji.",
+          "ocena": "5"
+        }
+      ],
+      "ocena_e": "5",
+      "ocena_k": "5"
     }
   }
 }

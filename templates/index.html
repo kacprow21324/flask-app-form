@@ -38,7 +38,7 @@
                 {{ workflow|selectattr('complete')|list|length }}&nbsp;<span style="font-size:1rem; color:var(--muted); font-weight:400">/ {{ workflow|length }}</span>
             </div>
             {% if nr_albumu and filled %}
-            <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Pełny podgląd →</a>
+            <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}" class="btn btn-sm btn-secondary">Moje dokumenty →</a>
             {% endif %}
         </div>
     </div>
@@ -80,7 +80,7 @@
                         <span class="status-badge {{ sl[1] }}">{{ sl[0] }}</span>
                         <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ step.key }}" class="btn btn-sm">Kontynuuj →</a>
                     {% elif step.key in editable_forms %}
-                        <a href="{{ url_for(step.key) }}" class="btn btn-sm">Wypełnij →</a>
+                        <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}#doc-{{ step.key }}" class="btn btn-sm">Przejdź do dokumentu →</a>
                     {% else %}
                         <span class="status-badge status-pending">Oczekuje na {{ step.owner_label }}</span>
                     {% endif %}
@@ -98,7 +98,7 @@
             <span class="subtitle" style="font-size:0.83rem">Te formularze wypełniają Twoi opiekunowie i dziekanat</span>
         </div>
         <div style="padding:8px 20px 16px; display:flex; flex-wrap:wrap; gap:10px">
-            {% set supervisor_keys = ['zal2', 'zal3', 'zal4', 'zal4a', 'zal8', 'zal9'] %}
+            {% set supervisor_keys = ['zal2', 'zal3', 'zal4', 'zal4a', 'zal8'] %}
             {% for att in attachments %}
                 {% if att.key in supervisor_keys %}
                 {% set r = student_forms.get(att.key) %}
@@ -128,12 +128,25 @@
         'dziekanat': 'Dziekanat',
         'admin': 'Administrator'
     } %}
-    <h1>Dashboard – {{ role_labels.get(role, role) }}</h1>
+    <div class="workflow-page-header">
+        <div>
+            <h1>Dashboard – {{ role_labels.get(role, role) }}</h1>
+            <p class="subtitle">Lista studentów, statusy dokumentów i sprawy wymagające działania.</p>
+        </div>
+        <form method="get" class="workflow-year-form">
+            <label for="dashboard-year">Rok akademicki</label>
+            <select id="dashboard-year" name="rok" onchange="this.form.submit()">
+                {% for year in academic_years %}
+                <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
 
     {# Informacja o zakresie formularzy dla danej roli #}
     {% set role_desc = {
         'uopz': 'Możesz wypełniać: Zał. 2 (Program praktyki) i Zał. 4a (Ocena wniosku studenta). Pozostałe formularze – tylko podgląd.',
-        'zopz': 'Możesz wypełniać: Zał. 3 (Karta praktyki), Zał. 4 (Potwierdzenie efektów), Zał. 9 (Oświadczenie instytucji).',
+        'zopz': 'Możesz wypełniać: Zał. 3 (Karta praktyki), Zał. 4 (Potwierdzenie efektów).',
         'dziekanat': 'Możesz wypełniać: Zał. 8 (Protokół zaliczenia praktyki). Wszystkie pozostałe formularze – tylko podgląd.',
         'admin': 'Pełny dostęp do wszystkich formularzy wszystkich studentów.'
     } %}
@@ -148,7 +161,9 @@
     <div class="card pending-card">
         <div class="card-header">
             <h2>Dokumenty oczekujące na Twoją decyzję</h2>
-            <span class="status-badge status-pending">{{ pending_reviews | length }}</span>
+            <a href="{{ url_for('do_zatwierdzenia') }}" class="btn btn-sm btn-secondary">
+                Pokaż całą kolejkę ({{ pending_reviews | length }})
+            </a>
         </div>
         <div class="pending-list">
             {% for pr in pending_reviews %}
@@ -157,10 +172,77 @@
                     <strong>Zał. {{ pr.att.nr }}</strong> — {{ pr.att.title }}
                     <span class="pending-student">Student: {{ pr.student_name }}</span>
                 </div>
-                <a href="{{ url_for('student_detail', nr_albumu=pr.nr_albumu) }}#doc-{{ pr.zal_key }}"
+                <a href="{{ url_for('formularz_recenzuj', nr_albumu=pr.nr_albumu, zal_key=pr.zal_key) }}"
                    class="btn btn-sm">Rozpatrz →</a>
             </div>
             {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if students and workflow_phases %}
+    <div class="card workflow-table-card">
+        <div class="card-header" style="flex-wrap:wrap; gap:10px">
+            <h2>Workflow dokumentów</h2>
+            <div class="wf-legend">
+                <span class="wf-dot dot-approved"></span> Zatwierdzony
+                <span class="wf-dot dot-pending"></span> Oczekuje
+                <span class="wf-dot dot-rejected"></span> Odrzucony
+                <span class="wf-dot dot-draft"></span> Szkic
+                <span class="wf-dot dot-none"></span> Brak
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="wf-grid-table workflow-overview-table">
+                <thead>
+                    <tr>
+                        <th class="wf-col-student" rowspan="2">Student</th>
+                        {% for phase in workflow_phases %}
+                        <th class="wf-phase-th" colspan="{{ phase['keys'] | length }}">
+                            {{ phase.label }}
+                            <span class="wf-phase-sub">{{ phase.subtitle }}</span>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        {% for phase in workflow_phases %}
+                            {% for key in phase['keys'] %}
+                            {% set att = attachment_map.get(key) %}
+                            <th class="wf-att-th" title="{{ att.title if att else key }}">
+                                Zał. {{ att.nr if att else key }}
+                            </th>
+                            {% endfor %}
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr>
+                        <td class="wf-col-student">
+                            <a href="{{ url_for('student_detail', nr_albumu=s.nr_albumu) }}">
+                                <strong>{{ s.imie_nazwisko or s.nr_albumu }}</strong>
+                            </a>
+                            <span class="text-muted d-block">{{ s.nr_albumu }}</span>
+                        </td>
+                        {% for phase in workflow_phases %}
+                            {% for key in phase['keys'] %}
+                            {% set wrong_report = (key == 'zal7a' and s.study_mode != 'niestacjonarne') or (key == 'zal7' and s.study_mode == 'niestacjonarne') %}
+                            {% set status = s.statuses.get(key) %}
+                            <td>
+                                {% if wrong_report %}
+                                <span class="text-muted">—</span>
+                                {% else %}
+                                <a class="wf-dot dot-{{ status or 'none' }}"
+                                   href="{{ url_for('student_detail', nr_albumu=s.nr_albumu) }}#doc-{{ key }}"
+                                   title="{{ status_labels.get(status, ('Brak', ''))[0] }}"></a>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
     {% endif %}
@@ -228,9 +310,9 @@
                             <div class="progress-pill" style="min-width:90px">
                                 <div class="progress-bar-wrap">
                                     <div class="progress-bar-fill"
-                                         style="width:{{ (s.count / attachments|length * 100)|int }}%"></div>
+                                         style="width:{{ (s.count / s.document_count * 100)|int if s.document_count else 0 }}%"></div>
                                 </div>
-                                {{ s.count }}&nbsp;/&nbsp;{{ attachments|length }}
+                                {{ s.count }}&nbsp;/&nbsp;{{ s.document_count }}
                             </div>
                         </td>
                         <td style="text-align:center; font-weight:600; color:#15803d">
@@ -259,14 +341,7 @@
                         <td>
                             <div class="row-actions">
                                 <a href="{{ url_for('student_detail', nr_albumu=s.nr_albumu) }}"
-                                   class="btn btn-sm">Podgląd</a>
-                                {% if not s.zal8_status %}
-                                <a href="{{ url_for('zal8') }}?nr={{ s.nr_albumu }}"
-                                   class="btn btn-sm btn-secondary">Zał. 8</a>
-                                {% elif s.zal8_status in ('draft', 'rejected') %}
-                                <a href="{{ url_for('zal8_edit', nr_albumu=s.nr_albumu) }}"
-                                   class="btn btn-sm btn-secondary">Edytuj Zał. 8</a>
-                                {% endif %}
+                                   class="btn btn-sm">Dokumenty</a>
                             </div>
                         </td>
                     </tr>
@@ -311,7 +386,7 @@
                             <div class="progress-pill">
                                 <div class="progress-bar-wrap">
                                     <div class="progress-bar-fill"
-                                         style="width: {{ (s.count / attachments|length * 100) | int }}%"></div>
+                                         style="width: {{ (s.count / s.document_count * 100) | int if s.document_count else 0 }}%"></div>
                                 </div>
                                 {{ s.count }}&nbsp;/&nbsp;{{ attachments | length }}
                             </div>

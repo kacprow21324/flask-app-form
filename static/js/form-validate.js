@@ -34,13 +34,26 @@
         if (c === 10 || c !== parseInt(d[9], 10)) return [false, "Błędna suma kontrolna NIP."];
         return [true, "NIP poprawny."];
     }
-    function email(v) {
+    function email(v, required) {
         v = (v || "").trim();
-        if (!v) return [false, "Adres e-mail jest wymagany."];
+        if (!v) return required ? [false, "Adres e-mail jest wymagany."] : [true, ""];
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) {
             return [false, "Podaj poprawny adres e-mail."];
         }
         return [true, ""];
+    }
+    function address(v) {
+        v = (v || "").trim().replace(/\s+/g, " ");
+        if (!v) return [false, "Adres zakładu pracy jest wymagany."];
+        if (v.length < 8) return [false, "Adres zakładu pracy jest zbyt krótki."];
+        if (!/\p{L}/u.test(v)) return [false, "Adres musi zawierać nazwę ulicy lub miejscowości."];
+        if (!/\d/.test(v)) return [false, "Adres musi zawierać numer budynku."];
+        return [true, ""];
+    }
+    function requiredHours(v) {
+        return String(v).trim() === "960"
+            ? [true, ""]
+            : [false, "Wymagana liczba godzin praktyki to 960."];
     }
     function diaryDay(v) {
         var value = Number(v);
@@ -91,12 +104,36 @@
     }
 
     document.querySelectorAll('[name="imie_nazwisko"]').forEach(function (f) { bind(f, fullName); });
+    document.querySelectorAll('[name="reprezentant_nazwisko"]').forEach(function (f) { bind(f, fullName); });
     document.querySelectorAll('[name="nr_albumu"]').forEach(function (f) { bind(f, album); });
+    document.querySelectorAll('[name="adres_zakladu"]').forEach(function (f) { bind(f, address); });
     document.querySelectorAll('[name="nip_zakladu"]').forEach(function (f) { bind(f, nip); });
-    document.querySelectorAll('input[type="email"]').forEach(function (f) { bind(f, email); });
+    document.querySelectorAll('input[type="email"]').forEach(function (f) {
+        bind(f, function (value) { return email(value, f.required); });
+    });
+    document.querySelectorAll('[data-required-hours="960"]').forEach(function (f) { bind(f, requiredHours); });
     document.querySelectorAll('.day-input').forEach(function (f) { bind(f, diaryDay); });
     document.querySelectorAll('.hours-input').forEach(function (f) { bind(f, diaryHours); });
     document.querySelectorAll('textarea[name="opis[]"]').forEach(function (f) { bind(f, diaryOpis); });
+
+    document.querySelectorAll('[name="miejscowosc"]').forEach(function (field) {
+        field.addEventListener('blur', function () {
+            var value = field.value.trim().replace(/\s+/g, " ");
+            field.value = value ? value.charAt(0).toLocaleUpperCase('pl-PL') + value.slice(1) : "";
+        });
+    });
+
+    var agreementNumber = document.querySelector('[name="nr_porozumienia"]');
+    var albumNumber = document.querySelector('[name="nr_albumu"]');
+    if (agreementNumber && albumNumber) {
+        var syncAgreementNumber = function () {
+            agreementNumber.value = albumNumber.value.trim()
+                ? "ZAL-1-" + albumNumber.value.trim()
+                : "";
+        };
+        albumNumber.addEventListener('input', syncAgreementNumber);
+        syncAgreementNumber();
+    }
 
     // Zakres dat
     var ds = document.querySelector('[name="data_start"]');
