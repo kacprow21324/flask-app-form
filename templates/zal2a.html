@@ -2,6 +2,8 @@
 {% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 2a – Program i harmonogram praktyki{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = data.get('gender') if data and data.get('gender') else (val('imie_nazwisko') | plec) %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
 {% macro dzial_val(nr) %}
     {% if data and data.efekty_plan is defined %}
         {% for ep in data.efekty_plan %}{% if ep.nr == nr %}{{ ep.dzial_prace }}{% endif %}{% endfor %}
@@ -10,8 +12,6 @@
 
 {% block content %}
 <div class="page page-form">
-
-    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
 
     <div class="doc-card">
 
@@ -30,7 +30,7 @@
 
             {# ── Dane studenta ── #}
             <div class="form-section">
-                <div class="form-section-label">Dane studenta</div>
+                <div class="form-section-label">Dane {{ g('studenta', 'studentki') }}</div>
                 <div class="form-row-2">
                     <div class="field-group">
                         <label for="imie_nazwisko">Imię i nazwisko</label>
@@ -166,7 +166,7 @@
                     <div class="field-group"></div>
                 </div>
                 <div class="sig-row" style="grid-template-columns: 1fr 1fr 1fr;">
-                    {{ sig_stamp(val('podpis_studenta'), 'Podpis studenta') }}
+                    {{ sig_stamp(val('podpis_studenta'), g('Podpis studenta', 'Podpis studentki')) }}
                     {{ sig_stamp(val('podpis_zakladowy'), 'Podpis zakładowego opiekuna') }}
                     {{ sig_stamp(val('podpis_uczelniany'), 'Podpis uczelnianego opiekuna') }}
                 </div>

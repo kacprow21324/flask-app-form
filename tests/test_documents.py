@@ -237,6 +237,47 @@ class DocumentVersionTests(unittest.TestCase):
             self.assertEqual(document.document_version, 1)
             self.assertEqual(document.download_count, 2)
 
+    def test_legacy_approval_without_revision_can_be_downloaded(self):
+        self.assertEqual(self.login().status_code, 302)
+        with self.app.app_context():
+            db.session.add(DocumentWorkflow(
+                album_number="24001",
+                form_key="zal1",
+                status="approved",
+                reviewer_role="uopz",
+                approved_revision=None,
+            ))
+            db.session.commit()
+
+        record = {
+            "rok_akademicki": "2025/2026",
+            "imie_nazwisko": "Pdf Student",
+            "nr_albumu": "24001",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            with (
+                patch.object(web_module, "DATA_DIR", directory),
+                patch.object(web_module, "get_form", return_value=record),
+                patch.object(web_module, "get_form_revision", return_value=4),
+                patch(
+                    "core.generate_pdf_latex.get_template_version",
+                    return_value="latex-test",
+                ),
+                patch(
+                    "core.generate_pdf_latex.generate_pdf_latex",
+                    return_value=io.BytesIO(b"%PDF-legacy"),
+                ),
+            ):
+                response = self.client.get("/student/24001/zal1/pobierz")
+
+        self.assertEqual(response.status_code, 200)
+        response.close()
+        with self.app.app_context():
+            state = DocumentWorkflow.query.filter_by(
+                album_number="24001", form_key="zal1",
+            ).one()
+            self.assertEqual(state.approved_revision, 4)
+
     def test_unavailable_pdf_engine_is_handled_without_archiving(self):
         self.assertEqual(self.login().status_code, 302)
         with self.app.app_context():

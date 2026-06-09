@@ -105,15 +105,23 @@ class PDFGenerationTests(unittest.TestCase):
         self.assertIn("DZIENNIK PRAKTYKI ZAWODOWEJ", pdf_text(buffer))
 
     def test_long_report_text_is_wrapped_without_generation_failure(self):
-        buffer = generate_pdf_latex(
-            "zal7",
-            report_context(PROFILES[1], long_text=True),
-        )
+        context = report_context(PROFILES[1], long_text=True)
+        context["data"]["opis_prac"] += " KONIEC-ROZBUDOWANEGO-OPISU"
+        buffer = generate_pdf_latex("zal7", context)
         with pdf_document(buffer) as document:
             self.assertGreaterEqual(document.page_count, 2)
-            self.assertIn("R&D Północ S.A.", "\n".join(
-                page.get_text() for page in document
-            ))
+            text = "\n".join(page.get_text() for page in document)
+            self.assertIn("R&D Północ S.A.", text)
+            self.assertIn("KONIEC-ROZBUDOWANEGO-OPISU", text)
+
+    def test_female_student_wording_is_used_in_pdf(self):
+        context = report_context(PROFILES[0])
+        context["data"]["gender"] = "K"
+        buffer = generate_pdf_latex("zal9", context)
+        self.assertIn(
+            "INSTYTUCJI PRZYJMUJĄCEJ STUDENTKĘ",
+            normalized_pdf_text(buffer),
+        )
 
     def test_latex_special_characters_are_escaped(self):
         escaped = _latex_escape(r"R&D 100% plik_test #1 C:\backup")

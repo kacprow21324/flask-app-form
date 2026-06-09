@@ -2,6 +2,7 @@
 {% from "print/_macros.html" import field, sig, letterhead %}
 {% block doc_title %}Załącznik 2 – Program praktyki{% endblock %}
 {% block content %}
+{% set female = data.get('gender') == 'K' %}
 {{ letterhead('2') }}
 <h1 class="p-title">Program praktyki zawodowej</h1>
 <h2 class="p-subtitle">Kierunek: Informatyka – studia inżynierskie</h2>
@@ -32,7 +33,7 @@
     <p style="font-size:9pt; margin:4pt 0 2pt 0;"><strong>C. Etap trzeci – zakończenie praktyki</strong></p>
     <table class="p-table">
         <tbody>
-            <tr><td>W trakcie praktyki student prowadzi „Dzienniczek praktyki". Wpisy powinny być potwierdzone przez zakładowego opiekuna praktyki.</td></tr>
+            <tr><td>W trakcie praktyki {{ 'studentka prowadzi' if female else 'student prowadzi' }} „Dzienniczek praktyki". Wpisy powinny być potwierdzone przez zakładowego opiekuna praktyki.</td></tr>
             <tr><td>Na „Karcie praktyki zawodowej" kierownik zakładu pracy potwierdza odbycie praktyki, a opiekun zakładowy wystawia ocenę parametryczną i opisową.</td></tr>
             <tr><td>Opiekun ze strony zakładu pracy na druku „Potwierdzenie efektów uczenia się" potwierdza osiągnięcie przez praktykanta wymienionych efektów uczenia się.</td></tr>
         </tbody>

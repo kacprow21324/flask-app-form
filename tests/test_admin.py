@@ -6,7 +6,13 @@ import unittest
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 
 import app as application_module
-from core.admin import CSVImportError, import_students_csv, progress_report_csv
+from core.admin import (
+    CSVImportError,
+    import_students_csv,
+    parse_student_csv,
+    progress_report_csv,
+    students_export_csv,
+)
 from core.models import Internship, User, db
 from werkzeug.datastructures import FileStorage
 from werkzeug.security import generate_password_hash
@@ -76,9 +82,9 @@ class AdminTests(unittest.TestCase):
     def test_csv_import_creates_and_updates_students(self):
         csv_content = (
             "email;first_name;last_name;album_number;speciality;"
-            "study_mode;semester;study_year\n"
+            "study_mode;gender;semester;study_year\n"
             "student.one@example.test;Jan;Kowalski;26001;ASiSK;"
-            "stacjonarne;6;3\n"
+            "stacjonarne;M;6;3\n"
         ).encode("utf-8")
         with self.app.app_context():
             result = import_students_csv(FileStorage(
@@ -133,6 +139,31 @@ class AdminTests(unittest.TestCase):
             report = progress_report_csv("2025/2026").decode("utf-8-sig")
             self.assertIn("26002", report)
             self.assertIn(";240;30;", report)
+
+    def test_student_export_is_compatible_with_import(self):
+        with self.app.app_context():
+            student = self._user(
+                "21255@student.ans-elblag.pl",
+                "student",
+                "21255",
+            )
+            student.speciality = "ASiSK"
+            student.study_mode = "stacjonarne"
+            student.gender = "M"
+            student.semester = "6"
+            student.study_year = "3"
+            db.session.commit()
+
+            rows = parse_student_csv(FileStorage(
+                stream=io.BytesIO(students_export_csv()),
+                filename="studenci.csv",
+            ))
+            exported = next(
+                row for row in rows if row["album_number"] == "21255"
+            )
+            self.assertEqual(exported["email"], student.email)
+            self.assertEqual(exported["study_year"], "3")
+            self.assertEqual(exported["gender"], "M")
 
 
 if __name__ == "__main__":

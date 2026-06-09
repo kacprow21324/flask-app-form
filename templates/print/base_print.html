@@ -116,7 +116,6 @@
 <body>
 <div class="print-toolbar">
     <button onclick="window.print()">Drukuj / Zapisz PDF</button>
-    <a href="{{ url_for('student_detail', nr_albumu=nr_albumu) }}">← Powrót do podglądu</a>
     <span style="margin-left:auto;opacity:.8">{{ att.title if att else '' }} – nr albumu {{ nr_albumu }}</span>
 </div>
 <div class="doc-page">

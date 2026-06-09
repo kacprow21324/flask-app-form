@@ -2,11 +2,11 @@
 {% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 9 – Oświadczenie instytucji{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = data.get('gender') if data and data.get('gender') else (val('imie_nazwisko') | plec) %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
 
 {% block content %}
 <div class="page page-form">
-
-    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
 
     <div class="doc-card">
 
@@ -18,7 +18,7 @@
             <div class="doc-badge">Załącznik nr 9</div>
         </div>
 
-        <h1 class="doc-title">Oświadczenie instytucji przyjmującej<br>studenta na praktykę zawodową</h1>
+        <h1 class="doc-title">Oświadczenie instytucji przyjmującej<br>{{ g('studenta', 'studentkę') }} na praktykę zawodową</h1>
 
         <form method="post"
               action="{{ url_for('zal9_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal9') }}">
@@ -40,10 +40,10 @@
 
             {# ── Dane studenta ── #}
             <div class="form-section">
-                <div class="form-section-label">A. Dane studenta</div>
+                <div class="form-section-label">A. Dane {{ g('studenta', 'studentki') }}</div>
                 <div class="form-row-2">
                     <div class="field-group">
-                        <label for="imie_nazwisko">Imię i nazwisko studenta</label>
+                        <label for="imie_nazwisko">Imię i nazwisko {{ g('studenta', 'studentki') }}</label>
                         <input id="imie_nazwisko" type="text" name="imie_nazwisko"
                                value="{{ val('imie_nazwisko') }}"
                                pattern=".+ .+" title="Podaj imię i nazwisko" required>

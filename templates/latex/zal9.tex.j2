@@ -1,10 +1,11 @@
 % ANS Elblag – Załącznik nr 9 – Oświadczenie instytucji przyjmującej studenta
 \input{base}
 \begin{document}
+((* set female = data.get('gender') == 'K' *))
 
 \letterhead{9}
 
-\doctitle{OŚWIADCZENIE INSTYTUCJI PRZYJMUJĄCEJ STUDENTA NA PRAKTYKĘ ZAWODOWĄ}
+\doctitle{OŚWIADCZENIE INSTYTUCJI PRZYJMUJĄCEJ ((* if female *))STUDENTKĘ((* else *))STUDENTA((* endif *)) NA PRAKTYKĘ ZAWODOWĄ}
 
 \begin{flushright}
 \fontsize{10}{13}\selectfont
@@ -12,10 +13,10 @@
 \end{flushright}
 
 \sectionrule
-\sectionlabel{A. Dane studenta}
+\sectionlabel{A. Dane ((* if female *))studentki((* else *))studenta((* endif *))}
 
 \begin{minipage}[t]{\twocolA}
-\pfield{Imię i nazwisko studenta}{(( data.imie_nazwisko | le ))}
+\pfield{Imię i nazwisko ((* if female *))studentki((* else *))studenta((* endif *))}{(( data.imie_nazwisko | le ))}
 \end{minipage}\hfill
 \begin{minipage}[t]{\twocolB}
 \pfield{Nr albumu}{(( data.nr_albumu | le ))}

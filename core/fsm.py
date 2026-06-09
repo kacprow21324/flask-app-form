@@ -11,7 +11,8 @@ Stany pojedynczego dokumentu:
 
 Klasa DocumentFSM definiuje:
   - dozwolone przejścia stanów (twarde — blokują nieprawidłowe akcje)
-  - zależności fazowe między formularzami (miękkie — ostrzeżenia w UI)
+  - przejścia dokumentów wymagających recenzji i dokumentów kończonych
+    bezpośrednio przez ich autora
 """
 
 # ── Wyjątki ────────────────────────────────────────────────────────────────────
@@ -49,15 +50,16 @@ class DocumentFSM:
         ('rejected', 'submit'):  'pending',   # auto po poprawieniu odrzuconego
         ('pending',  'approve'): 'approved',
         ('pending',  'reject'):  'rejected',
+        ('draft',    'complete'): 'approved',
     }
 
     # Rola → dozwolone zdarzenia (pusty set = wszyscy)
     ROLE_EVENTS: dict[str, set[str]] = {
-        'student':   {'submit'},
-        'uopz':      {'submit', 'approve', 'reject'},
-        'zopz':      {'submit', 'approve', 'reject'},
-        'dziekanat': {'submit', 'approve', 'reject'},
-        'admin':     {'submit', 'approve', 'reject'},
+        'student':   {'submit', 'complete'},
+        'uopz':      {'submit', 'approve', 'reject', 'complete'},
+        'zopz':      {'submit', 'approve', 'reject', 'complete'},
+        'dziekanat': {'submit', 'approve', 'reject', 'complete'},
+        'admin':     {'submit', 'approve', 'reject', 'complete'},
     }
 
     # Zależności fazowe: klucz = formularz, wartość = lista (form_key, wymagany_status)
@@ -81,6 +83,7 @@ class DocumentFSM:
         'submit':  'Wyślij do zatwierdzenia',
         'approve': 'Zatwierdź',
         'reject':  'Odrzuć',
+        'complete': 'Zakończ etap',
     }
 
     # Opis ludzki każdego stanu

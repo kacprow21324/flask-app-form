@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Administracja{% endblock %}
 {% block content %}
-<div class="page admin-page">
+<div class="page admin-page admin-console">
     <div class="workflow-page-header">
         <div>
             <h1>Administracja</h1>
@@ -17,7 +17,7 @@
     </div>
 
     <div class="admin-grid">
-        <section class="card">
+        <section class="card admin-panel">
             <h2>Import studentów CSV</h2>
             <p class="subtitle">Import jest atomowy: błąd w dowolnym wierszu blokuje cały zapis.</p>
             <form method="post" action="{{ url_for('admin.import_students') }}" enctype="multipart/form-data">
@@ -28,11 +28,12 @@
                 <div class="form-actions">
                     <button class="btn" type="submit">Importuj studentów</button>
                     <a class="btn btn-secondary" href="{{ url_for('admin.import_template') }}">Pobierz wzór</a>
+                    <a class="btn btn-secondary" href="{{ url_for('admin.export_students') }}">Eksportuj studentów</a>
                 </div>
             </form>
         </section>
 
-        <section class="card">
+        <section class="card admin-panel">
             <h2>Raport postępu</h2>
             <p class="subtitle">Eksport części praktyki, godzin, statusów dokumentów i oceny końcowej.</p>
             <form method="get" action="{{ url_for('admin.progress_report') }}">
@@ -47,7 +48,125 @@
         </section>
     </div>
 
-    <section class="card admin-section">
+    <section class="card admin-section admin-panel">
+        <div class="admin-section-header">
+            <div>
+                <h2>Konfiguracja semestru</h2>
+                <p class="subtitle">Ustawienia używane do automatycznego wyznaczania roku akademickiego.</p>
+            </div>
+        </div>
+        <form method="post" action="{{ url_for('konfiguracja', next='admin') }}">
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label for="admin-summer-month">Początek semestru letniego</label>
+                    <select id="admin-summer-month" name="semester_summer_start_month">
+                        {% for num, name in months.items() %}
+                        <option value="{{ num }}" {% if num == summer_month %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="admin-winter-month">Początek semestru zimowego</label>
+                    <select id="admin-winter-month" name="semester_winter_start_month">
+                        {% for num, name in months.items() %}
+                        <option value="{{ num }}" {% if num == winter_month %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button class="btn" type="submit">Zapisz konfigurację</button>
+        </form>
+    </section>
+
+    <section class="card admin-section admin-panel">
+        <div class="admin-section-header">
+            <div>
+                <h2>Zaproszenia dla opiekunów zakładowych</h2>
+                <p class="subtitle">
+                    Zaproszenie tworzy konto ZOPZ i ogranicza dostęp do wybranej
+                    praktyki albo jej części.
+                </p>
+            </div>
+        </div>
+        {% if invitation_targets %}
+        <form method="post" action="{{ url_for('admin.create_zopz_invitation_route') }}">
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label for="zopz-first-name">Imię</label>
+                    <input id="zopz-first-name" name="first_name" required maxlength="100">
+                </div>
+                <div class="field-group">
+                    <label for="zopz-last-name">Nazwisko</label>
+                    <input id="zopz-last-name" name="last_name" required maxlength="100">
+                </div>
+            </div>
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label for="zopz-email">Służbowy adres e-mail</label>
+                    <input id="zopz-email" name="email" type="email" required maxlength="255">
+                </div>
+                <div class="field-group">
+                    <label for="zopz-target">Zakres dostępu</label>
+                    <select id="zopz-target" name="target" required>
+                        <option value="">Wybierz praktykę lub część</option>
+                        {% for target in invitation_targets %}
+                        <option value="{{ target.value }}">{{ target.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button class="btn" type="submit">Utwórz zaproszenie</button>
+        </form>
+        {% else %}
+        <p class="empty-state">Brak aktywnych praktyk, do których można zaprosić opiekuna.</p>
+        {% endif %}
+
+        <div class="table-wrap" style="margin-top: 24px">
+            <table class="table">
+                <thead>
+                    <tr><th>Opiekun</th><th>Student</th><th>Zakres</th><th>Ważność</th><th>Status</th><th>Akcje</th></tr>
+                </thead>
+                <tbody>
+                {% for invitation in zopz_invitations %}
+                <tr>
+                    <td><strong>{{ invitation.first_name }} {{ invitation.last_name }}</strong><br><span class="wf-album">{{ invitation.email }}</span></td>
+                    <td>{{ invitation.internship.student.full_name }}<br><span class="wf-album">{{ invitation.internship.student.album_number or '—' }}</span></td>
+                    <td>
+                        {% if invitation.internship_part %}
+                        Część {{ invitation.internship_part.part_number }}: {{ invitation.internship_part.name }}
+                        {% else %}
+                        Cała praktyka
+                        {% endif %}
+                    </td>
+                    <td>{{ invitation.expires_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>
+                        {% if invitation.accepted_at %}
+                        <span class="status-badge status-approved">Zaakceptowane</span>
+                        {% elif invitation.revoked_at %}
+                        <span class="status-badge status-rejected">Unieważnione</span>
+                        {% elif invitation.is_pending %}
+                        <span class="status-badge status-pending">Oczekuje</span>
+                        {% else %}
+                        <span class="status-badge status-rejected">Wygasło</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if invitation.is_pending %}
+                        <form method="post" action="{{ url_for('admin.revoke_zopz_invitation_route', invitation_id=invitation.id) }}">
+                            <button class="btn btn-sm btn-secondary" type="submit">Unieważnij</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6">Brak zaproszeń.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card admin-section admin-panel">
         <div class="admin-section-header">
             <h2>Użytkownicy</h2>
             <form method="get" class="admin-filters">
@@ -95,7 +214,7 @@
         </div>
     </section>
 
-    <section class="card api-manager" id="api-student-manager"
+    <section class="card api-manager admin-panel" id="api-student-manager"
              aria-labelledby="api-manager-title">
         <div class="api-manager-header">
             <div>
@@ -138,6 +257,13 @@
                     <input id="apiEmail" name="email" type="email" required maxlength="255">
                 </div>
             </div>
+            <div class="field-group">
+                <label for="apiGender">Płeć używana do odmiany dokumentów</label>
+                <select id="apiGender" name="gender" required>
+                    <option value="K">Kobieta</option>
+                    <option value="M">Mężczyzna</option>
+                </select>
+            </div>
             <div class="api-form-actions">
                 <div>
                     <button class="btn" id="apiSaveStudent" type="submit">
@@ -159,11 +285,12 @@
                         <th>Student</th>
                         <th>Numer albumu</th>
                         <th>E-mail</th>
+                        <th>Płeć</th>
                         <th>Akcje REST</th>
                     </tr>
                 </thead>
                 <tbody id="apiStudentsBody" data-testid="api-students-body">
-                    <tr><td colspan="4">Ładowanie...</td></tr>
+                    <tr><td colspan="5">Ładowanie...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -180,7 +307,7 @@
     </section>
 
     <div class="admin-grid">
-        <section class="card admin-section">
+        <section class="card admin-section admin-panel">
             <h2>Ostatnie zdarzenia audytowe</h2>
             <div class="admin-log-list">
                 {% for entry in audit_logs %}
@@ -193,7 +320,7 @@
             </div>
         </section>
 
-        <section class="card admin-section">
+        <section class="card admin-section admin-panel">
             <h2>Archiwa</h2>
             <div class="admin-log-list">
                 {% for package in archives %}

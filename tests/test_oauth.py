@@ -84,3 +84,67 @@ class MicrosoftOAuthTests(unittest.TestCase):
                 resolve_microsoft_user(self.claims(
                     oid="bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
                 ))
+
+    def test_staff_user_is_created_from_single_app_role(self):
+        with self.app.app_context():
+            user = resolve_microsoft_user(self.claims(
+                oid="bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+                preferred_username="j.kowalski@ans-elblag.pl",
+                roles=["UOPZ"],
+                given_name="Jan",
+                family_name="Kowalski",
+            ))
+            db.session.commit()
+
+            self.assertEqual(user.role, "uopz")
+            self.assertEqual(user.first_name, "Jan")
+            self.assertEqual(user.microsoft_object_id, "bbbbbbbb-cccc-dddd-eeee-ffffffffffff")
+
+    def test_staff_role_is_synchronized_from_app_role(self):
+        with self.app.app_context():
+            employee = User(
+                email="a.nowak@ans-elblag.pl",
+                password_hash=generate_password_hash("TestPassword123!"),
+                first_name="Anna",
+                last_name="Nowak",
+                role="uopz",
+                is_active=1,
+            )
+            db.session.add(employee)
+            db.session.commit()
+
+            user = resolve_microsoft_user(self.claims(
+                oid="cccccccc-dddd-eeee-ffff-000000000000",
+                preferred_username=employee.email,
+                roles=["Dziekanat"],
+            ))
+            db.session.commit()
+
+            self.assertEqual(user.role, "dziekanat")
+
+    def test_conflicting_staff_roles_are_rejected(self):
+        with self.app.app_context(), self.assertRaises(AuthError):
+            resolve_microsoft_user(self.claims(
+                oid="dddddddd-eeee-ffff-0000-111111111111",
+                preferred_username="j.kowalski@ans-elblag.pl",
+                roles=["UOPZ", "Admin"],
+            ))
+
+    def test_staff_without_app_role_is_rejected(self):
+        with self.app.app_context():
+            employee = User(
+                email="a.nowak@ans-elblag.pl",
+                password_hash=generate_password_hash("TestPassword123!"),
+                first_name="Anna",
+                last_name="Nowak",
+                role="uopz",
+                is_active=1,
+            )
+            db.session.add(employee)
+            db.session.commit()
+
+            with self.assertRaises(AuthError):
+                resolve_microsoft_user(self.claims(
+                    oid="eeeeeeee-ffff-0000-1111-222222222222",
+                    preferred_username=employee.email,
+                ))

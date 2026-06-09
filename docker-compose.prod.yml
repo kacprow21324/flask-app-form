@@ -67,6 +67,15 @@ services:
       MS_TENANT_ID: ${MS_TENANT_ID:?Ustaw MS_TENANT_ID}
       MS_REDIRECT_URI: ${MS_REDIRECT_URI:?Ustaw MS_REDIRECT_URI}
       MS_ALLOWED_EMAIL_DOMAINS: ${MS_ALLOWED_EMAIL_DOMAINS:?Ustaw MS_ALLOWED_EMAIL_DOMAINS}
+      MS_STAFF_EMAIL_DOMAIN: ${MS_STAFF_EMAIL_DOMAIN:-ans-elblag.pl}
+      ZOPZ_INVITATION_HOURS: ${ZOPZ_INVITATION_HOURS:-168}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-praktyki@ans-elblag.pl}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Ustaw PUBLIC_BASE_URL}
     command: ["flask", "--app", "app", "db", "upgrade"]
     networks:
       - backend

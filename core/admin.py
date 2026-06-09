@@ -2,10 +2,12 @@ import csv
 import io
 import re
 import secrets
+import smtplib
 
 from flask import (
     Blueprint,
     abort,
+    current_app,
     flash,
     redirect,
     render_template,
@@ -18,15 +20,25 @@ from sqlalchemy import or_
 from werkzeug.security import generate_password_hash
 
 from core.audit import log_action
+from core.gender import infer_gender, normalize_gender
 from core.internships import current_academic_year, normalize_academic_year
 from core.models import (
+    AppConfig,
     ArchivePackage,
     AuditLog,
     DocumentWorkflow,
     Internship,
+    InternshipPart,
     User,
     UserSession,
+    ZopzInvitation,
     db,
+)
+from core.zopz_invitations import (
+    InvitationError,
+    create_zopz_invitation,
+    revoke_zopz_invitation,
+    send_invitation_email,
 )
 
 
@@ -36,8 +48,14 @@ REQUIRED_HEADERS = {"email", "first_name", "last_name", "album_number"}
 OPTIONAL_HEADERS = {
     "speciality",
     "study_mode",
+    "gender",
     "semester",
     "study_year",
+}
+MONTHS_PL = {
+    1: "Styczeń", 2: "Luty", 3: "Marzec", 4: "Kwiecień",
+    5: "Maj", 6: "Czerwiec", 7: "Lipiec", 8: "Sierpień",
+    9: "Wrzesień", 10: "Październik", 11: "Listopad", 12: "Grudzień",
 }
 
 
@@ -107,6 +125,10 @@ def parse_student_csv(file_storage):
                 f"Wiersz {line_number}: study_mode musi mieć wartość "
                 "'stacjonarne' albo 'niestacjonarne'."
             )
+        if row["gender"] and normalize_gender(row["gender"]) is None:
+            errors.append(
+                f"Wiersz {line_number}: gender musi mieć wartość 'K' albo 'M'."
+            )
         rows.append(row)
     if not rows:
         errors.append("Plik CSV nie zawiera żadnych studentów.")
@@ -155,6 +177,11 @@ def import_students_csv(file_storage):
             updated += 1
         user.speciality = row["speciality"] or None
         user.study_mode = row["study_mode"] or "stacjonarne"
+        user.gender = (
+            normalize_gender(row["gender"])
+            or user.gender
+            or infer_gender(row["first_name"])
+        )
         user.semester = row["semester"] or None
         user.study_year = row["study_year"] or None
     return {"created": created, "updated": updated, "total": len(rows)}
@@ -223,6 +250,38 @@ def progress_report_csv(academic_year):
     return ("\ufeff" + output.getvalue()).encode("utf-8")
 
 
+def students_export_csv():
+    output = io.StringIO(newline="")
+    writer = csv.writer(output, delimiter=";")
+    writer.writerow([
+        "email",
+        "first_name",
+        "last_name",
+        "album_number",
+        "speciality",
+        "study_mode",
+        "gender",
+        "semester",
+        "study_year",
+    ])
+    students = User.query.filter_by(
+        role="student", is_active=1,
+    ).order_by(User.last_name, User.first_name, User.id).all()
+    for student in students:
+        writer.writerow([
+            student.email,
+            student.first_name,
+            student.last_name,
+            student.album_number or "",
+            student.speciality or "",
+            student.study_mode or "stacjonarne",
+            student.gender or infer_gender(student.first_name),
+            student.semester or "",
+            student.study_year or "",
+        ])
+    return ("\ufeff" + output.getvalue()).encode("utf-8")
+
+
 def _dashboard_context():
     role_filter = request.args.get("rola", "").strip()
     active_filter = request.args.get("aktywny", "").strip()
@@ -241,6 +300,34 @@ def _dashboard_context():
             User.album_number.like(pattern),
         ))
     users = users_query.order_by(User.role, User.last_name, User.first_name).limit(300).all()
+    internships = Internship.query.filter_by(is_archived=0).order_by(
+        Internship.academic_year.desc(),
+        Internship.id.desc(),
+    ).limit(300).all()
+    invitation_targets = []
+    for internship in internships:
+        label = (
+            f"{internship.academic_year} · {internship.student.full_name} "
+            f"({internship.student.album_number or 'bez albumu'})"
+        )
+        invitation_targets.append({
+            "value": f"internship:{internship.id}",
+            "label": f"{label} · cała praktyka",
+        })
+        for part in internship.parts:
+            invitation_targets.append({
+                "value": f"part:{part.id}",
+                "label": f"{label} · część {part.part_number}: {part.name}",
+            })
+    config_values = {
+        row.key: row.value
+        for row in AppConfig.query.filter(
+            AppConfig.key.in_([
+                "semester_summer_start_month",
+                "semester_winter_start_month",
+            ])
+        ).all()
+    }
     return {
         "users": users,
         "role_filter": role_filter,
@@ -252,10 +339,21 @@ def _dashboard_context():
         "archives": ArchivePackage.query.order_by(
             ArchivePackage.created_at.desc(),
         ).limit(100).all(),
+        "zopz_invitations": ZopzInvitation.query.order_by(
+            ZopzInvitation.created_at.desc(),
+        ).limit(100).all(),
+        "invitation_targets": invitation_targets,
         "academic_years": sorted({
             row[0]
             for row in db.session.query(Internship.academic_year).distinct().all()
         } | {current_academic_year()}, reverse=True),
+        "months": MONTHS_PL,
+        "summer_month": int(
+            config_values.get("semester_summer_start_month", 3)
+        ),
+        "winter_month": int(
+            config_values.get("semester_winter_start_month", 10)
+        ),
         "counts": {
             "users": User.query.count(),
             "active": User.query.filter_by(is_active=1).count(),
@@ -299,6 +397,95 @@ def user_status(user_id):
     )
     db.session.commit()
     flash("Status konta został zmieniony.", "success")
+    return redirect(url_for("admin.dashboard"))
+
+
+def _invitation_target(raw_target):
+    try:
+        target_type, raw_id = raw_target.split(":", 1)
+        target_id = int(raw_id)
+    except (AttributeError, TypeError, ValueError):
+        raise InvitationError("Wybierz praktykę lub jej część.") from None
+
+    if target_type == "internship":
+        internship = db.session.get(Internship, target_id)
+        part = None
+    elif target_type == "part":
+        part = db.session.get(InternshipPart, target_id)
+        internship = part.internship if part is not None else None
+    else:
+        internship = None
+        part = None
+    if internship is None or internship.is_archived:
+        raise InvitationError("Wybrana praktyka nie istnieje lub jest zarchiwizowana.")
+    return internship, part
+
+
+@admin_bp.route("/zaproszenia-zopz", methods=["POST"])
+@login_required
+def create_zopz_invitation_route():
+    _admin_required()
+    try:
+        internship, part = _invitation_target(request.form.get("target"))
+        invitation, raw_token = create_zopz_invitation(
+            email=request.form.get("email", ""),
+            first_name=request.form.get("first_name", ""),
+            last_name=request.form.get("last_name", ""),
+            internship=internship,
+            internship_part=part,
+            invited_by=current_user,
+        )
+        db.session.commit()
+    except InvitationError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return redirect(url_for("admin.dashboard"))
+
+    invitation_path = url_for(
+        "auth.accept_zopz_invitation_route",
+        token=raw_token,
+    )
+    public_base_url = current_app.config.get("PUBLIC_BASE_URL")
+    invitation_url = (
+        f"{public_base_url}{invitation_path}"
+        if public_base_url
+        else url_for(
+            "auth.accept_zopz_invitation_route",
+            token=raw_token,
+            _external=True,
+        )
+    )
+    email_sent = False
+    email_error = None
+    try:
+        email_sent = send_invitation_email(invitation, invitation_url)
+    except (OSError, smtplib.SMTPException) as exc:
+        current_app.logger.exception("Could not send ZOPZ invitation email")
+        email_error = str(exc)
+    return render_template(
+        "zopz_invitation_created.html",
+        invitation=invitation,
+        invitation_url=invitation_url,
+        email_sent=email_sent,
+        email_error=email_error,
+    )
+
+
+@admin_bp.route("/zaproszenia-zopz/<int:invitation_id>/uniewaznij", methods=["POST"])
+@login_required
+def revoke_zopz_invitation_route(invitation_id):
+    _admin_required()
+    invitation = db.session.get(ZopzInvitation, invitation_id)
+    if invitation is None:
+        abort(404)
+    try:
+        revoke_zopz_invitation(invitation)
+        db.session.commit()
+    except InvitationError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+    else:
+        flash("Zaproszenie zostało unieważnione.", "success")
     return redirect(url_for("admin.dashboard"))
 
 
@@ -360,15 +547,34 @@ def import_template():
     _admin_required()
     content = (
         "\ufeffemail;first_name;last_name;album_number;speciality;"
-        "study_mode;semester;study_year\r\n"
+        "study_mode;gender;semester;study_year\r\n"
         "student@uczelnia.pl;Jan;Kowalski;25001;"
         "Administracja systemów i sieci komputerowych (ASiSK);"
-        "stacjonarne;6;3\r\n"
+        "stacjonarne;M;6;3\r\n"
     ).encode("utf-8")
     return send_file(
         io.BytesIO(content),
         as_attachment=True,
         download_name="wzor_importu_studentow.csv",
+        mimetype="text/csv; charset=utf-8",
+    )
+
+
+@admin_bp.route("/eksport-studentow.csv")
+@login_required
+def export_students():
+    _admin_required()
+    content = students_export_csv()
+    log_action(
+        "export",
+        "students_csv",
+        after={"count": User.query.filter_by(role="student", is_active=1).count()},
+        commit=True,
+    )
+    return send_file(
+        io.BytesIO(content),
+        as_attachment=True,
+        download_name="studenci.csv",
         mimetype="text/csv; charset=utf-8",
     )
 

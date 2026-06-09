@@ -32,7 +32,7 @@
 {% endmacro %}
 
 {% block content %}
-<div class="page">
+<div class="page workflow-page">
     <div class="workflow-page-header">
         <div>
             <h1>Obieg dokumentów</h1>
@@ -74,6 +74,12 @@
     </div>
 
     {% if role == 'student' %}
+    <div class="practice-result practice-result-{{ practice_state.code }}">
+        <strong>{{ practice_state.label }}</strong>
+        {% if practice_state.code == 'in_progress' %}
+        <span>Aktualny etap jest wyróżniony poniżej.</span>
+        {% endif %}
+    </div>
     <div class="workflow-stats">
         <div class="workflow-stat">
             <span>Dokumenty rozpoczęte</span>
@@ -134,12 +140,14 @@
                 {% for key in phase["keys"] %}
                 {% set att = att_map.get(key) %}
                 {% set st = status_map.get(key) %}
-                <div class="wf-student-row wf-row-{{ st or 'none' }}">
+                {% set sequence = workflow_step_map.get(key, {}) %}
+                <div class="wf-student-row wf-row-{{ st or 'none' }} wf-step-{{ sequence.get('state', 'locked') }}">
                     <div class="wf-row-top">
                         {{ status_dot(st, key, nr_albumu) }}
                         <span class="wf-row-nr">Zał. {{ att.nr }}</span>
                     </div>
                     <div class="wf-row-title">{{ att.title }}</div>
+                    <div class="wf-owner">Wypełnia: {{ sequence.get('owner_label', '') }}</div>
                     {% if st %}
                     <div class="wf-row-actions">
                         {% if st in ('draft', 'rejected') %}
@@ -149,6 +157,9 @@
                            class="btn btn-sm btn-secondary">Podgląd</a>
                         {% endif %}
                     </div>
+                    {% endif %}
+                    {% if sequence.get('state') == 'locked' %}
+                    <span class="status-badge status-draft">Zablokowany</span>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -229,13 +240,9 @@
                     {% set internship = internship_by_student.get(student.id) %}
                     <tr class="wf-student-tr">
                         <td class="wf-col-student">
-                            {% if item.started %}
                             <a href="{{ url_for('student_detail', nr_albumu=student.album_number) }}">
                                 {{ student.last_name }} {{ student.first_name }}
                             </a>
-                            {% else %}
-                            <strong>{{ student.last_name }} {{ student.first_name }}</strong>
-                            {% endif %}
                             <span class="wf-album">{{ student.album_number }}</span>
                         </td>
                         <td class="workflow-progress-cell">

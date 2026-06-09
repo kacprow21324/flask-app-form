@@ -1,13 +1,14 @@
 % ANS Elblag – Załącznik nr 4b – Wniosek studenta o zaliczenie efektów
 \input{base}
 \begin{document}
+((* set female = data.get('gender') == 'K' *))
 
 \letterhead{4b}
 
-\doctitle{WNIOSEK STUDENTA O ZALICZENIE EFEKTÓW UCZENIA SIĘ\\Z TYTUŁU DOŚWIADCZENIA ZAWODOWEGO}
+\doctitle{WNIOSEK ((* if female *))STUDENTKI((* else *))STUDENTA((* endif *)) O ZALICZENIE EFEKTÓW UCZENIA SIĘ\\Z TYTUŁU DOŚWIADCZENIA ZAWODOWEGO}
 
 \sectionrule
-\sectionlabel{A. Dane studenta}
+\sectionlabel{A. Dane ((* if female *))studentki((* else *))studenta((* endif *))}
 
 \begin{minipage}[t]{\twocolA}
 \pfield{Imię i nazwisko}{(( data.imie_nazwisko | le ))}
@@ -78,7 +79,7 @@
 \psig{Data złożenia wniosku}{(( data.data | le ))}
 \end{minipage}\hfill
 \begin{minipage}[t]{\twocolB}
-\psig{Podpis studenta}{(( data.podpis_studenta | le ))}
+\psig{Podpis ((* if female *))studentki((* else *))studenta((* endif *))}{(( data.podpis_studenta | le ))}
 \end{minipage}
 
 \sectionrule

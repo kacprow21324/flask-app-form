@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Zaproszenie opiekuna zakładowego</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <style>
+        body { margin: 0; min-height: 100vh; background: #eef1f7; }
+        .invite-page { min-height: 100vh; display: grid; place-items: center; padding: 28px; box-sizing: border-box; }
+        .invite-card { width: 100%; max-width: 520px; }
+        .invite-card h1 { margin-top: 0; }
+        .invite-card .btn { width: 100%; margin-top: 8px; }
+    </style>
+</head>
+<body>
+<main class="invite-page">
+    <section class="card invite-card">
+        {% if invitation %}
+        <h1>Zaproszenie do Systemu Praktyk</h1>
+        <p>
+            Dzień dobry <strong>{{ invitation.first_name }} {{ invitation.last_name }}</strong>.
+            Otrzymujesz dostęp jako zakładowy opiekun praktyki studenta
+            <strong>{{ invitation.internship.student.full_name }}</strong>.
+        </p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        <form method="post">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <div class="field-group">
+                <label>Adres e-mail</label>
+                <input value="{{ invitation.email }}" readonly>
+            </div>
+            {% if not existing_account %}
+            <div class="field-group">
+                <label for="password">Ustaw hasło, minimum 12 znaków</label>
+                <input id="password" name="password" type="password"
+                       minlength="12" required autocomplete="new-password">
+            </div>
+            <div class="field-group">
+                <label for="password-confirmation">Powtórz hasło</label>
+                <input id="password-confirmation" name="password_confirmation"
+                       type="password" minlength="12" required
+                       autocomplete="new-password">
+            </div>
+            {% else %}
+            <p class="subtitle">
+                Konto z tym adresem już istnieje. Akceptacja doda kolejny przydział.
+            </p>
+            {% endif %}
+            <button class="btn" type="submit">Akceptuję zaproszenie</button>
+        </form>
+        {% else %}
+        <h1>Zaproszenie jest niedostępne</h1>
+        <p>Link jest nieprawidłowy, wygasł albo został już wykorzystany.</p>
+        <a class="btn" href="{{ url_for('login_page') }}">Przejdź do logowania</a>
+        {% endif %}
+    </section>
+</main>
+</body>
+</html>

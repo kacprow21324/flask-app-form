@@ -2,13 +2,11 @@
 {% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 3 – Karta praktyki{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
-{% set plec = val('imie_nazwisko') | plec %}
+{% set plec = data.get('gender') if data and data.get('gender') else (val('imie_nazwisko') | plec) %}
 {% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
 
 {% block content %}
 <div class="page page-form">
-
-    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
 
     <div class="doc-card">
 
@@ -41,7 +39,7 @@
                         <input class="inline-field inline-date" type="date" name="data_porozumienia"
                                value="{{ val('data_porozumienia') }}">
                     </span>
-                    r., kieruję niżej wymienionego studenta na praktykę zawodową do zakładu pracy:
+                    r., kieruję niżej wymienion{{ g('ego studenta', 'ą studentkę') }} na praktykę zawodową do zakładu pracy:
                 </div>
                 <div class="field-group" style="margin-top:10px">
                     <label for="zaklad_pracy">Nazwa instytucji / zakładu pracy</label>
@@ -52,7 +50,7 @@
 
             {# ── Sekcja B: dane studenta ── #}
             <div class="form-section">
-                <div class="form-section-label">B. Dane studenta</div>
+                <div class="form-section-label">B. Dane {{ g('studenta', 'studentki') }}</div>
                 <div class="form-row-2" style="margin-top:12px">
                     <div class="field-group">
                         <label for="imie_nazwisko">Imię i nazwisko</label>
@@ -140,7 +138,7 @@
                 </div>
                 <div class="sig-row">
                     <div class="sig-box">
-                        <label for="potwierdzenie_zgloszenia">Potwierdzenie zgłoszenia studenta na praktykę</label>
+                        <label for="potwierdzenie_zgloszenia">Potwierdzenie zgłoszenia {{ g('studenta', 'studentki') }} na praktykę</label>
                         <input id="potwierdzenie_zgloszenia" type="text" name="potwierdzenie_zgloszenia"
                                value="{{ val('potwierdzenie_zgloszenia') }}"
                                placeholder="Data, pieczęć i podpis zakładowego opiekuna">

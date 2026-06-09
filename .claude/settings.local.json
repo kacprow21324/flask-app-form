@@ -52,7 +52,11 @@
       "Bash(Get-ChildItem -Path C:\\\\Repozytoria\\\\flask-app-form -Recurse -File -Name)",
       "Bash(Get-ChildItem -Path \"C:\\\\Repozytoria\\\\flask-app-form\" -Force)",
       "Bash(Select-Object Name, PSIsContainer)",
-      "Bash(Format-Table -AutoSize)"
+      "Bash(Format-Table -AutoSize)",
+      "Bash(docker-compose up *)",
+      "Bash(docker-compose logs *)",
+      "Bash(docker-compose ps *)",
+      "Bash(docker-compose exec *)"
     ]
   }
 }

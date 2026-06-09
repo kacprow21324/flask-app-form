@@ -2,6 +2,7 @@
 {% from "print/_macros.html" import field, sig, choice, letterhead %}
 {% block doc_title %}Załącznik {{ '7a' if sn else '7' }} – Sprawozdanie{% endblock %}
 {% block content %}
+{% set female = data.get('gender') == 'K' %}
 {{ letterhead('7a' if sn else '7') }}
 <h1 class="p-title">Sprawozdanie z praktyki zawodowej</h1>
 {% if sn %}<h2 class="p-subtitle">Studia niestacjonarne</h2>{% endif %}
@@ -23,7 +24,7 @@
     <p class="p-intro" style="min-height:60pt">{{ data.wiedza_umiejetnosci or '' }}</p>
 </div>
 <div class="p-section">
-    <div class="p-sig-row">{{ sig('Data sporządzenia sprawozdania', data.data) }}{{ sig('Podpis studenta', data.podpis_studenta) }}</div>
+    <div class="p-sig-row">{{ sig('Data sporządzenia sprawozdania', data.data) }}{{ sig('Podpis studentki' if female else 'Podpis studenta', data.podpis_studenta) }}</div>
     {% if sn %}
     <div class="p-sig-row" style="margin-top:10pt">{{ sig('Potwierdzenie bezpośredniego przełożonego (data, pieczęć)', data.podpis_przelozonego) }}<div></div></div>
     {% endif %}

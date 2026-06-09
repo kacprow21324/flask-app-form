@@ -2,10 +2,11 @@
 {% from "print/_macros.html" import field, sig, letterhead %}
 {% block doc_title %}Załącznik 4a – Ocena wniosku{% endblock %}
 {% block content %}
+{% set female = data.get('gender') == 'K' %}
 {{ letterhead('4a') }}
-<h1 class="p-title">Merytoryczna ocena wniosku studenta<br>o zaliczenie efektów uczenia się z praktyki zawodowej</h1>
+<h1 class="p-title">Merytoryczna ocena wniosku {{ 'studentki' if female else 'studenta' }}<br>o zaliczenie efektów uczenia się z praktyki zawodowej</h1>
 <div class="p-section">
-    <div class="p-row-2">{{ field('Student / ka', data.imie_nazwisko) }}{{ field('Nr albumu', data.nr_albumu) }}</div>
+    <div class="p-row-2">{{ field('Studentka' if female else 'Student', data.imie_nazwisko) }}{{ field('Nr albumu', data.nr_albumu) }}</div>
     {{ field('Data złożenia wniosku', data.data_zlozenia) }}
 </div>
 <div class="p-section">

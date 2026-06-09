@@ -1,13 +1,14 @@
 % ANS Elblag – Załącznik nr 4 – Potwierdzenie efektów uczenia się
 \input{base}
 \begin{document}
+((* set female = data.get('gender') == 'K' *))
 
 \letterhead{4}
 
 \doctitle{POTWIERDZENIE UZYSKANIA EFEKTÓW UCZENIA SIĘ\\W RAMACH PRAKTYKI ZAWODOWEJ}
 
 \begin{minipage}[t]{\twocolA}
-\pfield{Student / ka}{(( data.imie_nazwisko | le ))}
+\pfield{((* if female *))Studentka((* else *))Student((* endif *))}{(( data.imie_nazwisko | le ))}
 \end{minipage}\hfill
 \begin{minipage}[t]{\twocolB}
 \pfield{Nr albumu}{(( data.nr_albumu | le ))}
@@ -27,7 +28,7 @@
 \sectionrule
 
 W ramach praktyki zawodowej zrealizowanej w wymiarze
-\textbf{(( data.wymiar_godzin | le ))} godzin uzyskał/a lub nie uzyskał/a zakładane
+\textbf{(( data.wymiar_godzin | le ))} godzin ((* if female *))uzyskała lub nie uzyskała((* else *))uzyskał lub nie uzyskał((* endif *)) zakładane
 dla praktyki zawodowej efekty uczenia się:
 
 \vspace{6pt}

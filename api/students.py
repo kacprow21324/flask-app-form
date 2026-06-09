@@ -11,8 +11,9 @@ from api.common import (
     require_roles,
     required_text,
 )
-from api.errors import ConflictError, NotFoundError
+from api.errors import ConflictError, NotFoundError, ValidationError
 from core.audit import log_action
+from core.gender import normalize_gender
 from core.models import User, db
 
 
@@ -34,15 +35,20 @@ def _serialize(student):
         "last_name": student.last_name,
         "album_number": student.album_number,
         "email": student.email,
+        "gender": student.gender,
     }
 
 
 def _validated_student_data(payload):
+    gender = normalize_gender(payload.get("gender"))
+    if gender is None:
+        raise ValidationError("Field 'gender' must be 'K' or 'M'.")
     return {
         "first_name": required_text(payload, "first_name", max_length=100),
         "last_name": required_text(payload, "last_name", max_length=100),
         "album_number": album_number_value(payload),
         "email": email_value(payload),
+        "gender": gender,
     }
 
 

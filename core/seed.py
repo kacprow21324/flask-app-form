@@ -27,6 +27,7 @@ USERS = [
         "last_name": "Kowalska",
         "role": "student",
         "album_number": "21001",
+        "gender": "K",
         "is_active": 1,
         "speciality": "Administracja systemów i sieci komputerowych (ASiSK)",
     },
@@ -68,6 +69,7 @@ USERS = [
         "last_name": "Nowak",
         "role": "student",
         "album_number": "21002",
+        "gender": "M",
         "is_active": 1,
         "speciality": "Projektowanie baz danych i oprogramowanie użytkowe (PBDiOU)",
     },
@@ -77,6 +79,7 @@ USERS = [
         "last_name": "Wróbel",
         "role": "student",
         "album_number": "21003",
+        "gender": "K",
         "is_active": 1,
         "speciality": "Modelowanie 3D w zastosowaniach medycznych, prototypowaniu i mediach interaktywnych (M3D)",
     },
@@ -257,6 +260,8 @@ def seed_users():
             existing.last_name  = data["last_name"]
             if data.get("speciality"):
                 existing.speciality = data["speciality"]
+            if data.get("gender"):
+                existing.gender = data["gender"]
             db.session.add(existing)
             updated += 1
             print(f"  zaktualizowano: {data['email']}  ({data['first_name']} {data['last_name']})")
@@ -276,6 +281,7 @@ def seed_users():
                 role=data["role"],
                 album_number=data.get("album_number"),
                 speciality=data.get("speciality"),
+                gender=data.get("gender"),
                 is_active=data["is_active"],
                 email_verified=1,
             )

@@ -10,6 +10,7 @@
     var lastName = document.getElementById("apiLastName");
     var albumNumber = document.getElementById("apiAlbumNumber");
     var email = document.getElementById("apiEmail");
+    var gender = document.getElementById("apiGender");
     var saveButton = document.getElementById("apiSaveStudent");
     var cancelButton = document.getElementById("apiCancelEdit");
     var reloadButton = document.getElementById("apiReloadStudents");
@@ -132,6 +133,7 @@
         lastName.value = student.last_name;
         albumNumber.value = student.album_number;
         email.value = student.email;
+        gender.value = student.gender || "M";
         saveButton.textContent = "Zapisz przez PUT";
         cancelButton.hidden = false;
         setStatus("Edycja studenta ID " + student.id + ".", null);
@@ -160,7 +162,7 @@
         if (!students.length) {
             var emptyRow = document.createElement("tr");
             var emptyCell = document.createElement("td");
-            emptyCell.colSpan = 4;
+            emptyCell.colSpan = 5;
             emptyCell.textContent = "Brak aktywnych studentów.";
             emptyRow.appendChild(emptyCell);
             studentsBody.appendChild(emptyRow);
@@ -176,6 +178,8 @@
             albumCell.textContent = student.album_number;
             var emailCell = document.createElement("td");
             emailCell.textContent = student.email;
+            var genderCell = document.createElement("td");
+            genderCell.textContent = student.gender === "K" ? "Kobieta" : "Mężczyzna";
             var actionCell = document.createElement("td");
             actionCell.className = "admin-actions";
             actionCell.append(
@@ -186,7 +190,7 @@
                     removeStudent(student);
                 })
             );
-            row.append(nameCell, albumCell, emailCell, actionCell);
+            row.append(nameCell, albumCell, emailCell, genderCell, actionCell);
             studentsBody.appendChild(row);
         });
     }
@@ -202,7 +206,7 @@
                 "success"
             );
         } catch (error) {
-            studentsBody.innerHTML = '<tr><td colspan="4">Nie udało się pobrać danych.</td></tr>';
+            studentsBody.innerHTML = '<tr><td colspan="5">Nie udało się pobrać danych.</td></tr>';
             setStatus(error.message, "error");
         }
     }
@@ -214,7 +218,8 @@
             first_name: firstName.value.trim(),
             last_name: lastName.value.trim(),
             album_number: albumNumber.value.trim(),
-            email: email.value.trim()
+            email: email.value.trim(),
+            gender: gender.value
         };
         var editing = Boolean(studentId.value);
         var path = editing

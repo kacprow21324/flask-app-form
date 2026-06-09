@@ -1,6 +1,7 @@
 % ANS Elblag – Załącznik nr 3 – Karta praktyki zawodowej
 \input{base}
 \begin{document}
+((* set female = data.get('gender') == 'K' *))
 
 \letterhead{3}
 
@@ -11,14 +12,14 @@
 \sectionlabel{A. Dane skierowania}
 
 Na podstawie porozumienia nr \textbf{(( data.nr_porozumienia | le ))} z dnia
-\textbf{(( data.data_porozumienia | le ))} r., kieruję niżej wymienionego studenta na
+\textbf{(( data.data_porozumienia | le ))} r., kieruję niżej wymienion((* if female *))ą studentkę((* else *))ego studenta((* endif *)) na
 praktykę zawodową do zakładu pracy:
 
 \vspace{4pt}
 \pfield{Nazwa instytucji / zakładu pracy}{(( data.zaklad_pracy | le ))}
 
 \sectionrule
-\sectionlabel{B. Dane studenta}
+\sectionlabel{B. Dane ((* if female *))studentki((* else *))studenta((* endif *))}
 
 \begin{minipage}[t]{\twocolA}
 \pfield{Imię i nazwisko}{(( data.imie_nazwisko | le ))}
@@ -78,7 +79,7 @@ $\square$ stacjonarne \quad $\boxtimes$ niestacjonarne
 
 \vspace{6pt}
 \begin{minipage}[t]{\twocolA}
-\psig{Potwierdzenie zgłoszenia studenta na praktykę (data, pieczęć)}{(( data.potwierdzenie_zgloszenia | le ))}
+\psig{Potwierdzenie zgłoszenia ((* if female *))studentki((* else *))studenta((* endif *)) na praktykę (data, pieczęć)}{(( data.potwierdzenie_zgloszenia | le ))}
 \end{minipage}\hfill
 \begin{minipage}[t]{\twocolB}
 \psig{Potwierdzenie odbycia szkolenia BHP (data, pieczęć)}{(( data.potwierdzenie_bhp | le ))}
@@ -87,7 +88,7 @@ $\square$ stacjonarne \quad $\boxtimes$ niestacjonarne
 \sectionrule
 \sectionlabel{D. Zaświadczenie odbycia praktyki zawodowej}
 
-Zaświadczam, że student \textbf{(( data.imie_nazwisko | le ))} odbył/a praktykę zawodową w:
+Zaświadczam, że ((* if female *))studentka((* else *))student((* endif *)) \textbf{(( data.imie_nazwisko | le ))} ((* if female *))odbyła((* else *))odbył((* endif *)) praktykę zawodową w:
 
 \vspace{4pt}
 \pfield{Nazwa zakładu / instytucji}{(( data.zaswiadczenie_zaklad | le ))}

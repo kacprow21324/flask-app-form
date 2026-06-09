@@ -2,6 +2,8 @@
 {% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 4a – Merytoryczna ocena wniosku studenta{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = data.get('gender') if data and data.get('gender') else (val('imie_nazwisko') | plec) %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
 {% macro ocena_val(nr, field) %}
     {% if data and data.ocena_efektow is defined %}
         {% for oe in data.ocena_efektow %}{% if oe.nr == nr %}{{ oe[field] }}{% endif %}{% endfor %}
@@ -10,8 +12,6 @@
 
 {% block content %}
 <div class="page page-form">
-
-    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
 
     <div class="doc-card">
 
@@ -23,7 +23,7 @@
             <div class="doc-badge">Załącznik nr 4a</div>
         </div>
 
-        <h1 class="doc-title">Merytoryczna ocena wniosku studenta<br>o zaliczenie efektów uczenia się z praktyki zawodowej</h1>
+        <h1 class="doc-title">Merytoryczna ocena wniosku {{ g('studenta', 'studentki') }}<br>o zaliczenie efektów uczenia się z praktyki zawodowej</h1>
 
         <form method="post"
               action="{{ url_for('zal4a_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal4a') }}">
@@ -32,7 +32,7 @@
             <div class="form-section">
                 <div class="form-row-2">
                     <div class="field-group">
-                        <label for="imie_nazwisko">Student / ka</label>
+                        <label for="imie_nazwisko">{{ g('Student', 'Studentka') }}</label>
                         <input id="imie_nazwisko" type="text" name="imie_nazwisko"
                                value="{{ val('imie_nazwisko') }}"
                                pattern=".+ .+" title="Podaj imię i nazwisko" required>

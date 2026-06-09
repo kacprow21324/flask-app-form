@@ -7,7 +7,8 @@ from typing import Optional
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.flask_client import OAuth
 from flask import (
-    Blueprint, abort, current_app, flash, redirect, request, session, url_for,
+    Blueprint, abort, current_app, flash, redirect, render_template, request,
+    session, url_for,
 )
 from flask_login import (
     LoginManager, current_user, login_required, login_user, logout_user,
@@ -16,10 +17,21 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from core.audit import log_action
 from core.models import LoginAttempt, User, UserSession, db
+from core.zopz_invitations import (
+    InvitationError,
+    accept_zopz_invitation,
+    get_active_invitation,
+)
 
 
 _DUMMY_PASSWORD_HASH = generate_password_hash("invalid-login-placeholder")
 oauth = OAuth()
+_MICROSOFT_APP_ROLES = {
+    "uopz": "uopz",
+    "dziekanat": "dziekanat",
+    "admin": "admin",
+}
+_MICROSOFT_MANAGED_ROLES = frozenset(_MICROSOFT_APP_ROLES.values())
 
 _DEBUG_ACCOUNTS = {
     "student": ("Student", "student@student.ans-elblag.pl", "SEED_STUDENT_PASSWORD"),
@@ -52,16 +64,6 @@ def init_oauth(app):
             ),
             client_kwargs={"scope": "openid email profile"},
         )
-    if app.config["GOOGLE_CLIENT_ID"] and app.config["GOOGLE_CLIENT_SECRET"]:
-        oauth.register(
-            name="google",
-            client_id=app.config["GOOGLE_CLIENT_ID"],
-            client_secret=app.config["GOOGLE_CLIENT_SECRET"],
-            server_metadata_url=(
-                "https://accounts.google.com/.well-known/openid-configuration"
-            ),
-            client_kwargs={"scope": "openid email profile"},
-        )
 
 
 def oauth_provider_status():
@@ -69,10 +71,6 @@ def oauth_provider_status():
         "microsoft": bool(
             current_app.config["MS_CLIENT_ID"]
             and current_app.config["MS_CLIENT_SECRET"]
-        ),
-        "google": bool(
-            current_app.config["GOOGLE_CLIENT_ID"]
-            and current_app.config["GOOGLE_CLIENT_SECRET"]
         ),
     }
 
@@ -211,6 +209,35 @@ def _oauth_redirect_uri(config_key, endpoint):
     return current_app.config.get(config_key) or url_for(endpoint, _external=True)
 
 
+def _microsoft_app_role(userinfo):
+    raw_roles = userinfo.get("roles") or []
+    if isinstance(raw_roles, str):
+        raw_roles = [raw_roles]
+    mapped_roles = {
+        _MICROSOFT_APP_ROLES[role.strip().lower()]
+        for role in raw_roles
+        if isinstance(role, str)
+        and role.strip().lower() in _MICROSOFT_APP_ROLES
+    }
+    if len(mapped_roles) > 1:
+        raise AuthError(
+            "Konto ma przypisanych kilka sprzecznych ról aplikacji Microsoft."
+        )
+    return next(iter(mapped_roles), None)
+
+
+def _microsoft_user_names(userinfo, email):
+    first_name = (userinfo.get("given_name") or "").strip()
+    last_name = (userinfo.get("family_name") or "").strip()
+    display_name = (userinfo.get("name") or "").strip()
+    if (not first_name or not last_name) and display_name:
+        parts = display_name.split(maxsplit=1)
+        first_name = first_name or parts[0]
+        last_name = last_name or (parts[1] if len(parts) > 1 else parts[0])
+    fallback = email.split("@", 1)[0]
+    return first_name or fallback, last_name or fallback
+
+
 def resolve_microsoft_user(userinfo):
     tenant_id = (current_app.config.get("MS_TENANT_ID") or "").strip()
     if tenant_id.lower() in {"", "common", "organizations", "consumers"}:
@@ -243,6 +270,10 @@ def resolve_microsoft_user(userinfo):
     email_domain = email.rsplit("@", 1)[1]
     if allowed_domains and email_domain not in allowed_domains:
         raise AuthError("Adres e-mail nie należy do dozwolonej domeny uczelni.")
+    app_role = _microsoft_app_role(userinfo)
+    staff_domain = current_app.config.get(
+        "MS_STAFF_EMAIL_DOMAIN", "ans-elblag.pl",
+    ).strip().lower()
 
     user = User.query.filter_by(
         microsoft_tenant_id=claim_tenant,
@@ -257,14 +288,64 @@ def resolve_microsoft_user(userinfo):
             user.microsoft_object_id = object_id
             user.email_verified = 1
 
+    if user is None and app_role and email_domain == staff_domain:
+        first_name, last_name = _microsoft_user_names(userinfo, email)
+        user = User(
+            email=email,
+            password_hash=generate_password_hash(secrets.token_urlsafe(48)),
+            first_name=first_name,
+            last_name=last_name,
+            role=app_role,
+            is_active=1,
+            email_verified=1,
+            microsoft_tenant_id=claim_tenant,
+            microsoft_object_id=object_id,
+        )
+        db.session.add(user)
+        db.session.flush()
+        log_action(
+            "create",
+            "user",
+            user.id,
+            after={"email": email, "role": app_role, "source": "microsoft"},
+            user=user,
+        )
+
     if user is None or not user.is_active:
         raise AuthError(
             "To konto nie jest przypisane do aktywnego użytkownika systemu."
         )
+    if user.role == "student" and app_role:
+        raise AuthError(
+            "Rola pracownicza Microsoft nie może zostać przypisana do konta studenta."
+        )
+    if (
+        user.role in _MICROSOFT_MANAGED_ROLES
+        and email_domain == staff_domain
+        and app_role is None
+    ):
+        raise AuthError(
+            "Konto pracownika nie ma przypisanej roli tej aplikacji w Microsoft."
+        )
+    if user.role in _MICROSOFT_MANAGED_ROLES and app_role and user.role != app_role:
+        previous_role = user.role
+        user.role = app_role
+        UserSession.query.filter_by(user_id=user.id, is_revoked=0).update(
+            {"is_revoked": 1, "revoked_at": datetime.utcnow()},
+            synchronize_session=False,
+        )
+        log_action(
+            "update",
+            "user_role",
+            user.id,
+            before={"role": previous_role},
+            after={"role": app_role, "source": "microsoft"},
+            user=user,
+        )
     return user
 
 
-def _finish_oauth_login(client, provider):
+def _finish_oauth_login(client):
     try:
         token = client.authorize_access_token()
     except OAuthError:
@@ -274,19 +355,7 @@ def _finish_oauth_login(client, provider):
 
     userinfo = token.get("userinfo") or {}
     try:
-        if provider == "microsoft":
-            user = resolve_microsoft_user(userinfo)
-        else:
-            email = (
-                userinfo.get("email")
-                or userinfo.get("preferred_username")
-                or ""
-            ).lower().strip()
-            user = User.query.filter_by(email=email).first() if email else None
-            if user is None or not user.is_active:
-                raise AuthError(
-                    "To konto nie jest przypisane do aktywnego użytkownika systemu."
-                )
+        user = resolve_microsoft_user(userinfo)
     except AuthError as exc:
         db.session.rollback()
         flash(
@@ -315,25 +384,44 @@ def microsoft_callback():
     client = oauth.create_client("microsoft")
     if client is None:
         abort(404)
-    return _finish_oauth_login(client, "microsoft")
+    return _finish_oauth_login(client)
 
 
-@auth_bp.route("/google")
-def google_login():
-    client = oauth.create_client("google")
-    if client is None:
-        abort(404)
-    return client.authorize_redirect(
-        _oauth_redirect_uri("GOOGLE_REDIRECT_URI", "auth.google_callback")
+@auth_bp.route("/zaproszenie-zopz/<token>", methods=["GET", "POST"])
+def accept_zopz_invitation_route(token):
+    invitation = get_active_invitation(token)
+    if invitation is None:
+        return render_template(
+            "zopz_invitation_accept.html",
+            invitation=None,
+        ), 410
+
+    existing_user = User.query.filter_by(email=invitation.email).first()
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        if existing_user is None and password != request.form.get(
+            "password_confirmation", "",
+        ):
+            flash("Hasła nie są identyczne.", "error")
+        else:
+            try:
+                user = accept_zopz_invitation(invitation, password)
+                db.session.commit()
+            except InvitationError as exc:
+                db.session.rollback()
+                flash(str(exc), "error")
+            else:
+                session.clear()
+                login_user(user)
+                start_user_session(user)
+                flash("Konto opiekuna zostało aktywowane.", "success")
+                return redirect(url_for("index"))
+
+    return render_template(
+        "zopz_invitation_accept.html",
+        invitation=invitation,
+        existing_account=existing_user is not None,
     )
-
-
-@auth_bp.route("/google/callback")
-def google_callback():
-    client = oauth.create_client("google")
-    if client is None:
-        abort(404)
-    return _finish_oauth_login(client, "google")
 
 
 @auth_bp.route("/debug-login/<account_key>", methods=["POST"])

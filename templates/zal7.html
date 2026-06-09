@@ -2,13 +2,11 @@
 {% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik {{ '7a' if sn else '7' }} – Sprawozdanie z praktyki{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
-{% set plec = val('imie_nazwisko') | plec %}
+{% set plec = data.get('gender') if data and data.get('gender') else (val('imie_nazwisko') | plec) %}
 {% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
 
 {% block content %}
 <div class="page page-form">
-
-    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
 
     <div class="doc-card">
 
@@ -30,7 +28,7 @@
 
             {# ── Dane studenta ── #}
             <div class="form-section">
-                <div class="form-section-label">Dane studenta</div>
+                <div class="form-section-label">Dane {{ g('studenta', 'studentki') }}</div>
                 <div class="form-row-2">
                     <div class="field-group">
                         <label for="imie_nazwisko">Imię i nazwisko</label>
@@ -135,7 +133,7 @@
                         <label for="data">Data sporządzenia sprawozdania</label>
                         <input id="data" type="date" name="data" value="{{ val('data') }}">
                     </div>
-                    {{ sig_stamp(val('podpis_studenta'), 'Podpis studenta') }}
+                    {{ sig_stamp(val('podpis_studenta'), g('Podpis studenta', 'Podpis studentki')) }}
                 </div>
                 {% if sn %}
                 <div class="sig-row" style="margin-top:10px">

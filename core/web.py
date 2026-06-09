@@ -38,6 +38,7 @@ from core.grades import (
     require_approved_diary,
     store_final_grade,
 )
+from core.gender import gender_for_student, infer_gender, normalize_gender
 from core.internships import (
     current_academic_year,
     ensure_internship,
@@ -49,6 +50,16 @@ from core.internships import (
 )
 from core.notifications import notify_user, unread_for
 from core.progress import summarize_progress
+from core.practice_workflow import (
+    OPTIONAL_EXPERIENCE_STEPS,
+    completion_errors,
+    overview_phases,
+    practice_result,
+    step_access,
+    step_states,
+    steps_for_student,
+    unmet_previous_steps,
+)
 from core.retention import (
     anonymize_expired_archive,
     archive_package_path,
@@ -82,6 +93,7 @@ class _BlueprintRouter:
                     "/wyslij",
                     "/zatwierdz",
                     "/odrzuc",
+                    "/zakoncz",
                 ))
             )
         ):
@@ -109,13 +121,8 @@ app = _BlueprintRouter()
 
 @app.template_filter('plec')
 def detect_gender(name):
-    if not name:
-        return 'M'
-    first = name.strip().split()[0].lower()
-    male_a_exceptions = {'kuba', 'seba', 'bonawentura', 'barnaba', 'kosma'}
-    if first.endswith('a') and first not in male_a_exceptions:
-        return 'K'
-    return 'M'
+    explicit = normalize_gender(name)
+    return explicit or infer_gender(name)
 
 BASE_DIR    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR    = os.path.join(BASE_DIR, "data")
@@ -447,6 +454,45 @@ def guard_form(form_key):
     if not can_edit_form(form_key):
         flash("Nie masz uprawnień do edycji tego formularza.", "error")
         return redirect(url_for("index"))
+    if current_user.role != "admin":
+        nr_albumu = (
+            (request.view_args or {}).get("nr_albumu")
+            or request.args.get("nr")
+            or request.form.get("nr_albumu")
+            or (
+                current_user.album_number
+                if current_user.role == "student"
+                else None
+            )
+        )
+        if nr_albumu:
+            student = User.query.filter_by(
+                role="student",
+                album_number=str(nr_albumu),
+            ).first()
+            if student is not None:
+                unmet = unmet_previous_steps(
+                    student,
+                    form_key,
+                    workflow.get_statuses(str(nr_albumu)),
+                )
+                if unmet:
+                    first = unmet[0]
+                    if first.get("reason") == "wrong_report":
+                        expected = "7a" if first["form_key"] == "zal7a" else "7"
+                        flash(
+                            f"Dla tego trybu studiów obowiązuje Załącznik {expected}.",
+                            "error",
+                        )
+                    else:
+                        flash(
+                            f"Ten etap jest zablokowany. Najpierw zakończ "
+                            f"Załącznik {first['nr']}: {first['title']}.",
+                            "warning",
+                        )
+                    return redirect(
+                        url_for("student_detail", nr_albumu=nr_albumu)
+                    )
     return None
 
 
@@ -517,6 +563,7 @@ def build_prefill(nr=''):
             'imie_nazwisko': name,
             'rok_akademicki': get_current_semester(),
             'rodzaj_studiow': current_user.study_mode or 'stacjonarne',
+            'gender': gender_for_student(current_user),
         }
         if current_user.speciality:
             result['specjalnosc'] = current_user.speciality
@@ -537,20 +584,21 @@ def build_prefill(nr=''):
     return base or None
 
 
+def _record_with_gender(record, nr_albumu):
+    """Return a form copy enriched with the student's explicit gender."""
+    if record is None:
+        return None
+    student = User.query.filter_by(
+        role="student", album_number=nr_albumu,
+    ).first()
+    enriched = dict(record)
+    enriched["gender"] = gender_for_student(student, record)
+    return enriched
+
+
 # ─── Fazy obiegu dokumentów ───────────────────────────────────────────────────
 
-WORKFLOW_PHASES = [
-    {'nr': 0, 'label': 'Faza 0', 'subtitle': 'Pre-setup',
-     'keys': ['zal9', 'zal2']},
-    {'nr': 1, 'label': 'Faza 1', 'subtitle': 'Przygotowanie',
-     'keys': ['zal1', 'zal2a', 'zal4b', 'zal4a']},
-    {'nr': 2, 'label': 'Faza 2', 'subtitle': 'Realizacja',
-     'keys': ['zal6']},
-    {'nr': 3, 'label': 'Faza 3', 'subtitle': 'Po praktyce',
-     'keys': ['zal7', 'zal7a', 'zal5', 'zal3', 'zal4']},
-    {'nr': 4, 'label': 'Faza 4', 'subtitle': 'Zaliczenie',
-     'keys': ['zal8']},
-]
+WORKFLOW_PHASES = overview_phases()
 
 # ─── Auto-signatures ──────────────────────────────────────────────────────────
 
@@ -633,6 +681,30 @@ def _persist(nr_albumu, key, record, label):
     if _record_is_archived(nr_albumu):
         flash("Rekord jest zarchiwizowany i nie można go zmieniać.", "error")
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    if current_user.role != "admin":
+        student = User.query.filter_by(
+            role="student", album_number=nr_albumu,
+        ).first()
+        if student is not None:
+            unmet = unmet_previous_steps(
+                student, key, workflow.get_statuses(nr_albumu),
+            )
+            if unmet:
+                first = unmet[0]
+                if first.get("reason") == "wrong_report":
+                    flash("Wybrano sprawozdanie niezgodne z trybem studiów.", "error")
+                else:
+                    flash(
+                        f"Nie można zapisać tego etapu przed zakończeniem "
+                        f"Załącznika {first['nr']}.",
+                        "error",
+                    )
+                return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    student = User.query.filter_by(
+        role="student", album_number=nr_albumu,
+    ).first()
+    if student is not None:
+        record["gender"] = gender_for_student(student, record)
     existing = get_form(nr_albumu, key) or {}
     existing_status = workflow.get_status(nr_albumu, key)
     if existing_status in ('pending', 'approved') and current_user.role != 'admin':
@@ -721,6 +793,17 @@ def regulamin():
     return render_template("regulamin.html")
 
 
+@app.route("/regulamin.pdf")
+@login_required
+def regulamin_pdf():
+    pdf_path = os.path.join(current_app.static_folder, "regulamin.pdf")
+    response = send_file(pdf_path, mimetype="application/pdf")
+    # Pozwól na osadzenie wyłącznie przez tę samą domenę – setdefault w security.py nie nadpisze tych nagłówków.
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'self'"
+    return response
+
+
 @app.route("/powiadomienia")
 @login_required
 def powiadomienia():
@@ -795,9 +878,21 @@ def obieg():
         if not nr:
             flash("Brak numeru albumu — skontaktuj się z administratorem.", "error")
             return redirect(url_for("index"))
+        student_steps = steps_for_student(current_user)
+        required_keys = {step["key"] for step in student_steps}
+        phases = [
+            {
+                "nr": step["phase"],
+                "label": f"Faza {step['phase']}",
+                "subtitle": step["owner_label"],
+                "keys": [step["key"]],
+            }
+            for step in student_steps
+        ]
+        att_map = {a["key"]: a for a in get_attachments()}
         wf_rows = DocumentWorkflow.query.filter(
             DocumentWorkflow.album_number == nr,
-            DocumentWorkflow.form_key.in_(visible_keys),
+            DocumentWorkflow.form_key.in_(required_keys),
         ).all()
         status_map = {r.form_key: r.status for r in wf_rows}
         internship = Internship.query.filter_by(
@@ -806,8 +901,13 @@ def obieg():
         ).first()
         progress = summarize_progress(
             wf_rows,
-            len(visible_keys),
+            len(required_keys),
             internship=internship,
+        )
+        practice_state = practice_result(
+            current_user,
+            status_map,
+            internship,
         )
         return render_template("obieg.html",
             phases=phases, att_map=att_map,
@@ -815,6 +915,12 @@ def obieg():
             role=current_user.role, progress=progress,
             internship=internship, academic_years=academic_years,
             selected_year=selected_year,
+            workflow_steps=step_states(current_user, status_map),
+            workflow_step_map={
+                step["key"]: step
+                for step in step_states(current_user, status_map)
+            },
+            practice_state=practice_state,
         )
 
     internships_query = Internship.query.filter_by(academic_year=selected_year)
@@ -853,15 +959,21 @@ def obieg():
         wf_by_student.setdefault(r.album_number, {})[r.form_key] = r.status
         wf_rows_by_student.setdefault(r.album_number, []).append(r)
 
-    progress_by_student = {
-        student.album_number: summarize_progress(
-            wf_rows_by_student.get(student.album_number, []),
-            len(visible_keys),
+    progress_by_student = {}
+    for student in students:
+        required_keys = {
+            step["key"] for step in steps_for_student(student)
+        }
+        required_rows = [
+            row for row in wf_rows_by_student.get(student.album_number, [])
+            if row.form_key in required_keys
+        ]
+        progress_by_student[student.album_number] = summarize_progress(
+            required_rows,
+            len(required_keys),
             internship=internship_by_student.get(student.id),
             reviewer_role=current_user.role,
         )
-        for student in students
-    }
 
     # Podsumowanie per klucz formularza
     all_keys = [k for ph in phases for k in ph['keys']]
@@ -1221,6 +1333,7 @@ def profil():
         before = {
             "speciality": current_user.speciality,
             "study_mode": current_user.study_mode,
+            "gender": current_user.gender,
             "semester": current_user.semester,
             "study_year": current_user.study_year,
         }
@@ -1228,6 +1341,10 @@ def profil():
         study_mode = request.form.get("study_mode", "stacjonarne").strip()
         current_user.speciality = speciality or None
         current_user.study_mode = study_mode
+        current_user.gender = (
+            normalize_gender(request.form.get("gender"))
+            or gender_for_student(current_user)
+        )
         current_user.semester = (request.form.get("semester", "").strip() or None)
         current_user.study_year = (request.form.get("study_year", "").strip() or None)
         log_action(
@@ -1236,6 +1353,7 @@ def profil():
             after={
                 "speciality": current_user.speciality,
                 "study_mode": current_user.study_mode,
+                "gender": current_user.gender,
                 "semester": current_user.semester,
                 "study_year": current_user.study_year,
             },
@@ -1262,7 +1380,7 @@ def formularz_recenzuj(nr_albumu, zal_key):
     effects = get_effects() if zal_key in ('zal2a', 'zal4', 'zal4a', 'zal4b', 'zal6') else []
     tpl = 'zal7.html' if zal_key == 'zal7a' else f'{zal_key}.html'
     return render_template(tpl,
-        data=rec, edit_nr=nr_albumu,
+        data=_record_with_gender(rec, nr_albumu), edit_nr=nr_albumu,
         specialties=get_specialties(), effects=effects,
         questions=get_survey_questions(), options=get_survey_options(),
         nr_locked=True, sn=(zal_key == 'zal7a'),
@@ -1289,12 +1407,22 @@ def pobierz_pdf(nr_albumu, zal_key):
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
     workflow_row = workflow.get_document(nr_albumu, zal_key)
     revision = get_form_revision(nr_albumu, zal_key)
-    if (
-        workflow_row is None
-        or workflow_row.status != "approved"
-        or revision is None
-        or workflow_row.approved_revision != revision
-    ):
+    if workflow_row is None or workflow_row.status != "approved" or revision is None:
+        flash(
+            "PDF można pobrać wyłącznie z aktualnej, zatwierdzonej rewizji dokumentu.",
+            "error",
+        )
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    if workflow_row.approved_revision is None:
+        workflow_row.approved_revision = revision
+        log_action(
+            "backfill",
+            "document_workflow",
+            workflow_row.id,
+            after={"approved_revision": revision},
+        )
+        db.session.commit()
+    elif workflow_row.approved_revision != revision:
         flash(
             "PDF można pobrać wyłącznie z aktualnej, zatwierdzonej rewizji dokumentu.",
             "error",
@@ -1335,8 +1463,13 @@ def pobierz_pdf(nr_albumu, zal_key):
         if os.path.isfile(path):
             return _send_archived_document(existing_document, path)
 
+    student_user = User.query.filter_by(
+        role="student", album_number=nr_albumu,
+    ).first()
+    pdf_record = dict(record)
+    pdf_record["gender"] = gender_for_student(student_user, record)
     ctx = dict(
-        data=record, nr_albumu=nr_albumu, att=att,
+        data=pdf_record, nr_albumu=nr_albumu, att=att,
         effects=effects, effect_map=effect_map,
         questions=get_survey_questions(), options=get_survey_options(),
         specialties=get_specialties(), sn=(zal_key == "zal7a"),
@@ -1468,12 +1601,16 @@ def drukuj(nr_albumu, zal_key):
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
     workflow_row = workflow.get_document(nr_albumu, zal_key)
     revision = get_form_revision(nr_albumu, zal_key)
-    if (
-        workflow_row is None
-        or workflow_row.status != "approved"
-        or revision is None
-        or workflow_row.approved_revision != revision
-    ):
+    if workflow_row is None or workflow_row.status != "approved" or revision is None:
+        flash(
+            "Podgląd wydruku jest dostępny wyłącznie dla aktualnej, zatwierdzonej rewizji.",
+            "error",
+        )
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    if workflow_row.approved_revision is None:
+        workflow_row.approved_revision = revision
+        db.session.commit()
+    elif workflow_row.approved_revision != revision:
         flash(
             "Podgląd wydruku jest dostępny wyłącznie dla aktualnej, zatwierdzonej rewizji.",
             "error",
@@ -1483,8 +1620,13 @@ def drukuj(nr_albumu, zal_key):
     effect_map = {e.nr: e.opis for e in effects}
     att = next((a for a in attachments if a["key"] == zal_key), None)
     sn = (zal_key == "zal7a")
+    student_user = User.query.filter_by(
+        role="student", album_number=nr_albumu,
+    ).first()
+    print_record = dict(record)
+    print_record["gender"] = gender_for_student(student_user, record)
     return render_template(f"print/{zal_key}.html",
-        data=record, nr_albumu=nr_albumu, att=att,
+        data=print_record, nr_albumu=nr_albumu, att=att,
         effects=effects, effect_map=effect_map,
         questions=get_survey_questions(), options=get_survey_options(),
         specialties=get_specialties(), sn=sn)
@@ -1509,7 +1651,7 @@ def formularz_podglad(nr_albumu, zal_key):
     effects = get_effects() if zal_key in ('zal2a', 'zal4', 'zal4a', 'zal4b', 'zal6') else []
     tpl = 'zal7.html' if zal_key == 'zal7a' else f'{zal_key}.html'
     return render_template(tpl,
-        data=existing, edit_nr=nr_albumu,
+        data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu,
         specialties=get_specialties(), effects=effects,
         questions=get_survey_questions(), options=get_survey_options(),
         nr_locked=True, sn=(zal_key == 'zal7a'),
@@ -1562,19 +1704,28 @@ def index():
                 name = student_forms[key].get("imie_nazwisko", "")
                 if name:
                     break
-        student_workflow = get_student_workflow()
         student_statuses = workflow.get_statuses(nr)
-        workflow_steps = [
-            {**step,
-             "done": step["key"] in student_forms,
-             "status": student_statuses.get(step["key"], "draft") if step["key"] in student_forms else ''}
-            for step in student_workflow
-        ]
+        workflow_steps = []
+        for step in step_states(current_user, student_statuses):
+            workflow_steps.append({
+                **step,
+                "done": step["complete"],
+                "filled": step["key"] in student_forms,
+                "when": f"Faza {step['phase']}",
+            })
+        internship = Internship.query.filter_by(
+            student_id=current_user.id,
+            is_archived=0,
+        ).order_by(Internship.id.desc()).first()
         return render_template("index.html",
             role=role, nr_albumu=nr, student_forms=student_forms,
             filled=filled, attachments=attachments,
             workflow=workflow_steps, name=name, editable_forms=editable,
-            status_labels=STATUS_LABELS)
+            status_labels=STATUS_LABELS,
+            practice_state=practice_result(
+                current_user, student_statuses, internship,
+            ),
+        )
 
     selected_year = current_academic_year()
     internships_query = Internship.query.filter_by(academic_year=selected_year)
@@ -1680,11 +1831,14 @@ def student_detail(nr_albumu):
     if current_user.role == 'student' and current_user.album_number != nr_albumu:
         flash("Brak dostępu do tego rekordu.", "error")
         return redirect(url_for("index"))
-    data = load_data()
-    student = data.get(nr_albumu)
-    if not student:
-        flash("Brak danych dla tego numeru albumu.", "error")
+    student_user = User.query.filter_by(
+        role="student", album_number=nr_albumu, is_active=1,
+    ).first()
+    if student_user is None:
+        flash("Nie znaleziono aktywnego konta studenta.", "error")
         return redirect(url_for("index"))
+    data = load_data()
+    student = data.get(nr_albumu, {})
     effect_map = {e.nr: e.opis for e in get_effects()}
     all_atts = get_attachments()
     visible_keys = ROLE_VISIBLE_FORMS.get(current_user.role)
@@ -1701,6 +1855,20 @@ def student_detail(nr_albumu):
         row.form_key: row
         for row in DocumentWorkflow.query.filter_by(album_number=nr_albumu).all()
     }
+    statuses = {
+        key: row.status for key, row in workflow_states.items()
+    }
+    internship = (
+        Internship.query.filter_by(
+            student_id=student_user.id,
+            is_archived=0,
+        ).order_by(Internship.id.desc()).first()
+        if student_user is not None else None
+    )
+    workflow_access = (
+        step_access(student_user, statuses)
+        if student_user is not None else {}
+    )
     generated_versions = {}
     for document in (
         GeneratedDocument.query.filter_by(album_number=nr_albumu)
@@ -1734,6 +1902,13 @@ def student_detail(nr_albumu):
         archive_packages=archive_packages,
         record_archived=record_archived,
         att_nr=att_nr,
+        workflow_access=workflow_access,
+        practice_state=(
+            practice_result(student_user, statuses, internship)
+            if student_user is not None
+            else {"code": "in_progress", "label": "Praktyka w toku"}
+        ),
+        optional_experience_steps=OPTIONAL_EXPERIENCE_STEPS,
     )
 
 
@@ -1847,6 +2022,26 @@ def wyslij_do_oceny(nr_albumu, zal_key):
     if not rec:
         flash("Formularz nie został jeszcze wypełniony.", "error")
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    errors = completion_errors(zal_key, rec)
+    if errors:
+        for error in errors:
+            flash(error, "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    student = User.query.filter_by(
+        role="student", album_number=nr_albumu,
+    ).first()
+    if current_user.role != "admin" and student is not None:
+        unmet = unmet_previous_steps(
+            student, zal_key, workflow.get_statuses(nr_albumu),
+        )
+        if unmet:
+            first = unmet[0]
+            flash(
+                f"Najpierw zakończ Załącznik "
+                f"{first.get('nr', first.get('form_key'))}.",
+                "error",
+            )
+            return redirect(url_for("student_detail", nr_albumu=nr_albumu))
     # FSM: walidacja przejścia
     current_state = workflow.get_status(nr_albumu, zal_key)
     try:
@@ -1854,17 +2049,6 @@ def wyslij_do_oceny(nr_albumu, zal_key):
     except InvalidTransition:
         flash("Dokument jest już w trakcie oceny lub zatwierdzony.", "info")
         return redirect(url_for("student_detail", nr_albumu=nr_albumu))
-    # FSM: ostrzeżenia o niespełnionych zależnościach fazowych (miękkie)
-    statuses = workflow.get_statuses(nr_albumu)
-    unmet = DocumentFSM.check_prerequisites(zal_key, statuses)
-    for u in unmet:
-        zal_nr = next((a['nr'] for a in get_attachments() if a['key'] == u['form_key']), u['form_key'])
-        flash(
-            f"Uwaga: Zał. {zal_nr} powinien mieć status "
-            f"'{DocumentFSM.STATE_LABELS.get(u['required_status'], u['required_status'])}' "
-            f"przed wysłaniem tego dokumentu (teraz: '{DocumentFSM.STATE_LABELS.get(u['actual'], u['actual'])}').",
-            "warning"
-        )
     rec.pop('_diary_comments', None)
     rec.pop('_field_comments', None)
     save_form(nr_albumu, zal_key, rec)
@@ -1874,6 +2058,75 @@ def wyslij_do_oceny(nr_albumu, zal_key):
     )
     _notify_reviewers(nr_albumu, zal_key)
     flash(f"Dokument wysłany do zatwierdzenia przez {wf['reviewer_label']}.", "success")
+    return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+
+
+@app.route("/student/<nr_albumu>/<zal_key>/zakoncz", methods=["POST"])
+@login_required
+def zakoncz_dokument(nr_albumu, zal_key):
+    from core.fsm import DocumentFSM, InvalidTransition
+
+    wf = get_document_workflow().get(zal_key, {})
+    if wf.get("reviewer"):
+        flash("Ten dokument musi zostać zatwierdzony przez recenzenta.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    if not can_edit_form(zal_key) and current_user.role != "admin":
+        abort(403)
+    record = get_form(nr_albumu, zal_key)
+    if not record:
+        flash("Najpierw wypełnij i zapisz formularz.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    errors = completion_errors(zal_key, record)
+    if errors:
+        for error in errors:
+            flash(error, "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    student = User.query.filter_by(
+        role="student", album_number=nr_albumu,
+    ).first_or_404()
+    if current_user.role != "admin":
+        unmet = unmet_previous_steps(
+            student, zal_key, workflow.get_statuses(nr_albumu),
+        )
+        if unmet:
+            first = unmet[0]
+            flash(
+                f"Najpierw zakończ Załącznik "
+                f"{first.get('nr', first.get('form_key'))}.",
+                "error",
+            )
+            return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    current_state = workflow.get_status(nr_albumu, zal_key)
+    try:
+        DocumentFSM.transition(current_state, "complete")
+    except InvalidTransition:
+        flash("Dokument nie jest szkicem gotowym do zakończenia.", "error")
+        return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+    if zal_key == "zal8":
+        internship = Internship.query.filter_by(
+            student_id=student.id,
+            is_archived=0,
+        ).order_by(Internship.id.desc()).first()
+        if internship is None or internship.grade_k is None:
+            flash("Protokół musi zawierać obliczoną ocenę końcową.", "error")
+            return redirect(url_for("student_detail", nr_albumu=nr_albumu))
+
+    workflow.do_transition(nr_albumu, zal_key, "complete")
+    ensure_internship(
+        nr_albumu,
+        zal_key,
+        record,
+        document_status="approved",
+        commit=True,
+    )
+    if current_user.role != "student":
+        _notify_student(
+            nr_albumu,
+            zal_key,
+            "approved",
+            f"Etap zakończył: {current_user.full_name}",
+        )
+    flash("Etap został zakończony. Odblokowano kolejny dokument.", "success")
     return redirect(url_for("student_detail", nr_albumu=nr_albumu))
 
 
@@ -1989,7 +2242,7 @@ def zal1_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal1(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal1")
-    return render_template("zal1.html", data=existing, edit_nr=nr_albumu, specialties=get_specialties(),
+    return render_template("zal1.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu, specialties=get_specialties(),
                            nr_locked=(current_user.role == 'student'))
 
 
@@ -2075,7 +2328,7 @@ def zal2_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal2(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal2")
-    return render_template("zal2.html", data=existing, edit_nr=nr_albumu, effects=get_effects())
+    return render_template("zal2.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu, effects=get_effects())
 
 
 @app.route("/zal2/<nr_albumu>/usun", methods=["POST"])
@@ -2139,7 +2392,7 @@ def zal2a_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal2a(nr_albumu, effects)
     existing = load_data().get(nr_albumu, {}).get("zal2a")
-    return render_template("zal2a.html", data=existing, edit_nr=nr_albumu,
+    return render_template("zal2a.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu,
                            effects=effects, specialties=get_specialties(),
                            nr_locked=(current_user.role == 'student'))
 
@@ -2221,7 +2474,7 @@ def zal3_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal3(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal3")
-    return render_template("zal3.html", data=existing, edit_nr=nr_albumu, specialties=get_specialties())
+    return render_template("zal3.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu, specialties=get_specialties())
 
 
 @app.route("/zal3/<nr_albumu>/usun", methods=["POST"])
@@ -2305,7 +2558,7 @@ def zal4_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal4(nr_albumu, effects)
     existing = load_data().get(nr_albumu, {}).get("zal4")
-    return render_template("zal4.html", data=existing, edit_nr=nr_albumu,
+    return render_template("zal4.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu,
                            effects=effects, specialties=get_specialties())
 
 
@@ -2377,7 +2630,7 @@ def zal4a_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal4a(nr_albumu, effects)
     existing = load_data().get(nr_albumu, {}).get("zal4a")
-    return render_template("zal4a.html", data=existing, edit_nr=nr_albumu, effects=effects)
+    return render_template("zal4a.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu, effects=effects)
 
 
 @app.route("/zal4a/<nr_albumu>/usun", methods=["POST"])
@@ -2452,7 +2705,7 @@ def zal4b_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal4b(nr_albumu, effects)
     existing = load_data().get(nr_albumu, {}).get("zal4b")
-    return render_template("zal4b.html", data=existing, edit_nr=nr_albumu,
+    return render_template("zal4b.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu,
                            effects=effects, specialties=get_specialties(),
                            nr_locked=(current_user.role == 'student'))
 
@@ -2578,7 +2831,7 @@ def zal5_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal5(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal5")
-    return render_template("zal5.html", data=existing, edit_nr=nr_albumu,
+    return render_template("zal5.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu,
                            questions=get_survey_questions(), options=get_survey_options(),
                            nr_locked=(current_user.role == 'student'))
 
@@ -2651,7 +2904,7 @@ def zal6_edit(nr_albumu):
         return _save_zal6(nr_albumu, effects)
     existing = load_data().get(nr_albumu, {}).get("zal6")
     diary_comments = existing.get('_diary_comments', []) if existing else []
-    return render_template("zal6.html", data=existing, edit_nr=nr_albumu,
+    return render_template("zal6.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu,
                            effects=effects, specialties=get_specialties(),
                            nr_locked=(current_user.role == 'student'),
                            diary_comments=diary_comments)
@@ -2816,7 +3069,7 @@ def zal7_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal7(nr_albumu, sn=False)
     existing = load_data().get(nr_albumu, {}).get("zal7")
-    return render_template("zal7.html", data=existing, edit_nr=nr_albumu, specialties=get_specialties(),
+    return render_template("zal7.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu, specialties=get_specialties(),
                            sn=False, nr_locked=(current_user.role == 'student'))
 
 
@@ -2895,7 +3148,7 @@ def zal7a_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal7(nr_albumu, sn=True)
     existing = load_data().get(nr_albumu, {}).get("zal7a")
-    return render_template("zal7.html", data=existing, edit_nr=nr_albumu, specialties=get_specialties(),
+    return render_template("zal7.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu, specialties=get_specialties(),
                            sn=True, nr_locked=(current_user.role == 'student'))
 
 
@@ -2956,7 +3209,7 @@ def zal8_edit(nr_albumu):
         existing["ocena_z"] = z3.get("ocena_zakladowa_param", "")
         internship = ensure_internship(nr_albumu)
         existing["miejsca_praktyki"] = _internship_places(internship)
-    return render_template("zal8.html", data=existing, edit_nr=nr_albumu)
+    return render_template("zal8.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu)
 
 
 @app.route("/zal8/<nr_albumu>/usun", methods=["POST"])
@@ -3095,7 +3348,7 @@ def zal9_edit(nr_albumu):
     if request.method == "POST":
         return _save_zal9(nr_albumu)
     existing = load_data().get(nr_albumu, {}).get("zal9")
-    return render_template("zal9.html", data=existing, edit_nr=nr_albumu)
+    return render_template("zal9.html", data=_record_with_gender(existing, nr_albumu), edit_nr=nr_albumu)
 
 
 @app.route("/zal9/<nr_albumu>/usun", methods=["POST"])
@@ -3378,6 +3631,8 @@ def konfiguracja():
                 commit=True,
             )
             flash("Konfiguracja zapisana.", "success")
+        if request.args.get("next") == "admin":
+            return redirect(url_for("admin.dashboard"))
         return redirect(url_for("konfiguracja"))
     summer = int(get_config_value('semester_summer_start_month', 3))
     winter = int(get_config_value('semester_winter_start_month', 10))

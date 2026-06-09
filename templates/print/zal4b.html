@@ -2,10 +2,11 @@
 {% from "print/_macros.html" import field, sig, letterhead %}
 {% block doc_title %}Załącznik 4b – Wniosek o zaliczenie{% endblock %}
 {% block content %}
+{% set female = data.get('gender') == 'K' %}
 {{ letterhead('4b') }}
-<h1 class="p-title">Wniosek studenta o zaliczenie efektów uczenia się<br>z tytułu doświadczenia zawodowego</h1>
+<h1 class="p-title">Wniosek {{ 'studentki' if female else 'studenta' }} o zaliczenie efektów uczenia się<br>z tytułu doświadczenia zawodowego</h1>
 <div class="p-section">
-    <div class="p-section-label">A. Dane studenta</div>
+    <div class="p-section-label">A. Dane {{ 'studentki' if female else 'studenta' }}</div>
     <div class="p-row-2">{{ field('Imię i nazwisko', data.imie_nazwisko) }}{{ field('Nr albumu', data.nr_albumu) }}</div>
     <div class="p-row-2">{{ field('Kierunek', 'Informatyka') }}{{ field('Specjalność', data.specjalnosc) }}</div>
 </div>
@@ -32,7 +33,7 @@
 </div>
 <div class="p-section">
     {{ field('Wykaz załączonych dokumentów', data.wykaz_dokumentow) }}
-    <div class="p-sig-row">{{ sig('Data złożenia wniosku', data.data) }}{{ sig('Podpis studenta', data.podpis_studenta) }}</div>
+    <div class="p-sig-row">{{ sig('Data złożenia wniosku', data.data) }}{{ sig('Podpis studentki' if female else 'Podpis studenta', data.podpis_studenta) }}</div>
 </div>
 <div class="p-section">
     <div class="p-section-label">E. Opinia Komisji ds. praktyk zawodowych</div>

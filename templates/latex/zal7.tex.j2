@@ -1,6 +1,7 @@
 % ANS Elblag – Załącznik nr 7 – Sprawozdanie z praktyki zawodowej (stacjonarne)
 \input{base}
 \begin{document}
+((* set female = data.get('gender') == 'K' *))
 
 \letterhead{7}
 
@@ -31,31 +32,25 @@
 \sectionlabel{1. Charakterystyka zakładu pracy / instytucji}
 
 \vspace{4pt}
-\begin{minipage}[t]{\linewidth}
 \fontsize{10}{14}\selectfont
 (( data.charakterystyka | le ))
-\vspace{36pt}
-\end{minipage}
+\par\vspace{18pt}
 
 \sectionrule
 \sectionlabel{2. Opis wykonywanych prac i zadań}
 
 \vspace{4pt}
-\begin{minipage}[t]{\linewidth}
 \fontsize{10}{14}\selectfont
 (( data.opis_prac | le ))
-\vspace{48pt}
-\end{minipage}
+\par\vspace{24pt}
 
 \sectionrule
 \sectionlabel{3. Nabyta wiedza i umiejętności}
 
 \vspace{4pt}
-\begin{minipage}[t]{\linewidth}
 \fontsize{10}{14}\selectfont
 (( data.wiedza_umiejetnosci | le ))
-\vspace{36pt}
-\end{minipage}
+\par\vspace{18pt}
 
 \sectionrule
 \vspace{6pt}
@@ -63,7 +58,7 @@
 \psig{Data sporządzenia sprawozdania}{(( data.data | le ))}
 \end{minipage}\hfill
 \begin{minipage}[t]{\twocolB}
-\psig{Podpis studenta}{(( data.podpis_studenta | le ))}
+\psig{Podpis ((* if female *))studentki((* else *))studenta((* endif *))}{(( data.podpis_studenta | le ))}
 \end{minipage}
 
 \end{document}

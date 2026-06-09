@@ -53,11 +53,21 @@ class Config:
     MS_CLIENT_SECRET = os.environ.get("MS_CLIENT_SECRET", "")
     MS_TENANT_ID = os.environ.get("MS_TENANT_ID", "common")
     MS_REDIRECT_URI = os.environ.get("MS_REDIRECT_URI", "")
+    MS_STAFF_EMAIL_DOMAIN = os.environ.get(
+        "MS_STAFF_EMAIL_DOMAIN", "ans-elblag.pl",
+    ).strip().lower()
     MS_ALLOWED_EMAIL_DOMAINS = tuple(
         domain.strip().lower()
         for domain in os.environ.get("MS_ALLOWED_EMAIL_DOMAINS", "").split(",")
         if domain.strip()
     )
-    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
-    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
-    GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")
+    ZOPZ_INVITATION_LIFETIME = timedelta(
+        hours=int(os.environ.get("ZOPZ_INVITATION_HOURS", "168")),
+    )
+    SMTP_HOST = os.environ.get("SMTP_HOST", "")
+    SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+    SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() == "true"
+    SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "")
+    SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+    MAIL_FROM = os.environ.get("MAIL_FROM", "praktyki@ans-elblag.pl")
+    PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "").rstrip("/")

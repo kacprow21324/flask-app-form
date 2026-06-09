@@ -6,7 +6,6 @@
 
     <div class="page-top">
         <div>
-            <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót do listy</a>
             {% set ns = namespace(name='') %}
             {% for key in ['zal3','zal4','zal6','zal1','zal7','zal7a','zal9'] %}
                 {% if not ns.name and student.get(key) and student[key].get('imie_nazwisko') %}
@@ -33,6 +32,13 @@
         </div>
         {% endif %}
 
+    </div>
+
+    <div class="practice-result practice-result-{{ practice_state.code }}">
+        <strong>{{ practice_state.label }}</strong>
+        {% if practice_state.code == 'in_progress' %}
+        <span>Dokumenty standardowej praktyki należy kończyć zgodnie z kolejnością faz.</span>
+        {% endif %}
     </div>
 
     {% if archive_packages %}
@@ -69,15 +75,24 @@
         {% set status = state.status if r and state else ('draft' if r else '') %}
         {% set wf = document_workflow.get(att.key, {}) %}
         {% set reviewer_role = wf.get('reviewer') %}
+        {% set sequence = workflow_access.get(att.key) %}
+        {% set is_unlocked = not sequence or sequence.unlocked %}
         {% set is_creator = att.key in editable_forms %}
         {% set is_reviewer = reviewer_role and (user_role == reviewer_role or user_role == 'admin') %}
-        {% set can_edit = not record_archived and ((is_creator and status in ('draft', 'rejected')) or (user_role == 'admin' and status == 'draft')) %}
+        {% set can_edit = not record_archived and is_unlocked and ((is_creator and status in ('draft', 'rejected')) or (user_role == 'admin' and status == 'draft')) %}
 
-        <div id="doc-{{ att.key }}" class="attachment-card {% if r %}card-filled{% else %}card-empty{% endif %}{% if status == 'rejected' %} card-rejected{% endif %}">
+        <div id="doc-{{ att.key }}" class="attachment-card {% if r %}card-filled{% else %}card-empty{% endif %}{% if status == 'rejected' %} card-rejected{% endif %}{% if sequence and not sequence.unlocked %} card-locked{% endif %}">
             <div class="attachment-head">
                 <div>
                     <div class="attachment-label">Załącznik nr {{ att.nr }}</div>
                     <div class="attachment-title">{{ att.title }}</div>
+                    {% if sequence %}
+                    <div class="wf-owner">
+                        Faza {{ sequence.phase }} · wypełnia {{ sequence.owner_label }}
+                    </div>
+                    {% elif att.key in ['zal4a', 'zal4b'] %}
+                    <div class="wf-owner">Opcjonalna ścieżka doświadczenia zawodowego</div>
+                    {% endif %}
                 </div>
                 <div class="attachment-actions">
                     {% if r %}
@@ -92,7 +107,7 @@
                         <a href="{{ url_for('pobierz_pdf', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary">
                             Pobierz zatwierdzony PDF
                         </a>
-                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary" target="_blank">Podgląd wydruku</a>
+                        <a href="{{ url_for('drukuj', nr_albumu=nr_albumu, zal_key=att.key) }}" class="btn btn-sm btn-secondary">Podgląd wydruku</a>
                         {% endif %}
 
                         {% if can_edit %}
@@ -114,6 +129,11 @@
                            class="btn btn-sm btn-secondary">Przejrzyj i odrzuć…</a>
                         <button type="submit" form="approve-{{ att.key }}" class="btn btn-sm btn-success btn-review-action">Zatwierdź</button>
                         {% endif %}
+                        {% if is_creator and not reviewer_role and status == 'draft' and is_unlocked %}
+                        <form method="post" action="{{ url_for('zakoncz_dokument', nr_albumu=nr_albumu, zal_key=att.key) }}">
+                            <button type="submit" class="btn btn-sm btn-success">Zakończ etap →</button>
+                        </form>
+                        {% endif %}
 
                         {% set versions = generated_versions.get(att.key, []) %}
                         {% if versions %}
@@ -131,8 +151,10 @@
                         {% endif %}
 
                     {% else %}
-                        {% if is_creator %}
+                        {% if is_creator and is_unlocked %}
                             <a href="{{ url_for(att.key) }}?nr={{ nr_albumu }}" class="btn btn-sm">Wypełnij</a>
+                        {% elif sequence and not sequence.unlocked %}
+                            <span class="badge badge-empty">Zablokowany do zakończenia wcześniejszej fazy</span>
                         {% else %}
                             <span class="badge badge-empty">Oczekuje na opiekuna</span>
                         {% endif %}

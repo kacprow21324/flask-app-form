@@ -65,6 +65,7 @@ class StudentAPITests(unittest.TestCase):
             "last_name": "Nowak",
             "album_number": "27001",
             "email": "anna.nowak@example.test",
+            "gender": "K",
         }
 
         created = self.client.post(
@@ -109,6 +110,7 @@ class StudentAPITests(unittest.TestCase):
                 "last_name": "Nowak",
                 "album_number": "abc",
                 "email": "invalid",
+                "gender": "K",
             },
             headers=headers,
         )
@@ -120,6 +122,7 @@ class StudentAPITests(unittest.TestCase):
             "last_name": "Nowak",
             "album_number": "27001",
             "email": "anna.nowak@example.test",
+            "gender": "K",
         }
         self.assertEqual(
             self.client.post(

@@ -2,11 +2,11 @@
 {% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 2 – Program praktyki zawodowej{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = data.get('gender') if data and data.get('gender') else 'M' %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
 
 {% block content %}
 <div class="page page-form">
-
-    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
 
     <div class="doc-card">
 
@@ -104,7 +104,7 @@
                 <div class="table-wrap">
                     <table class="effects-table">
                         <tbody>
-                            <tr><td>W trakcie praktyki student prowadzi „Dzienniczek praktyki". Wpisy w dzienniczku powinny być potwierdzone przez zakładowego opiekuna praktyki.</td></tr>
+                            <tr><td>W trakcie praktyki {{ g('student', 'studentka') }} prowadzi „Dzienniczek praktyki". Wpisy w dzienniczku powinny być potwierdzone przez zakładowego opiekuna praktyki.</td></tr>
                             <tr><td>Na „Karcie praktyki zawodowej" kierownik zakładu pracy potwierdza odbycie praktyki, a opiekun zakładowy wystawia ocenę parametryczną i w formie opisowej.</td></tr>
                             <tr><td>Opiekun ze strony zakładu pracy na odpowiednim druku „Potwierdzenie efektów uczenia się" potwierdza osiągnięcie przez praktykanta wymienionych powyżej efektów uczenia się.</td></tr>
                         </tbody>

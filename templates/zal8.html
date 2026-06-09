@@ -2,11 +2,11 @@
 {% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 8 – Protokół zaliczenia praktyki{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = data.get('gender') if data and data.get('gender') else (val('imie_nazwisko') | plec) %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
 
 {% block content %}
 <div class="page page-form">
-
-    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
 
     <div class="doc-card">
 
@@ -27,7 +27,7 @@
             <div class="form-section">
                 <div class="form-row-2">
                     <div class="field-group">
-                        <label for="imie_nazwisko">Student / ka</label>
+                        <label for="imie_nazwisko">{{ g('Student', 'Studentka') }}</label>
                         <input id="imie_nazwisko" type="text" name="imie_nazwisko"
                                value="{{ val('imie_nazwisko') }}"
                                pattern=".+ .+" title="Podaj imię i nazwisko" required>

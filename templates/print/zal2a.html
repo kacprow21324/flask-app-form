@@ -2,6 +2,7 @@
 {% from "print/_macros.html" import field, sig, letterhead %}
 {% block doc_title %}Załącznik 2a – Program i harmonogram{% endblock %}
 {% block content %}
+{% set female = data.get('gender') == 'K' %}
 {{ letterhead('2a') }}
 <h1 class="p-title">Indywidualny program i harmonogram praktyki zawodowej</h1>
 <div class="p-section">
@@ -41,7 +42,7 @@
 </div>
 <div class="p-section">
     <div class="p-sig-row" style="grid-template-columns:1fr 1fr 1fr">
-        {{ sig('Podpis studenta', data.podpis_studenta) }}
+        {{ sig('Podpis studentki' if female else 'Podpis studenta', data.podpis_studenta) }}
         {{ sig('Podpis zakładowego opiekuna (data, pieczęć)', data.podpis_zakladowy) }}
         {{ sig('Podpis uczelnianego opiekuna (data)', data.podpis_uczelniany) }}
     </div>

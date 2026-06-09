@@ -1,6 +1,7 @@
 % ANS Elblag – Załącznik nr 2a – Indywidualny program i harmonogram
 \input{base}
 \begin{document}
+((* set female = data.get('gender') == 'K' *))
 
 \letterhead{2a}
 
@@ -89,7 +90,7 @@
 \newlength{\threesigW}
 \setlength{\threesigW}{0.31\linewidth}
 \begin{minipage}[t]{\threesigW}
-\psig{Podpis studenta}{(( data.podpis_studenta | le ))}
+\psig{Podpis ((* if female *))studentki((* else *))studenta((* endif *))}{(( data.podpis_studenta | le ))}
 \end{minipage}\hfill
 \begin{minipage}[t]{\threesigW}
 \psig{Podpis zakładowego opiekuna (data, pieczęć)}{(( data.podpis_zakladowy | le ))}

@@ -120,11 +120,17 @@ MS_CLIENT_SECRET
 MS_TENANT_ID
 MS_REDIRECT_URI
 MS_ALLOWED_EMAIL_DOMAINS
+MS_STAFF_EMAIL_DOMAIN
 ```
 
-Konto musi istnieć wcześniej w `users`. Pierwsze logowanie wiąże użytkownika
-z niezmiennym identyfikatorem `microsoft_tenant_id + microsoft_object_id`.
-Walidowane są tenant, issuer oraz domena adresu.
+Student musi istnieć wcześniej w `users`. Pracownik z App Role `UOPZ`,
+`Dziekanat` albo `Admin` jest tworzony lub synchronizowany przy logowaniu.
+Pierwsze logowanie wiąże konto z niezmiennym identyfikatorem
+`microsoft_tenant_id + microsoft_object_id`. Walidowane są tenant, issuer,
+domena adresu oraz jednoznaczność roli pracownika.
+
+ZOPZ jest zapraszany jednorazowym linkiem do praktyki lub jej części.
+Konfiguracja opcjonalnej wysyłki: `SMTP_*`, `MAIL_FROM`, `PUBLIC_BASE_URL`.
 
 ## Produkcja
 

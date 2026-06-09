@@ -10,6 +10,7 @@ class DocumentFSMTests(unittest.TestCase):
             ("rejected", "submit"): "pending",
             ("pending", "approve"): "approved",
             ("pending", "reject"): "rejected",
+            ("draft", "complete"): "approved",
         }
         for transition, target in expected.items():
             with self.subTest(transition=transition):
@@ -28,6 +29,7 @@ class DocumentFSMTests(unittest.TestCase):
 
     def test_role_permissions(self):
         self.assertTrue(DocumentFSM.role_can("student", "submit"))
+        self.assertTrue(DocumentFSM.role_can("student", "complete"))
         self.assertFalse(DocumentFSM.role_can("student", "approve"))
         self.assertTrue(DocumentFSM.role_can("zopz", "reject"))
         self.assertFalse(DocumentFSM.role_can("unknown", "submit"))

@@ -14,11 +14,27 @@
    wyłącznie konta w katalogu uczelni.
 2. Dodaj platformę `Web` i dokładny redirect URI:
    `https://DOMENA/auth/microsoft/callback`.
-3. Utwórz sekret klienta i zapisz jego wartość poza repozytorium.
-4. W `.env.production` ustaw `MS_CLIENT_ID`, `MS_CLIENT_SECRET`,
-   `MS_TENANT_ID`, `MS_REDIRECT_URI` i `MS_ALLOWED_EMAIL_DOMAINS`.
-5. Konto musi wcześniej istnieć w tabeli `users`, np. po imporcie CSV.
-   Pierwsze logowanie wiąże je z niezmiennym identyfikatorem `tid + oid`.
+3. W `App roles` utwórz role z wartościami `UOPZ`, `Dziekanat` i `Admin`.
+   Konto pracownika musi mieć dokładnie jedną z tych ról.
+4. Utwórz sekret klienta i zapisz jego wartość poza repozytorium.
+5. W `.env.production` ustaw `MS_CLIENT_ID`, `MS_CLIENT_SECRET`,
+   `MS_TENANT_ID`, `MS_REDIRECT_URI`, `MS_ALLOWED_EMAIL_DOMAINS` oraz
+   `MS_STAFF_EMAIL_DOMAIN`.
+6. Konto studenta musi wcześniej istnieć w tabeli `users`, np. po imporcie
+   CSV. Pierwsze logowanie wiąże je z niezmiennym identyfikatorem `tid + oid`.
+7. Konto pracownika z poprawną App Role jest tworzone przy pierwszym
+   logowaniu. Zmiana App Role aktualizuje rolę aplikacyjną.
+
+## Zaproszenia ZOPZ
+
+Zakładowy opiekun praktyki otrzymuje jednorazowy link przypisany do całej
+praktyki albo konkretnej jej części. Ustaw `PUBLIC_BASE_URL` na publiczny
+adres aplikacji. Czas ważności kontroluje `ZOPZ_INVITATION_HOURS`.
+
+Wysyłka e-mail jest opcjonalna. Po ustawieniu `SMTP_HOST`, `SMTP_PORT`,
+`SMTP_USE_TLS`, `SMTP_USERNAME`, `SMTP_PASSWORD` i `MAIL_FROM` aplikacja
+wysyła link automatycznie. Bez SMTP link jest wyświetlany administratorowi
+jednorazowo po utworzeniu zaproszenia.
 
 Dokumentacja Microsoft:
 

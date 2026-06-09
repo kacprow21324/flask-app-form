@@ -10,9 +10,10 @@
 \usepackage{polyglossia}
 \setmainlanguage{polish}
 
-% TeX Live fonts keep local, CI and production output visually identical.
-\setmainfont{Latin Modern Roman}
-\setsansfont{Latin Modern Sans}
+% TeX Gyre Pagella (Palatino) — bliski Cambrii z szablonów HTML
+% TeX Gyre Heros  (Helvetica) — etykiety pól i sekcji jak Arial
+\setmainfont{TeX Gyre Pagella}
+\setsansfont{TeX Gyre Heros}
 
 % ── Page geometry ─────────────────────────────────────────────
 \usepackage[
@@ -25,6 +26,8 @@
 
 % ── Core packages ─────────────────────────────────────────────
 \usepackage{tabularx}
+\usepackage{ltablex}
+\keepXColumns
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
@@ -35,37 +38,40 @@
 \usepackage{parskip}
 \usepackage{ifthen}
 \usepackage{setspace}
-\usepackage{colortbl}   % for \rowcolor in tabular
-\usepackage{calc}       % for \dimexpr arithmetic
-\usepackage{amssymb}    % for \square and \boxtimes in checkbox fields
+\usepackage{colortbl}
+\usepackage{calc}
+\usepackage{amssymb}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
 
-% ── Colors ───────────────────────────────────────────────────
-\definecolor{ansblue}{RGB}{31,78,138}
-\definecolor{lightgray}{RGB}{240,240,240}
-\definecolor{midgray}{RGB}{170,170,170}
-\definecolor{darkgray}{RGB}{68,68,68}
-\definecolor{sectiongray}{RGB}{100,100,100}
+% ── Colors (dopasowane do szablonów HTML) ────────────────────
+\definecolor{ansblue}{RGB}{31,78,216}      % #1f4ed8 – odznaka oceny
+\definecolor{sepgray}{RGB}{200,200,200}    % #c8c8c8 – separatory sekcji
+\definecolor{midgray}{RGB}{153,153,153}    % #999    – podkreślenia pól
+\definecolor{labelgray}{RGB}{85,85,85}     % #555    – etykiety pól
+\definecolor{darkgray}{RGB}{68,68,68}      % #444    – etykiety sekcji, dział
+\definecolor{sectiongray}{RGB}{85,85,85}   % alias   – zgodność wsteczna
+\definecolor{lightgray}{RGB}{240,240,240}  % #f0f0f0 – nagłówki tabel
 
 % ── No indentation, paragraph spacing ─────────────────────────
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{3pt plus1pt}
 
-% ── Consistent footer and page numbering
+% ── Footer ────────────────────────────────────────────────────
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
-\fancyfoot[C]{\fontsize{8}{10}\selectfont\color{sectiongray}Strona \thepage}
+\fancyfoot[C]{\fontsize{8}{10}\selectfont\color{labelgray}Strona \thepage}
 
-% Reduce overfull lines for user-provided text while preserving word wrapping.
 \setlength{\emergencystretch}{2em}
 \sloppy
 
-% ── Column type for centered+arraybackslash in tabularx ───────
+% ── Column type ───────────────────────────────────────────────
 \newcolumntype{C}{>{\centering\arraybackslash}X}
 
 % ──────────────────────────────────────────────────────────────
-% \letterhead{badge_nr}  — ANS header with horizontal rule
+% \letterhead{badge_nr}  — nagłówek ANS z poziomą linią
 % ──────────────────────────────────────────────────────────────
 \newcommand{\letterhead}[1]{%
   \noindent
@@ -79,76 +85,76 @@
   \begin{minipage}[t]{0.30\linewidth}
     \raggedleft
     \setlength{\fboxsep}{4pt}
-    \fbox{%
+    \setlength{\fboxrule}{0.75pt}
+    {\color{darkgray}\fbox{%
       \parbox{0.92\linewidth}{%
         \centering
         \fontsize{7.5}{9}\selectfont\bfseries
-        Zał. nr~#1%
+        Zał.~nr~#1%
       }%
-    }%
+    }}%
   \end{minipage}
   \par\vspace{4pt}
-  \noindent\rule{\linewidth}{1pt}
+  \noindent{\color{sepgray}\rule{\linewidth}{1.5pt}}
   \par\vspace{6pt}
 }
 
 % ──────────────────────────────────────────────────────────────
-% \pfield{label}{value}  — labeled field with underline
+% \pfield{label}{value}  — pole z etykietą i podkreśleniem
 % ──────────────────────────────────────────────────────────────
 \newcommand{\pfield}[2]{%
   \par
-  {\fontsize{8}{10}\selectfont\sffamily\color{sectiongray}#1}
+  {\fontsize{8}{10}\selectfont\sffamily\color{labelgray}#1}
   \par\noindent
-  \parbox[t]{\linewidth}{%
-    \raggedright\fontsize{10}{13}\selectfont #2\strut%
-  }%
+  {\raggedright\fontsize{10}{13}\selectfont #2\strut\par}%
   \par\vspace{-2pt}
-  \noindent{\color{midgray}\rule{\linewidth}{0.4pt}}
+  \noindent{\color{midgray}\rule{\linewidth}{0.5pt}}
   \par\vspace{3pt}
 }
 
 % ──────────────────────────────────────────────────────────────
-% \psig{label}{value}  — signature box with dashed border
-%  Uses \fbox with a minimum height achieved via \vspace inside
+% \psig{label}{value}  — pole podpisu z przerywaną ramką
 % ──────────────────────────────────────────────────────────────
 \newcommand{\psig}[2]{%
-  \par
-  \begingroup
-  \setlength{\fboxsep}{5pt}
-  \setlength{\fboxrule}{0.4pt}
-  \noindent\fbox{%
-    \begin{minipage}[t]{\dimexpr\linewidth-\fboxsep*2-\fboxrule*2\relax}
-      \raggedright
-      {\fontsize{8}{10}\selectfont\sffamily\itshape\color{sectiongray}#1}\\[4pt]
-      {\fontsize{10}{13}\selectfont #2\strut}
-      \par\vspace{10pt}
-    \end{minipage}%
-  }%
-  \endgroup
+  \par\vspace{2pt}
+  \begin{tcolorbox}[
+    enhanced,
+    colback=white,
+    frame hidden,
+    borderline={0.4pt}{0pt}{midgray, dashed},
+    arc=0pt, outer arc=0pt,
+    left=5pt, right=5pt, top=5pt, bottom=10pt,
+    boxsep=0pt
+  ]
+  {\fontsize{8}{10}\selectfont\sffamily\itshape\color{labelgray}#1}\\[4pt]
+  {\fontsize{10}{13}\selectfont #2\strut}
+  \vspace{6pt}
+  \end{tcolorbox}%
   \par\vspace{4pt}
 }
 
 % ──────────────────────────────────────────────────────────────
-% \sectionlabel{text}  — small uppercase section heading
+% \sectionlabel{text}  — nagłówek sekcji (uppercase, letter-spacing)
 % ──────────────────────────────────────────────────────────────
 \newcommand{\sectionlabel}[1]{%
   \par\vspace{4pt}
-  {\fontsize{7.5}{10}\selectfont\sffamily\bfseries\color{sectiongray}#1}%
+  {\fontsize{7.5}{10}\selectfont\sffamily\bfseries\color{darkgray}%
+   \addfontfeature{LetterSpace=100}\MakeUppercase{#1}}%
   \par\vspace{3pt}
 }
 
 % ──────────────────────────────────────────────────────────────
-% \doctitle{text}  — centered bold uppercase title
+% \doctitle{text}  — wyśrodkowany tytuł dokumentu
 % ──────────────────────────────────────────────────────────────
 \newcommand{\doctitle}[1]{%
   \begin{center}
-    {\fontsize{12}{15}\selectfont\bfseries #1}
+    {\fontsize{12}{15}\selectfont\bfseries\addfontfeature{LetterSpace=40}#1}
   \end{center}
   \vspace{2pt}
 }
 
 % ──────────────────────────────────────────────────────────────
-% \docsubtitle{text}  — centered italic subtitle
+% \docsubtitle{text}  — wyśrodkowany podtytuł
 % ──────────────────────────────────────────────────────────────
 \newcommand{\docsubtitle}[1]{%
   \begin{center}
@@ -158,16 +164,16 @@
 }
 
 % ──────────────────────────────────────────────────────────────
-% \sectionrule  — thin horizontal separator between sections
+% \sectionrule  — cienka linia między sekcjami
 % ──────────────────────────────────────────────────────────────
 \newcommand{\sectionrule}{%
   \par\vspace{4pt}
-  \noindent{\color{lightgray}\rule{\linewidth}{0.5pt}}%
+  \noindent{\color{sepgray}\rule{\linewidth}{0.5pt}}%
   \par\vspace{3pt}
 }
 
 % ──────────────────────────────────────────────────────────────
-% \grade{value}  — highlighted grade badge (colored box)
+% \grade{value}  — kolorowa odznaka oceny
 % ──────────────────────────────────────────────────────────────
 \newcommand{\grade}[1]{%
   \colorbox{ansblue}{%
@@ -175,7 +181,7 @@
   }%
 }
 
-% ── Column widths for two-column and three-column rows ────────
+% ── Column widths ─────────────────────────────────────────────
 \newlength{\twocolA}
 \newlength{\twocolB}
 \setlength{\twocolA}{0.475\linewidth}

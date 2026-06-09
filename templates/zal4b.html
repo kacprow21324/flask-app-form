@@ -2,6 +2,8 @@
 {% from "macros.html" import sig_stamp %}
 {% block title %}Załącznik 4b – Wniosek o zaliczenie efektów uczenia się{% endblock %}
 {% macro val(field) %}{{ (data[field] if data and data[field] is not none else '') | default('') }}{% endmacro %}
+{% set plec = data.get('gender') if data and data.get('gender') else (val('imie_nazwisko') | plec) %}
+{% macro g(m, f) %}{{ f if plec == 'K' else m }}{% endmacro %}
 {% macro efekt_val(nr, field) %}
     {% if data and data.efekty_wniosek is defined %}
         {% for ew in data.efekty_wniosek %}{% if ew.nr == nr %}{{ ew[field] }}{% endif %}{% endfor %}
@@ -10,8 +12,6 @@
 
 {% block content %}
 <div class="page page-form">
-
-    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
 
     <div class="doc-card">
 
@@ -23,7 +23,7 @@
             <div class="doc-badge">Załącznik nr 4b</div>
         </div>
 
-        <h1 class="doc-title">Wniosek studenta o zaliczenie efektów uczenia się<br>z tytułu doświadczenia zawodowego</h1>
+        <h1 class="doc-title">Wniosek {{ g('studenta', 'studentki') }} o zaliczenie efektów uczenia się<br>z tytułu doświadczenia zawodowego</h1>
 
         <form method="post"
               action="{{ url_for('zal4b_edit', nr_albumu=edit_nr) if edit_nr else url_for('zal4b') }}">
@@ -37,7 +37,7 @@
             </div>
             {% endif %}
             <div class="form-section">
-                <div class="form-section-label">A. Dane studenta</div>
+                <div class="form-section-label">A. Dane {{ g('studenta', 'studentki') }}</div>
                 <div class="form-row-2">
                     <div class="field-group">
                         <label for="imie_nazwisko">Imię i nazwisko</label>
@@ -167,7 +167,7 @@
                         <input id="data" type="date" name="data" value="{{ val('data') }}"
                                {% if student_ro %}readonly{% endif %}>
                     </div>
-                    {{ sig_stamp(val('podpis_studenta'), 'Podpis studenta') }}
+                    {{ sig_stamp(val('podpis_studenta'), g('Podpis studenta', 'Podpis studentki')) }}
                 </div>
             </div>
 

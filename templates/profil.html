@@ -2,7 +2,6 @@
 {% block title %}Mój profil{% endblock %}
 {% block content %}
 <div class="page" style="max-width:760px">
-    <a class="back-link" href="{{ url_for('index') }}">&larr; Powrót</a>
     <h1>Mój profil</h1>
 
     <div class="doc-card" style="padding:24px 28px">
@@ -79,6 +78,13 @@
                         </label>
                     </div>
                     <span class="field-hint">Będzie automatycznie zaznaczany w formularzach.</span>
+                </div>
+                <div class="field-group" style="margin-top:14px">
+                    <label for="gender">Płeć używana do odmiany treści dokumentów</label>
+                    <select id="gender" name="gender" required>
+                        <option value="K" {% if current_user.gender == 'K' %}selected{% endif %}>Kobieta</option>
+                        <option value="M" {% if current_user.gender != 'K' %}selected{% endif %}>Mężczyzna</option>
+                    </select>
                 </div>
                 <div class="form-actions" style="margin-top:20px">
                     <button class="btn" type="submit">Zapisz profil</button>

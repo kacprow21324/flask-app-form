@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Utworzone zaproszenie ZOPZ{% endblock %}
+{% block content %}
+<div class="page">
+    <section class="card" style="max-width: 820px; margin: 0 auto">
+        <h1>Zaproszenie zostało utworzone</h1>
+        <p>
+            <strong>{{ invitation.first_name }} {{ invitation.last_name }}</strong>
+            ({{ invitation.email }}) otrzyma dostęp do praktyki studenta
+            {{ invitation.internship.student.full_name }}.
+        </p>
+        {% if email_sent %}
+        <div class="flash flash-success">Link został wysłany przez e-mail.</div>
+        {% elif email_error %}
+        <div class="flash flash-warning">
+            Zaproszenie zapisano, ale wysyłka e-mail nie powiodła się.
+            Przekaż poniższy link ręcznie.
+        </div>
+        {% else %}
+        <div class="flash flash-info">
+            SMTP nie jest skonfigurowane. Ten link jest wyświetlany tylko teraz.
+        </div>
+        {% endif %}
+        <div class="field-group" style="margin-top: 18px">
+            <label for="invitation-url">Jednorazowy link aktywacyjny</label>
+            <input id="invitation-url" value="{{ invitation_url }}" readonly
+                   onclick="this.select()">
+        </div>
+        <p class="subtitle">
+            Link wygasa {{ invitation.expires_at.strftime('%d.%m.%Y o %H:%M') }} UTC.
+            Wygenerowanie kolejnego zaproszenia dla tego samego zakresu unieważni poprzednie.
+        </p>
+        <a class="btn" href="{{ url_for('admin.dashboard') }}">Wróć do administracji</a>
+    </section>
+</div>
+{% endblock %}

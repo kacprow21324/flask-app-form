@@ -335,6 +335,56 @@ class InternshipPart(db.Model):
     )
 
 
+class ZopzInvitation(db.Model):
+    __tablename__ = "zopz_invitations"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    email = db.Column(db.String(255), nullable=False, index=True)
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+    internship_id = db.Column(
+        db.Integer,
+        db.ForeignKey("internships.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    internship_part_id = db.Column(
+        db.Integer,
+        db.ForeignKey("internship_parts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    invited_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        index=True,
+    )
+    accepted_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        index=True,
+    )
+    token_hash = db.Column(db.String(64), nullable=False, unique=True)
+    expires_at = db.Column(db.DateTime(), nullable=False, index=True)
+    accepted_at = db.Column(db.DateTime())
+    revoked_at = db.Column(db.DateTime())
+    created_at = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
+
+    internship = db.relationship("Internship", foreign_keys=[internship_id])
+    internship_part = db.relationship(
+        "InternshipPart", foreign_keys=[internship_part_id],
+    )
+    invited_by = db.relationship("User", foreign_keys=[invited_by_id])
+    accepted_user = db.relationship("User", foreign_keys=[accepted_user_id])
+
+    @property
+    def is_pending(self):
+        return (
+            self.accepted_at is None
+            and self.revoked_at is None
+            and self.expires_at > datetime.utcnow()
+        )
+
+
 class Notification(db.Model):
     __tablename__ = "notifications"
 
@@ -488,6 +538,7 @@ class User(UserMixin, db.Model):
     album_number = db.Column(db.String(20), unique=True)
     speciality = db.Column(db.String(400))
     study_mode = db.Column(db.String(20), default='stacjonarne')
+    gender = db.Column(db.String(1))
     semester = db.Column(db.String(10))       # semestr studenta (np. "6")
     study_year = db.Column(db.String(10))     # rok studiów (np. "3")
 

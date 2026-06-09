@@ -1,6 +1,7 @@
 % ANS Elblag – Załącznik nr 2 – Program praktyki zawodowej
 \input{base}
 \begin{document}
+((* set female = data.get('gender') == 'K' *))
 
 \letterhead{2}
 
@@ -76,7 +77,7 @@ Praca na docelowym stanowisku pracy, wykonywanie prac i projektów informatyczny
 \renewcommand{\arraystretch}{1.3}
 \begin{tabularx}{\linewidth}{|X|}
 \hline
-W trakcie praktyki student prowadzi ,,Dzienniczek praktyki''. Wpisy w dzienniczku powinny być potwierdzone przez zakładowego opiekuna praktyki. \\
+W trakcie praktyki ((* if female *))studentka((* else *))student((* endif *)) prowadzi ,,Dzienniczek praktyki''. Wpisy w dzienniczku powinny być potwierdzone przez zakładowego opiekuna praktyki. \\
 \hline
 Na ,,Karcie praktyki zawodowej'' kierownik zakładu pracy potwierdza odbycie praktyki, a opiekun zakładowy wystawia ocenę parametryczną i w formie opisowej. \\
 \hline
