@@ -13,6 +13,17 @@ jobs:
       MONGO_URL: mongodb://localhost:27017/ci
       SESSION_COOKIE_SECURE: "false"
 
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval \"db.adminCommand('ping')\""
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
 

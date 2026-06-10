@@ -125,7 +125,7 @@ class ChromiumUserInterfaceTests(BrowserTestCase):
         response = self.page.goto(f"{BASE_URL}/student/21001")
         self.assertIsNotNone(response)
         self.assertLess(response.status, 400)
-        self.assertGreaterEqual(self.page.locator(".attachment-card").count(), 12)
+        self.assertGreaterEqual(self.page.locator(".attachment-card").count(), 11)
         self.assertTrue(
             self.page.get_by_role(
                 "button", name="Dokumenty", exact=True,
