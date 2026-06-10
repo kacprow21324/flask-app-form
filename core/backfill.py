@@ -10,7 +10,6 @@ _FORM_PRIORITY = {
     "zal1": 0,
     "zal3": 1,
     "zal6": 2,
-    "zal9": 3,
 }
 
 

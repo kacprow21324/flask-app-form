@@ -10,7 +10,7 @@
     <div class="p-row-2">{{ field('Kierunek studiów', 'Informatyka') }}{{ field('Wymiar godzin', data.wymiar_godzin) }}</div>
     {{ field('Specjalność', data.specjalnosc) }}
 </div>
-<div class="p-section">
+<div class="p-section" style="page-break-inside:auto">
     <p class="p-intro">W ramach praktyki zawodowej zrealizowanej w wymiarze <strong>{{ data.wymiar_godzin or 960 }}</strong> godzin {{ 'uzyskała lub nie uzyskała' if female else 'uzyskał lub nie uzyskał' }} zakładane dla praktyki zawodowej efekty uczenia się:</p>
     <table class="p-table">
         <thead><tr><th style="width:32pt">Nr</th><th>Efekty uczenia się</th><th style="width:110pt">Potwierdzenie uzyskania</th></tr></thead>
@@ -33,7 +33,7 @@
     </div>
     <div class="p-field" style="margin-top:12pt">
         <span class="p-field-label">Opinia opiekuna uczelnianego</span>
-        <div style="border:0.5pt solid #999; min-height:60pt; padding:6pt 8pt; font-size:10pt; margin-top:3pt">
+        <div style="border:0.75pt dashed #999; min-height:110pt; padding:8pt; font-size:10pt; margin-top:4pt">
             {{ data.opinia_opiekuna or '' }}
         </div>
         <div style="font-size:8pt; color:#555; margin-top:6pt; font-style:italic">

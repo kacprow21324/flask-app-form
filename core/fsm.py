@@ -66,7 +66,6 @@ class DocumentFSM:
     # Liniowy workflow egzekwuje blokady w practice_workflow; ta mapa służy też
     # niezależnej walidacji zależności dokumentów.
     PREREQUISITES: dict[str, list[tuple[str, str]]] = {
-        # Faza 0 (zal9 usunięte z obiegu — dostępne opcjonalnie)
         # Faza 1A
         'zal3':  [('zal1', 'approved')],                  # Karta praktyki po Porozumieniu
         # Faza 1B

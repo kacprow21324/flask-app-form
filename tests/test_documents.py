@@ -11,7 +11,6 @@ import app as application_module
 import core.web as web_module
 from core import workflow
 from core.documents import archive_pdf, source_checksum
-from core.generate_pdf_latex import PDFEngineUnavailable
 from core.models import (
     Attachment,
     DocumentWorkflow,

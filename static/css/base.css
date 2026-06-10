@@ -2450,7 +2450,18 @@ a.wf-dot { cursor: pointer; }
     font-size: 0.76rem;
 }
 
-.internship-part-create { margin-top: 20px; }
+.internship-part-create {
+    border: 2px dashed var(--border);
+    box-shadow: none;
+}
+
+.internship-part-create .internship-part-header {
+    margin-bottom: 14px;
+}
+
+.internship-part-create .workflow-card-label {
+    color: var(--accent);
+}
 
 @media (max-width: 900px) {
     .internship-part-summary { grid-template-columns: 1fr 1fr; }
@@ -2560,19 +2571,40 @@ a.wf-dot { cursor: pointer; }
 
 .admin-section-header {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 14px;
+    flex-wrap: nowrap;
+}
+
+.admin-section-header h2 {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .admin-filters {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
 }
 
-.admin-filters input { min-width: 260px; }
+.admin-filters input {
+    width: 210px;
+    flex-shrink: 1;
+}
+
+.admin-filters select {
+    width: auto;
+    flex-shrink: 0;
+}
+
+@media (max-width: 1050px) {
+    .admin-filters { flex-wrap: wrap; }
+    .admin-filters input { width: 100%; }
+}
+
 .admin-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .admin-actions form { margin: 0; }
 .admin-actions .btn { white-space: nowrap; min-width: 90px; text-align: center; }
@@ -2808,12 +2840,18 @@ a.wf-dot { cursor: pointer; }
 .admin-panel > h2,
 .admin-panel .admin-section-header h2 {
     font-size: 1.05rem;
+    margin-top: 0;
     margin-bottom: 5px;
+}
+
+.admin-panel > p.subtitle {
+    margin-bottom: 14px;
 }
 
 .admin-panel .table-wrap {
     margin-top: 16px;
     border-radius: 7px;
+    overflow: hidden;
 }
 
 .admin-console .workflow-stat {
@@ -2825,6 +2863,15 @@ a.wf-dot { cursor: pointer; }
 .admin-console select,
 .admin-console textarea {
     border-radius: 6px;
+}
+
+.admin-grid > .admin-section {
+    margin-top: 0;
+}
+
+.admin-panel form > .btn,
+.admin-panel form > button {
+    margin-top: 14px;
 }
 
 @media (max-width: 768px) {

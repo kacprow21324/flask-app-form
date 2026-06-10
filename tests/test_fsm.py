@@ -35,8 +35,6 @@ class DocumentFSMTests(unittest.TestCase):
         self.assertFalse(DocumentFSM.role_can("unknown", "submit"))
 
     def test_prerequisites_report_missing_and_wrong_states(self):
-        # zal9 nie ma już prerequisites (usunięte z obiegu)
-        self.assertTrue(DocumentFSM.prerequisites_ok("zal9", {}))
         unmet = DocumentFSM.check_prerequisites(
             "zal8",
             {"zal3": "approved", "zal7": "pending"},

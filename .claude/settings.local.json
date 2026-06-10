@@ -61,7 +61,10 @@
       "Bash(Select-Object FullName)",
       "PowerShell(head *)",
       "Bash(docker-compose run *)",
-      "Bash(docker-compose build *)"
+      "Bash(docker-compose build *)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Remove-Item *)"
     ]
   }
 }

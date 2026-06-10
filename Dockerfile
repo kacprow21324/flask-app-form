@@ -2,12 +2,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# System libraries:
-#   - WeasyPrint: Cairo + Pango (nadal używane przez /drukuj w przeglądarce)
-#   - XeLaTeX:    TeX Live z obsługą polskich znaków i fontów TeX Gyre
+# System libraries: WeasyPrint (Cairo + Pango) i przełącznik użytkownika
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    \
-    # WeasyPrint
     libpango-1.0-0 \
     libpangoft2-1.0-0 \
     libgdk-pixbuf-xlib-2.0-0 \
@@ -15,16 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi8 \
     fonts-dejavu-core \
     fonts-texgyre \
-    \
-    # XeLaTeX – silnik + wymagane pakiety LaTeX
-    texlive-xetex \
-    texlive-latex-extra \
-    texlive-fonts-recommended \
-    texlive-lang-polish \
-    \
-    # Bezpieczne przełączanie użytkownika w entrypoincie
     gosu \
-    \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

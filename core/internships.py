@@ -218,7 +218,6 @@ def _company_values(form_key, record):
         "zal3": (record.get("zaklad_pracy"), None, None),
         "zal4b": (record.get("pracodawca"), None, record.get("adres_pracodawcy")),
         "zal6": (record.get("miejsce_praktyki"), None, None),
-        "zal9": (record.get("nazwa_instytucji"), None, None),
     }
     return mappings.get(form_key, (None, None, None))
 
@@ -251,9 +250,6 @@ def _get_or_create_company(form_key, record):
             record.get("reprezentant_stanowisko", "").strip()
             or company.representative_position
         )
-    if form_key == "zal9":
-        company.phone = record.get("opiekun_telefon", "").strip() or company.phone
-        company.email = record.get("opiekun_email", "").strip() or company.email
     return company
 
 

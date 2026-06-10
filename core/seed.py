@@ -154,7 +154,7 @@ ROLE_ACCESS_DATA = {
     'zopz':      ['zal3', 'zal4'],
     'dziekanat': ['zal8'],
     'admin':     ['zal1', 'zal2', 'zal2a', 'zal3', 'zal4', 'zal4a', 'zal4b',
-                  'zal5', 'zal6', 'zal7', 'zal7a', 'zal8', 'zal9'],
+                  'zal5', 'zal6', 'zal7', 'zal7a', 'zal8'],
 }
 
 # step, key, nr, title, when_label, hint
@@ -251,10 +251,6 @@ FORM_FIELDS_DATA = {
               "Członek komisji 2", "Członek komisji 3",
               "Mini-zadania – treść", "Mini-zadania – ocena",
               "Ocena E (egzamin)", "Ocena K (końcowa)"],
-    'zal9':  ["Imię i nazwisko", "Nr albumu", "Miejscowość", "Data", "Nazwa instytucji",
-              "Termin – od", "Termin – do", "Opiekun – imię i nazwisko",
-              "Opiekun – stanowisko", "Opiekun – telefon", "Opiekun – e-mail",
-              "Upoważniony – imię i nazwisko", "Upoważniony – stanowisko", "Podpis"],
 }
 
 

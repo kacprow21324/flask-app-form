@@ -145,58 +145,65 @@
             {% endif %}
         </div>
         {% else %}
-        <div class="card"><p class="empty-state">Brak części praktyki w roku {{ selected_year }}.</p></div>
+        <div class="card internship-part-card"><p class="empty-state">Brak części praktyki w roku {{ selected_year }}.</p></div>
         {% endfor %}
-    </div>
 
-    {% if can_manage %}
-    <div class="card internship-part-create">
-        <h2>Dodaj kolejną część</h2>
-        <form method="post" action="{{ url_for('praktyki', tab='czesci') }}" class="internship-part-form">
-            <input type="hidden" name="tab" value="czesci">
-            <input type="hidden" name="nr" value="{{ student.album_number }}">
-            <input type="hidden" name="academic_year" value="{{ selected_year }}">
-            <input type="hidden" name="action" value="save">
-            <div class="form-row-2">
-                <div class="field-group"><label>Nazwa części</label><input name="name" placeholder="np. Praktyka w firmie B" required maxlength="200"></div>
-                <div class="field-group"><label>Miejsce praktyki</label><input name="company_name" maxlength="300"></div>
-            </div>
-            <div class="form-row-3">
-                <div class="field-group"><label>Data rozpoczęcia</label><input type="date" name="start_date"></div>
-                <div class="field-group"><label>Data zakończenia</label><input type="date" name="end_date"></div>
-                <div class="field-group">
-                    <label>Status</label>
-                    <select name="status">
-                        <option value="planned">Planowana</option>
-                        <option value="active">W realizacji</option>
-                        <option value="completed">Zakończona</option>
-                    </select>
+        {% if can_manage %}
+        <div class="card internship-part-card internship-part-create">
+            <div class="internship-part-header">
+                <div>
+                    <span class="workflow-card-label">Nowa część</span>
+                    <h2>Dodaj część praktyki</h2>
                 </div>
             </div>
-            <div class="form-row-3">
-                <div class="field-group"><label>Godziny planowane</label><input type="number" min="0" name="planned_hours" value="0"></div>
-                <div class="field-group"><label>Godziny zrealizowane</label><input type="number" min="0" name="total_hours" value="0"></div>
-                <div class="field-group"><label>Dni zrealizowane</label><input type="number" min="0" name="total_days" value="0"></div>
-            </div>
-            <div class="form-row-2">
-                <div class="field-group">
-                    <label>Opiekun uczelniany (UOPZ)</label>
-                    <select name="uopz_id">
-                        <option value="">Nie przypisano</option>
-                        {% for user in uopz_users %}<option value="{{ user.id }}">{{ user.full_name }}</option>{% endfor %}
-                    </select>
+            <form method="post" action="{{ url_for('praktyki', tab='czesci') }}" class="internship-part-form">
+                <input type="hidden" name="tab" value="czesci">
+                <input type="hidden" name="nr" value="{{ student.album_number }}">
+                <input type="hidden" name="academic_year" value="{{ selected_year }}">
+                <input type="hidden" name="action" value="save">
+                <div class="form-row-2">
+                    <div class="field-group"><label>Nazwa części</label><input name="name" placeholder="np. Praktyka w firmie B" required maxlength="200"></div>
+                    <div class="field-group"><label>Miejsce praktyki</label><input name="company_name" maxlength="300"></div>
                 </div>
-                <div class="field-group">
-                    <label>Opiekun zakładowy (ZOPZ)</label>
-                    <select name="zopz_id">
-                        <option value="">Nie przypisano</option>
-                        {% for user in zopz_users %}<option value="{{ user.id }}">{{ user.full_name }}</option>{% endfor %}
-                    </select>
+                <div class="form-row-3">
+                    <div class="field-group"><label>Data rozpoczęcia</label><input type="date" name="start_date"></div>
+                    <div class="field-group"><label>Data zakończenia</label><input type="date" name="end_date"></div>
+                    <div class="field-group">
+                        <label>Status</label>
+                        <select name="status">
+                            <option value="planned">Planowana</option>
+                            <option value="active">W realizacji</option>
+                            <option value="completed">Zakończona</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <button class="btn" type="submit">Dodaj część praktyki</button>
-        </form>
+                <div class="form-row-3">
+                    <div class="field-group"><label>Godziny planowane</label><input type="number" min="0" name="planned_hours" value="0"></div>
+                    <div class="field-group"><label>Godziny zrealizowane</label><input type="number" min="0" name="total_hours" value="0"></div>
+                    <div class="field-group"><label>Dni zrealizowane</label><input type="number" min="0" name="total_days" value="0"></div>
+                </div>
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label>Opiekun uczelniany (UOPZ)</label>
+                        <select name="uopz_id">
+                            <option value="">Nie przypisano</option>
+                            {% for user in uopz_users %}<option value="{{ user.id }}">{{ user.full_name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Opiekun zakładowy (ZOPZ)</label>
+                        <select name="zopz_id">
+                            <option value="">Nie przypisano</option>
+                            {% for user in zopz_users %}<option value="{{ user.id }}">{{ user.full_name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="internship-part-actions">
+                    <button class="btn" type="submit">Dodaj część praktyki</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 {% endblock %}

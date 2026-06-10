@@ -26,6 +26,7 @@ services:
       SEED_ZOPZ_PASSWORD: e2e-zopz-password
       SEED_DZIEKANAT_PASSWORD: e2e-dziekanat-password
       SEED_ADMIN_PASSWORD: e2e-admin-password
+      SEED_STUDENT4_PASSWORD: e2e-student4-password
     command:
       - sh
       - -c

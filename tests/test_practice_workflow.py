@@ -51,7 +51,6 @@ class PracticeWorkflowTests(unittest.TestCase):
         self.assertEqual(states[1]["state"], "current")
         self.assertEqual(states[2]["state"], "locked")
 
-        # Po usunięciu zal9 z obiegu, zal2 jest odblokowane gdy zal1 zatwierdzone
         unmet = unmet_previous_steps(self.student, "zal2", {
             "zal1": "approved",
         })
